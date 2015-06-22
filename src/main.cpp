@@ -58,17 +58,17 @@ int main(int argc, char **argv)
 	profile_model.emplace("DEPARTMENT", "Inteh");
 	profile_model.emplace("TAGS", "Student");
 	
-	std::cout << std::endl << "Generated page:" << std::endl
-			  << profile_page(profile_model) << std::endl;
+	// std::cout << std::endl << "Generated page:" << std::endl
+	// 		  << profile_page(profile_model) << std::endl;
 	
-	// interface_manager interface_manager(logger,
-	// 									project_data::config + "/" + SERVER_JSON_FILE,
-	// 									profile_model);
+	interface_manager interface_manager(logger,
+										project_data::config + "/" + SERVER_JSON_FILE,
+										profile_model);
 	
 	// Waiting for Ctrl+D
-	// while (std::cin) std::cin.get();
+	while (std::cin) std::cin.get();
 	
-	// interface_manager.stop();
+	interface_manager.stop();
 	
 	// server::host_cache cache;
 	// server::host::parse_uri("/index.html?param1=va1&param2=val2?param3&par4=&par5=&par6", cache);

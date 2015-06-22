@@ -67,3 +67,5 @@ Please, see [README-en.md](https://github.com/DmitryKuk/UniTrack/blob/master/REA
     + Автор серверной части проекта.
 - [Максим Иванов](https://github.com/splincode): <https://vk.com/splincode>
     + Автор веб-части проекта.
+- [Вера Продувнова](https://github.com/VeraProd)
+    + Автор модулей для шаблонизатора

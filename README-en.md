@@ -67,3 +67,5 @@ The project is under my own license:
     + Author of the server-side part of the project.
 - [Maxim Ivanov](https://github.com/splincode): <https://vk.com/splincode>
     + Author of the web-part of the project
+- [Vera Produvnova](https://github.com/VeraProd)
+    + Author of some modules for Templatizer

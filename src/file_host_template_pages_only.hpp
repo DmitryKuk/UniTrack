@@ -4,6 +4,9 @@
 #include <numeric>
 
 #include <server/host.h>
+#include <server/file_host_handler_exceptions.h>
+
+#include <templatizer/model_exceptions.h>
 
 
 inline
@@ -29,7 +32,13 @@ template_pages_only::operator()(const FileHost &host,
 	// Generating data to send
 	std::pair<base::send_buffers_t, base::send_buffers_t> res;
 	
-	cache.page_ptr->generate(res.second, cache.strings, this->page_model_);
+	try {
+		cache.page_ptr->generate(res.second, cache.strings, this->page_model_);
+	} catch (const templatizer::model_error &e) {
+		static const std::string model_error = "Model error: ";
+		
+		throw server::file_host_handler_error(model_error + e.what());
+	}
 	
 	size_t content_len = 0;
 	for (const auto &buffer: res.second)

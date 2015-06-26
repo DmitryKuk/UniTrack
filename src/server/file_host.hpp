@@ -7,6 +7,7 @@
 #include <base/mapped_file_exceptions.h>
 
 #include <server/host_exceptions.h>
+#include <server/file_host_handler_exceptions.h>
 
 
 template<class HostType, class CacheType>
@@ -165,9 +166,11 @@ server::file_host<HostType, CacheType>::response(
 		rec_obj << " => Try \"" << p << "\".";
 		
 		
-		return this->response(std::move(cache_ptr),
-							  method, version,
-							  std::move(request_headers));
+		return this->response(
+			std::move(cache_ptr),
+			method, version,
+			std::move(request_headers)
+		);
 	} catch (const boost::filesystem::filesystem_error &e) {
 		return this->handle_filesystem_error(
 			e, version, std::move(cache_ptr),
@@ -182,6 +185,11 @@ server::file_host<HostType, CacheType>::response(
 		return this->log_and_phony_response(
 			e.what(), version, std::move(cache_ptr),
 			server::http::status::not_found
+		);
+	} catch (const server::file_host_handler_error &e) {
+		return this->log_and_phony_response(
+			e.what(), version, std::move(cache_ptr),
+			server::http::status::internal_server_error
 		);
 	} catch (...) {
 		return this->log_and_phony_response(

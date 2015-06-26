@@ -12,16 +12,12 @@
 
 class page_model:
 	public templatizer::model,
-	public std::unordered_map<std::string, std::string>,
-	protected logger::enable_logger
+	public std::unordered_map<std::string, std::string>
 {
 public:
-	page_model(logger::logger &logger);
-	
-	
+	// Throws templatizer::variable_not_found exception, if variable does not exist
+	// in the model.
 	virtual const std::string & variable(const std::string &var_name) const override;
-private:
-	static const std::string unknown_var_;
 };	// class model
 
 

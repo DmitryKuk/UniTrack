@@ -52,7 +52,7 @@ int main(int argc, char **argv)
 	// Profile page
 	templatizer::page profile_page("www/profile.html");
 	
-	page_model profile_model(logger);
+	page_model profile_model;
 	profile_model.emplace("USERNAME", "Dmitry Kukovinets");
 	profile_model.emplace("UNIVERSITY", "STANKIN");
 	profile_model.emplace("DEPARTMENT", "Inteh");

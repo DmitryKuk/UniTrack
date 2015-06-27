@@ -5,7 +5,8 @@
 #include <fstream>
 #include <stdexcept>
 
-#include <json.hpp>
+#include <base/json.hpp>
+#include <base/json_utils.h>
 
 #include <templatizer/page.h>
 
@@ -16,20 +17,18 @@
 #include <file_host_template_pages_only.h>
 #include <file_host_files_and_template_pages.h>
 
-#include <json_utils.h>
-
 
 interface_manager::interface_manager(logger::logger &logger,
-									 const std::string &config_file_path,
+									 const boost::filesystem::path &config_file_path,
 									 page_model &model):
 	logger::enable_logger(logger),
 	
 	model_(model)
 {
 	try {
-		nlohmann::json config = std::move(utils::json_from_file(config_file_path));
+		nlohmann::json config = std::move(base::json_utils::json_from_file(config_file_path));
 		this->logger().stream(logger::level::info)
-			<< "Interface manager: Read config: \"" << config_file_path << "\".";
+			<< "Interface manager: Read config: " << config_file_path << '.';
 		
 		
 		// Server parameters

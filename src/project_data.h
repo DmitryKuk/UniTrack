@@ -5,11 +5,13 @@
 
 #include <string>
 
+#include <boost/filesystem/path.hpp>
+
 
 namespace project_data {
 
 
-extern const std::string
+extern const boost::filesystem::path
 	config,
 	www;
 

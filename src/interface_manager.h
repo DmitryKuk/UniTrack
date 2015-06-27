@@ -6,6 +6,8 @@
 #include <string>
 #include <memory>
 
+#include <boost/filesystem/path.hpp>
+
 #include <logger/logger.h>
 #include <server/server_http.h>
 
@@ -17,7 +19,7 @@ class interface_manager:
 {
 public:
 	interface_manager(logger::logger &logger,
-					  const std::string &config_file_path,
+					  const boost::filesystem::path &config_file_path,
 					  page_model &model);
 	
 	// Non-copy/move constructable/assignable.

@@ -62,7 +62,7 @@ int main(int argc, char **argv)
 	// 		  << profile_page(profile_model) << std::endl;
 	
 	interface_manager interface_manager(logger,
-										project_data::config + "/" + SERVER_JSON_FILE,
+										project_data::config / SERVER_JSON_FILE,
 										profile_model);
 	
 	// Waiting for Ctrl+D

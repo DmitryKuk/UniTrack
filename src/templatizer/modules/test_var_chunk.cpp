@@ -39,18 +39,26 @@ int main()
 		base::send_buffers_t buffers;
 		base::strings_cache_t cache;
 		
+		
+		// Primary work
 		chunk.generate(std::back_inserter(buffers),
 					   base::make_back_inserter_functor(cache),
 					   model);
 		
 		
+		// Must be 1 buffer
 		if (buffers.size() != 1)
-			return 1;
+			return 10;
 		
-		if (std::string(base::buffer_cast<const char *>(buffers[0]), base::buffer_size(buffers[0]))
-			!= "value")
-			return 1;
-	} catch (...) {
+		
+		// Buffer must contain string "key"
+		std::string buffer_value(base::buffer_cast<const char *>(buffers[0]),
+								 base::buffer_size(buffers[0]));
+		if (buffer_value != "value")
+			return 11;
+	} catch (const templatizer::variable_not_found &) {	// Requested unknown variable
+		return 12;
+	} catch (...) {	// Unknown error
 		return 1;
 	}
 	

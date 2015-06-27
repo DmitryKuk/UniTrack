@@ -1,18 +1,26 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#include <string>
+#include <templatizer/model_exceptions.h>
 
 #include <page_model.h>
 
 
 int main()
 {
-	page_model model;
-	
-	model.emplace("key", "value");
-	
-	if (model.variable("key") != "value")
-		return 1;
+	try {
+		page_model model;
+		
+		// Fill the model
+		model.emplace("key", "value");
+		
+		
+		if (model.variable("key") != "value")
+			return 10;
+	} catch (const templatizer::variable_not_found &) {
+		return 11;
+	} catch (...) {
+		return 12;
+	}
 	
 	return 0;
 }

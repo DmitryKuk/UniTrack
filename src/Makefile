@@ -72,15 +72,19 @@ TEST_TARGET_FILES			= $(call get_test_files,$(TEST_TARGETS))
 
 
 # Targets
-.PHONY: all clean check dirs main run-tests
+.PHONY: all clean clean-tests check dirs main tests run-tests
 .SILENT:
 
 
 all: dirs main
 
 
-clean:
-	rm -rf $(OBJECT_FILES) $(MAIN_OBJECT_FILES) $(TEST_OBJECT_FILES) $(TEST_TARGET_FILES)
+clean: clean-tests
+	rm -rf $(OBJECT_FILES) $(TARGET_LIB_FILE)
+
+
+clean-tests:
+	rm -rf $(TEST_OBJECT_FILES) $(TEST_TARGET_FILES)
 
 
 # Tests targets
@@ -90,15 +94,19 @@ check: dirs run-tests
 main: $(OBJECT_FILES) $(MAIN_OBJECT_FILES)
 
 
-run-tests: $(TEST_TARGET_FILES)
+tests: $(TEST_TARGET_FILES)
+	@echo HERE: $(TEST_OBJECT_FILES)
+
+
+run-tests: tests
 	for T in $(TEST_TARGETS); do															\
-		echo "$(COLOR_RUN)Running test: $$T...$(COLOR_RESET)";								\
+		echo "$(COLOR_RUN)Running test: $$T (main)...$(COLOR_RESET)";								\
 		$(call get_test_files,$$T);															\
 		STATUS=$$?;																			\
 		if [ "X$$STATUS" = 'X0' ]; then														\
-			echo "$(COLOR_PASS)Test $$T passed.$(COLOR_RESET)";								\
+			echo "$(COLOR_PASS)Test $$T (main) passed.$(COLOR_RESET)";								\
 		else																				\
-			echo "$(COLOR_FAIL)Test $$T failed with code: $$STATUS.$(COLOR_RESET)";			\
+			echo "$(COLOR_FAIL)Test $$T (main) failed with code: $$STATUS.$(COLOR_RESET)";			\
 		fi;																					\
 	done
 
@@ -110,6 +118,6 @@ $(OBJECTS_DIR_CURR)/%.o: $(SOURCES_DIR_CURR)/%.cpp $(HEADER_FILES)
 
 
 # Tests
-$(TEST_DIR_CURR)/%: $(OBJECTS_DIR)/%.o $(HEADER_FILES) $(OBJECT_FILES)
+$(TEST_DIR_CURR)/%: $(OBJECTS_DIR_CURR)/%.o $(HEADER_FILES) $(OBJECT_FILES)
 	@echo "    $(COLOR_RUN)Linking test: $(subst $(TEST_DIR_CURR)/,,$@) (main)...$(COLOR_RESET)"
 	$(call gpp_link) -o '$@' '$<' $(OBJECT_FILES)

@@ -164,11 +164,11 @@ GPP_LIBS_CURR				= $(addprefix -lut_,$(MODULES))
 
 # Targets
 .PHONY:														\
-	all clean												\
+	all clean clean-tests									\
 	install-bin install-config install-www install			\
 	uninstall-bin uninstall-config uninstall-www uninstall	\
 	upgrade happy git-pull									\
-	check dirs modules main objects run run-tests
+	check dirs modules main objects run tests run-tests
 
 
 .SILENT:
@@ -178,11 +178,18 @@ all: dirs main
 
 
 # Cleaning project submodules (not third-party!) too
-clean:
-	rm -rf $(TEST_OBJECT_FILES) $(TEST_TARGET_FILES)
+clean: clean-tests
 	$(MAKE) -C $(SOURCES_DIR_CURR) clean;
 	for T in $(MODULES); do																	\
 		$(MAKE) -C "$(call get_sources_files,$$T)" MODULE_NAME="$$T" clean;					\
+	done
+
+
+clean-tests:
+	rm -rf $(TEST_OBJECT_FILES) $(TEST_TARGET_FILES)
+	$(MAKE) -C $(SOURCES_DIR_CURR) clean-tests;
+	for T in $(MODULES); do																	\
+		$(MAKE) -C "$(call get_sources_files,$$T)" MODULE_NAME="$$T" clean-tests;			\
 	done
 
 
@@ -324,19 +331,28 @@ run: all
 
 
 # Running tests for submodules too
-run-tests: dirs $(TEST_TARGET_FILES)
-	for T in $(TEST_TARGETS); do																\
-		echo "$(COLOR_RUN)Running test: $$T...$(COLOR_RESET)";									\
-		$(call get_test_files,$$T);																\
-		STATUS=$$?;																				\
-		if [ "X$$STATUS" = 'X0' ]; then															\
-			echo "$(COLOR_PASS)==> Test $$T passed.$(COLOR_RESET)";								\
-		else																					\
-			echo "$(COLOR_FAIL)==> Test $$T failed with code: $$STATUS.$(COLOR_RESET)";			\
-		fi;																						\
-	done																						\
+tests: $(TEST_TARGET_FILES)
+	$(MAKE) -C "$(SOURCES_DIR_CURR)" tests;														\
 	for T in $(MODULES); do																		\
-		$(MAKE) -C "$(call get_sources_files,$$T)" MODULE_NAME="$$T" run-tests;					\
+		$(MAKE) -C "$(call get_sources_files,$$T)" MODULE_NAME="$$T" tests;						\
+	done
+
+
+# Running tests for submodules too
+run-tests: dirs tests
+	for T in $(TEST_TARGETS); do																	\
+		echo "$(COLOR_RUN)Running test: $$T (global)...$(COLOR_RESET)";								\
+		$(call get_test_files,$$T);																	\
+		STATUS=$$?;																					\
+		if [ "X$$STATUS" = 'X0' ]; then																\
+			echo "$(COLOR_PASS)==> Test $$T (global) passed.$(COLOR_RESET)";						\
+		else																						\
+			echo "$(COLOR_FAIL)==> Test $$T (global) failed with code: $$STATUS.$(COLOR_RESET)";	\
+		fi;																							\
+	done																							\
+	$(MAKE) -C "$(SOURCES_DIR_CURR) run-tests";														\
+	for T in $(MODULES); do																			\
+		$(MAKE) -C "$(call get_sources_files,$$T)" MODULE_NAME="$$T" run-tests;						\
 	done
 
 
@@ -362,6 +378,6 @@ $(TARGET_FILES): $(HEADER_FILES) modules objects
 
 
 # Tests
-$(TEST_DIR_CURR)/%: $(OBJECTS_DIR)/%.o $(HEADER_FILES) $(OBJECT_FILES)
+$(TEST_DIR_CURR)/%: $(OBJECTS_DIR_CURR)/%.o $(HEADER_FILES) $(OBJECT_FILES)
 	@echo "    $(COLOR_RUN)Linking test: $(subst $(TEST_DIR_CURR)/,,$@) (global)...$(COLOR_RESET)"
 	$(call gpp_link) -o '$@' '$<' $(OBJECT_FILES)

@@ -101,17 +101,17 @@ tests: $(TEST_TARGET_FILES)
 
 
 run-tests: tests
-	if [ "X$(TEST_TARGETS)" != "X" ]; then																	\
-		for T in $(TEST_TARGETS); do																		\
-			echo "$(COLOR_RUN)Running test: $$T ($(MODULE_NAME))...$(COLOR_RESET)";							\
-			$(call get_test_files,$$T);																		\
-			STATUS=$$?;																						\
-			if [ "X$$STATUS" == 'X0' ]; then																\
-				echo "$(COLOR_PASS)Test $$T ($(MODULE_NAME)) passed.$(COLOR_RESET)";						\
-			else																							\
-				echo "$(COLOR_FAIL)Test $$T ($(MODULE_NAME)) failed with code: $$STATUS.$(COLOR_RESET)";	\
-			fi;																								\
-		done;																								\
+	if [ "X$(TEST_TARGETS)" != "X" ]; then																		\
+		for T in $(TEST_TARGETS); do																			\
+			echo "$(COLOR_RUN)Running test: $$T ($(MODULE_NAME))...$(COLOR_RESET)";								\
+			$(call get_test_files,$$T);																			\
+			STATUS=$$?;																							\
+			if [ "X$$STATUS" == 'X0' ]; then																	\
+				echo "$(COLOR_PASS)==> Test $$T ($(MODULE_NAME)) passed.$(COLOR_RESET)";						\
+			else																								\
+				echo "$(COLOR_FAIL)==> Test $$T ($(MODULE_NAME)) failed with code: $$STATUS.$(COLOR_RESET)";	\
+			fi;																									\
+		done;																									\
 	fi
 
 

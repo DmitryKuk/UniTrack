@@ -135,6 +135,8 @@ export LIBS_DIR_ABS			= $(abspath $(LIBS_DIR))
 export OBJECTS_DIR_ABS		= $(abspath $(OBJECTS_DIR))
 export TEST_DIR_ABS			= $(abspath $(TEST_DIR))
 
+export MODULES
+
 
 # Current module pathes
 SOURCES_DIR_CURR			= $(SOURCES_DIR_ABS)
@@ -382,4 +384,4 @@ $(TARGET_FILES): $(HEADER_FILES) modules objects
 # Tests
 $(TEST_DIR_CURR)/%: $(OBJECTS_DIR_CURR)/%.o $(HEADER_FILES) $(OBJECT_FILES)
 	@echo "    $(COLOR_RUN)Linking test: $(subst $(TEST_DIR_CURR)/,,$@) (global)...$(COLOR_RESET)"
-	$(call gpp_link) -o '$@' '$<' $(OBJECT_FILES)
+	$(call gpp_global_test_link) -o '$@' '$<' $(OBJECT_FILES)

@@ -13,10 +13,7 @@
 include $(MAKEFILE_ADVANCED_ABS)
 
 
-# Requrements
-GPP_LIBS					+= -lut_base -lut_logger -lut_templatizer -lut_server
-
-
+# Requirements (project modules linked automatically)
 ifeq ($(SYSTEM),Darwin)
 	GPP_LIBS				+= -lboost_system-mt -lboost_filesystem-mt
 else
@@ -109,17 +106,17 @@ tests: $(TEST_TARGET_FILES)
 
 
 run-tests: tests
-	if [ "X$(TEST_TARGETS)" != "X" ]; then														\
-		for T in $(TEST_TARGETS); do															\
-			echo "$(COLOR_RUN)Running test: $$T (main)...$(COLOR_RESET)";						\
-			$(call get_test_files,$$T);															\
-			STATUS=$$?;																			\
-			if [ "X$$STATUS" = 'X0' ]; then														\
-				echo "$(COLOR_PASS)Test $$T (main) passed.$(COLOR_RESET)";						\
-			else																				\
-				echo "$(COLOR_FAIL)Test $$T (main) failed with code: $$STATUS.$(COLOR_RESET)";	\
-			fi;																					\
-		done;																					\
+	if [ "X$(TEST_TARGETS)" != "X" ]; then															\
+		for T in $(TEST_TARGETS); do																\
+			echo "$(COLOR_RUN)Running test: $$T (main)...$(COLOR_RESET)";							\
+			$(call get_test_files,$$T);																\
+			STATUS=$$?;																				\
+			if [ "X$$STATUS" = 'X0' ]; then															\
+				echo "$(COLOR_PASS)==> Test $$T (main) passed.$(COLOR_RESET)";						\
+			else																					\
+				echo "$(COLOR_FAIL)==> Test $$T (main) failed with code: $$STATUS.$(COLOR_RESET)";	\
+			fi;																						\
+		done;																						\
 	fi
 
 
@@ -132,4 +129,4 @@ $(OBJECTS_DIR_CURR)/%.o: $(SOURCES_DIR_CURR)/%.cpp $(HEADER_FILES)
 # Tests
 $(TEST_DIR_CURR)/%: $(OBJECTS_DIR_CURR)/%.o $(HEADER_FILES) $(OBJECT_FILES)
 	@echo "    $(COLOR_RUN)Linking test: $(subst $(TEST_DIR_CURR)/,,$@) (main)...$(COLOR_RESET)"
-	$(call gpp_link) -o '$@' '$<' $(OBJECT_FILES)
+	$(call gpp_main_test_link) -o '$@' '$<' $(OBJECT_FILES)

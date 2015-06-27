@@ -331,7 +331,7 @@ run: all
 
 
 # Running tests for submodules too
-tests: $(TEST_TARGET_FILES)
+tests: modules objects $(TEST_TARGET_FILES)
 	$(MAKE) -C "$(SOURCES_DIR_CURR)" tests;														\
 	for T in $(MODULES); do																		\
 		$(MAKE) -C "$(call get_sources_files,$$T)" MODULE_NAME="$$T" tests;						\
@@ -340,19 +340,21 @@ tests: $(TEST_TARGET_FILES)
 
 # Running tests for submodules too
 run-tests: dirs tests
-	for T in $(TEST_TARGETS); do																	\
-		echo "$(COLOR_RUN)Running test: $$T (global)...$(COLOR_RESET)";								\
-		$(call get_test_files,$$T);																	\
-		STATUS=$$?;																					\
-		if [ "X$$STATUS" = 'X0' ]; then																\
-			echo "$(COLOR_PASS)==> Test $$T (global) passed.$(COLOR_RESET)";						\
-		else																						\
-			echo "$(COLOR_FAIL)==> Test $$T (global) failed with code: $$STATUS.$(COLOR_RESET)";	\
-		fi;																							\
-	done																							\
-	$(MAKE) -C "$(SOURCES_DIR_CURR) run-tests";														\
-	for T in $(MODULES); do																			\
-		$(MAKE) -C "$(call get_sources_files,$$T)" MODULE_NAME="$$T" run-tests;						\
+	if [ "X$(TEST_TARGETS)" != "X" ]; then																\
+		for T in $(TEST_TARGETS); do																	\
+			echo "$(COLOR_RUN)Running test: $$T (global)...$(COLOR_RESET)";								\
+			$(call get_test_files,$$T);																	\
+			STATUS=$$?;																					\
+			if [ "X$$STATUS" = 'X0' ]; then																\
+				echo "$(COLOR_PASS)==> Test $$T (global) passed.$(COLOR_RESET)";						\
+			else																						\
+				echo "$(COLOR_FAIL)==> Test $$T (global) failed with code: $$STATUS.$(COLOR_RESET)";	\
+			fi;																							\
+		done;																							\
+	fi;																									\
+	$(MAKE) -C "$(SOURCES_DIR_CURR)" run-tests;															\
+	for T in $(MODULES); do																				\
+		$(MAKE) -C "$(call get_sources_files,$$T)" MODULE_NAME="$$T" run-tests;							\
 	done
 
 

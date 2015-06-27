@@ -3,14 +3,17 @@
 #include <server/file_host_parameters.h>
 
 #include <string>
+#include <functional>
 
 #include <boost/filesystem.hpp>
+
+#include <base/json_utils.h>
 
 #include <server/host_exceptions.h>
 
 
 server::file_host_only_parameters::file_host_only_parameters(const nlohmann::json &config):
-	root(config.at("root").get<std::string>())
+	root(base::json_utils::get<decltype(this->root)>(config, "root"))
 {
 	if (!boost::filesystem::exists(this->root))
 		throw server::path_not_found(this->root.string());
@@ -19,7 +22,7 @@ server::file_host_only_parameters::file_host_only_parameters(const nlohmann::jso
 	
 	// Allow mode
 	{
-		const auto &mode = config.at("allow_match_mode").get<std::string>();
+		const auto mode = base::json_utils::get<std::string>(config, "allow_match_mode");
 		if (mode == "any") {
 			this->mode = server::file_host_parameters::allow_match_mode::any;
 		} else if (mode == "all") {
@@ -31,22 +34,21 @@ server::file_host_only_parameters::file_host_only_parameters(const nlohmann::jso
 	
 	
 	// Optional parameters
-	try {
-		const auto &regexes = config.at("allow_regexes");
-		if (!regexes.empty()) {
-			this->allow_regexes.clear();
+	{
+		static const auto fill_regexes = [](auto &regex_vector, const auto &regexes)
+		{
+			regex_vector.clear();
 			for (const std::string &regex: regexes)
-				this->allow_regexes.push_back(std::regex(regex));
-		}
-	} catch (const std::out_of_range &) {}
-	
-	
-	try {
-		const auto &regexes = config.at("deny_regexes");
-		if (!regexes.empty()) {
-			this->deny_regexes.clear();
-			for (const std::string &regex: regexes)
-				this->deny_regexes.push_back(std::regex(regex));
-		}
-	} catch (const std::out_of_range &) {}
+				regex_vector.emplace_back(regex);
+		};
+		
+		
+		try {
+			fill_regexes(this->allow_regexes, base::json_utils::at(config, "allow_regexes"));
+		} catch (const std::out_of_range &) {}
+		
+		try {
+			fill_regexes(this->deny_regexes, base::json_utils::at(config, "deny_regexes"));
+		} catch (const std::out_of_range &) {}
+	}
 }

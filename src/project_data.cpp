@@ -3,6 +3,6 @@
 #include <project_data.h>
 
 
-const std::string
+const boost::filesystem::path
 	project_data::config	= PATH_CONFIG,
 	project_data::www		= PATH_WWW;

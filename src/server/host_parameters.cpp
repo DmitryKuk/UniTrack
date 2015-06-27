@@ -2,12 +2,12 @@
 
 #include <server/host_parameters.h>
 
+#include <base/json_utils.h>
+
 
 server::host_parameters::host_parameters(const nlohmann::json &config):
-	name(config.at("name").get<decltype(this->name)>()),
-	ports(config.at("ports").get<decltype(this->ports)>())
+	name(base::json_utils::get<decltype(this->name)>(config, "name")),
+	ports(base::json_utils::get<decltype(this->ports)>(config, "ports"))
 {
-	try {
-		this->server_names = config.at("server_names").get<decltype(this->server_names)>();
-	} catch (const std::out_of_range &) {}
+	base::json_utils::extract(config, this->server_names, "server_names");
 }

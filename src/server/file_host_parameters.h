@@ -8,7 +8,7 @@
 
 #include <boost/filesystem/path.hpp>
 
-#include <json.hpp>
+#include <base/json.hpp>
 
 #include <server/host_parameters.h>
 
@@ -39,7 +39,8 @@ struct file_host_only_parameters
 				// Don't allow anything by default
 			};
 	
-	allow_match_mode mode;					// Reqired
+	allow_match_mode mode					// Optional
+		= allow_match_mode::all;
 	
 	
 	explicit file_host_only_parameters() = default;

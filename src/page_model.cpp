@@ -2,14 +2,9 @@
 
 #include <page_model.h>
 
+#include <stdexcept>
 
-// static
-const std::string page_model::unknown_var_ = "";
-
-
-page_model::page_model(logger::logger &logger):
-	logger::enable_logger(logger)
-{}
+#include <templatizer/model_exceptions.h>
 
 
 const std::string &
@@ -17,9 +12,7 @@ page_model::variable(const std::string &var_name) const
 {
 	try {
 		return this->std::unordered_map<std::string, std::string>::at(var_name);
-	} catch (...) {
-		this->logger().stream(logger::level::error)
-			<< "Page model: Requested unknown variable: \"" << var_name << "\".";
-		return page_model::unknown_var_;
+	} catch (const std::out_of_range &) {
+		throw templatizer::variable_not_found(var_name);
 	}
 }

@@ -37,18 +37,15 @@ server::file_host_only_parameters::file_host_only_parameters(const nlohmann::jso
 	{
 		static const auto fill_regexes = [](auto &regex_vector, const auto &regexes)
 		{
-			if (!regexes.empty()) {
-				regex_vector.clear();
-				for (const std::string &regex: regexes)
-					regex_vector.emplace_back(regex);
-			}
+			regex_vector.clear();
+			for (const std::string &regex: regexes)
+				regex_vector.emplace_back(regex);
 		};
 		
 		
 		try {
 			fill_regexes(this->allow_regexes, base::json_utils::at(config, "allow_regexes"));
 		} catch (const std::out_of_range &) {}
-		
 		
 		try {
 			fill_regexes(this->deny_regexes, base::json_utils::at(config, "deny_regexes"));

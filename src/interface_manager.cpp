@@ -26,62 +26,62 @@ interface_manager::interface_manager(logger::logger &logger,
 	model_(model)
 {
 	try {
-		nlohmann::json config = std::move(base::json_utils::json_from_file(config_file_path));
 		this->logger().stream(logger::level::info)
-			<< "Interface manager: Read config: " << config_file_path << '.';
+			<< "Interface manager: Reading config: " << config_file_path << "...";
+		
+		nlohmann::json config = std::move(base::json_utils::json_from_file(config_file_path));
 		
 		
 		// Server parameters
 		{
-			const auto &server = config.at("server_http");
-			server::server_http_parameters params;
-			params.ports = server.at("ports").get<decltype(params.ports)>();
-			params.workers = server.at("workers").get<decltype(params.workers)>();
+			const auto &server = base::json_utils::at(config, "server_http");
 			
-			this->server_ptr_.reset(new server::server_http(logger, params));
+			server::server_http_parameters params;
+			params.ports = base::json_utils::get<decltype(params.ports)>(server, "ports");
+			params.workers = base::json_utils::get<decltype(params.workers)>(server, "workers");
+			
+			this->server_ptr_ = std::make_unique<server::server_http>(logger, params);
 		}
 		
 		
 		// Hosts parameters
 		{
-			const auto &host_list_config = config.at("file_hosts");
+			const auto &host_list_config = base::json_utils::at(config, "file_hosts");
+			
 			for (const auto &host_config: host_list_config) {
 				server::file_host_parameters params(host_config);
+				const auto type = base::json_utils::get<std::string>(host_config, "type");
 				
-				
-				{
-					const auto &type = host_config.at("type").get<std::string>();
-					if (type == "files_only") {
-						this->server_ptr_->host_manager().add_host(
-							std::make_shared<server::file_host<server::files_only>>(
-								this->logger(),
-								params
+				if (type == "files_only") {
+					this->server_ptr_->host_manager().add_host(
+						std::make_shared<server::file_host<server::files_only>>(
+							this->logger(),
+							params
+						)
+					);
+				} else if (type == "template_pages_only") {
+					this->server_ptr_->host_manager().add_host(
+						std::make_shared<server::file_host<template_pages_only>>(
+							this->logger(),
+							params,
+							this->model_
+						)
+					);
+				} else if (type == "files_and_template_pages") {
+					files_and_template_pages_parameters additional_params(host_config);
+					
+					this->server_ptr_->host_manager().add_host(
+						std::make_shared<server::file_host<files_and_template_pages>>(
+							this->logger(),
+							params,
+							files_and_template_pages(
+								this->model_,
+								additional_params
 							)
-						);
-					} else if (type == "template_pages_only") {
-						this->server_ptr_->host_manager().add_host(
-							std::make_shared<server::file_host<template_pages_only>>(
-								this->logger(),
-								params,
-								this->model_
-							)
-						);
-					} else if (type == "files_and_template_pages") {
-						files_and_template_pages_parameters additional_params(host_config);
-						
-						this->server_ptr_->host_manager().add_host(
-							std::make_shared<server::file_host<files_and_template_pages>>(
-								this->logger(),
-								params,
-								files_and_template_pages(
-									this->model_,
-									additional_params
-								)
-							)
-						);
-					} else {
-						throw std::logic_error("Incorrect config");
-					}
+						)
+					);
+				} else {
+					throw std::logic_error("Incorrect config");
 				}
 			}
 		}

@@ -86,6 +86,7 @@ get(const nlohmann::json &json, const Key &key, const Keys &...keys)
 // Same as get<...>(...), but saves (by moving) result into value.
 // Returns true, if result was saved. Otherwise returns false.
 template<class T, class ...Keys>
+inline
 bool
 extract(const nlohmann::json &json, T &val, const Keys &...keys)
 {

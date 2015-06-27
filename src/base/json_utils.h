@@ -45,7 +45,7 @@ inline T get(const nlohmann::json &json, const Keys &...key);
 // Same as get<...>(...), but saves (by moving) result into value.
 // Returns true, if result was saved. Otherwise returns false.
 template<class T, class ...Keys>
-bool extract(const nlohmann::json &json, T &val, const Keys &...keys);
+inline bool extract(const nlohmann::json &json, T &val, const Keys &...keys);
 
 
 // Tries to cast json object to each type of Ts...

@@ -82,7 +82,8 @@ templatizer::page::load()
 			
 			
 			// REGEX: ${command ARGUMENTS}	-- full form
-			//    or: $VAR_NAME				-- short form, equvivalents to: $(var VAR_NAME)
+			//    or: $(command ARGUMENTS)	-- full form
+			//    or: $VAR_NAME				-- short form, equvivalent to: $(var VAR_NAME)
 			// VAR_NAME can contain characters: a-z, A-Z, 0-9 and '_', but must to begin with
 			// letter or '_' (like in C). Minimum length of name is 1 symbol.
 			// NOTE: Some space symbols around VAR_NAME is allowed (but not a newline).
@@ -94,9 +95,10 @@ templatizer::page::load()
 						"[[:space:]]*([^\\}\\)]*)[\\}\\)]"					// ARG [3]
 				"|"	// 'Or'
 					// Short form: $VAR_NAME
-					"\\$([[:alpha:]_][[:alnum:]_]*)"						// VAR_NAME (in short form) [4]
+					"\\$([[:alpha:]_][[:alnum:]_]*)"						// VAR_NAME [4]
 				")",
-				std::regex::optimize);
+				std::regex::optimize
+			);
 			
 			
 			std::regex_iterator<const char *>
@@ -104,33 +106,42 @@ templatizer::page::load()
 				end;
 			
 			size_t old_pos = 0;
+			
+			
 			while (it != end) {
 				// Adding previous raw chunk
-				size_t current_pos = it->position();
-				if (current_pos > old_pos) {	// Indexing previous raw chunk...
-					chunk_ptrs.emplace_back(
-						std::make_unique<templatizer::raw_chunk>(
-							mapped_data + old_pos,
-							current_pos - old_pos
-						)
-					);
-					old_pos = current_pos + it->length();
+				{
+					size_t current_pos = it->position();
+					
+					if (current_pos >= old_pos) {	// Indexing previous raw chunk...
+						chunk_ptrs.emplace_back(
+							std::make_unique<templatizer::raw_chunk>(
+								mapped_data + old_pos,
+								current_pos - old_pos
+							)
+						);
+						old_pos = current_pos + it->length();
+					}
 				}
 				
 				
 				// Adding current extra chunk
-				std::string command  = std::move(it->str(2)),
-							argument = std::move(it->str(3));
-				if (it->length(2) == 0) {	// Short form (because of command is empty)
-					command  = templatizer::var_chunk::cmd;
-					argument = std::move(it->str(4));
+				{
+					std::string command  = it->str(2),
+								argument = it->str(3);
+					
+					if (command.empty()) {	// Short form (because of command is empty)
+						command  = templatizer::var_chunk::cmd;
+						argument = it->str(4);
+					}
+					
+					
+					// These can throw
+					auto chunk_generator
+						= templatizer::module_registrar::default_module_registrar.module(command);
+					chunk_ptrs.emplace_back(chunk_generator(std::move(argument)));
 				}
 				
-				
-				// These can throw
-				auto chunk_generator =
-					templatizer::module_registrar::default_module_registrar.module(command);
-				chunk_ptrs.emplace_back(std::move(chunk_generator(std::move(argument))));
 				
 				++it;
 			}
@@ -138,11 +149,11 @@ templatizer::page::load()
 			// Remember to index the last raw chunk
 			if (old_pos < mapped_size)
 				chunk_ptrs.emplace_back(
-						std::make_unique<templatizer::raw_chunk>(
-							mapped_data + old_pos,
-							mapped_size - old_pos
-						)
-					);
+					std::make_unique<templatizer::raw_chunk>(
+						mapped_data + old_pos,
+						mapped_size - old_pos
+					)
+				);
 		}	// End of parsing
 		
 		// Move data to *this, if success (if not success, see catch blocks below)

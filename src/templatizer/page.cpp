@@ -9,7 +9,7 @@
 
 #include <templatizer/page_exceptions.h>
 #include <templatizer/module_registrar_exceptions.h>
-#include <iostream>
+
 
 // Default constructor
 templatizer::page::page() noexcept:

@@ -101,14 +101,12 @@ templatizer::page::load()
 			);
 			
 			
-			std::regex_iterator<const char *>
-				it(mapped_data, mapped_data + mapped_size, regex),
-				end;
-			
 			size_t old_pos = 0;
 			
-			
-			while (it != end) {
+			for (std::regex_iterator<const char *>
+				 it(mapped_data, mapped_data + mapped_size, regex), end;
+				 it != end;
+				 ++it) {
 				// Adding previous raw chunk
 				{
 					size_t current_pos = it->position();
@@ -146,6 +144,7 @@ templatizer::page::load()
 				++it;
 			}
 			
+			
 			// Remember to index the last raw chunk
 			if (old_pos < mapped_size)
 				chunk_ptrs.emplace_back(
@@ -155,6 +154,7 @@ templatizer::page::load()
 					)
 				);
 		}	// End of parsing
+		
 		
 		// Move data to *this, if success (if not success, see catch blocks below)
 		this->chunk_ptrs_ = std::move(chunk_ptrs);

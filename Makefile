@@ -106,6 +106,11 @@ GPP_PROJECT_DATA			+= -DPATH_CONFIG="\"$(PREFIX_CONFIG_FULL)/$(CONFIG)\""	\
 
 # Compiler flags
 GPP_COMPILE_FLAGS			+= -pipe -fPIC -O2 -Wall -std=c++14 -c $(GPP_PROJECT_DATA) $(EXTRA_CPP_FLAGS)
+ifeq ($(SYSTEM),Darwin)
+	# Disable warnings in boost for new version of Clang (in Mac OS X)
+	GPP_COMPILE_FLAGS		+= -Wno-unused-local-typedef
+endif
+
 GPP_LINK_FLAGS				+= -pipe -fPIC -O2 -Wall $(EXTRA_LINK_FLEGS)
 GPP_SHARED_LIB_FLAGS		+= -pipe -fPIC -O2 -Wall --shared $(EXTRA_SHARED_LIB_FLAGS)
 

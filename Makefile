@@ -2,15 +2,35 @@
 
 # This is the root Makefile of project.
 
-# Helper Makefile with advanced feautures (include it into all subprojects' Makefiles)
-MAKEFILE_ADVANCED = Makefile.advanced
-export MAKEFILE_ADVANCED_ABS = $(abspath $(MAKEFILE_ADVANCED))
-include $(MAKEFILE_ADVANCED_ABS)
 
+
+# ---===     Project installation properties      ===---
 
 # Project name
 PROJECT_NAME	= UniTrack
 
+# Main executable file name
+MAIN_EXEC_NAME	= unitrack
+
+
+# Installation directories
+# Shared libraries
+PREFIX_LIBS		= /usr/lib
+
+# Executables
+PREFIX_TARGET	= /usr/bin
+
+# Config
+PREFIX_CONFIG	= /etc
+
+# WWW data
+PREFIX_WWW		= /var
+
+# ---===  End of project installation properties  ===---
+
+
+
+# ---===       Project internal properties        ===---
 
 # Project directories
 # Sources only
@@ -34,19 +54,8 @@ CONFIG			= config
 # WWW data
 WWW				= www
 
-
-# Installation directories
-# Shared libraries
-PREFIX_LIBS		= /usr/lib
-
-# Executables
-PREFIX_TARGET	= /usr/bin
-
-# Config
-PREFIX_CONFIG	= /etc
-
-# WWW data
-PREFIX_WWW		= /var
+# Third-party
+THIRDPARTY_DIR	= third-party
 
 
 # Modules should be linked as dynamic libraries (not third-party!)
@@ -59,7 +68,7 @@ MODULES =						\
 
 
 # Executables
-MAIN_TARGETS = unitrack
+MAIN_TARGETS = "$(MAIN_EXEC_NAME)"
 
 
 # Tests (extra tests, that must do some specific. For usual tests
@@ -67,17 +76,30 @@ MAIN_TARGETS = unitrack
 TEST_SOURCES_CPP =				\
 	
 
+# ---===    End of project internal properties    ===---
 
-# Target system
-export SYSTEM				= $(shell uname -s)
+
+
+# Additional Makefiles
+# Makefile with system info
+MAKEFILE_SYSTEM = Makefile.system
+export MAKEFILE_SYSTEM_ABS = $(abspath $(MAKEFILE_SYSTEM))
+include $(MAKEFILE_SYSTEM_ABS)
+
+# Helper Makefile with advanced feautures (include it into all subprojects' Makefiles)
+MAKEFILE_ADVANCED = Makefile.advanced
+export MAKEFILE_ADVANCED_ABS = $(abspath $(MAKEFILE_ADVANCED))
+include $(MAKEFILE_ADVANCED_ABS)
+
+# Third-party Makefile
+MAKEFILE_THIRDPARTY_CONFIG = third-party/Makefile.config
+export MAKEFILE_THIRDPARTY_CONFIG_ABS = $(abspath $(MAKEFILE_THIRDPARTY_CONFIG))
+include $(MAKEFILE_THIRDPARTY_CONFIG_ABS)
+
 
 # Compiler settings
 ifeq ($(SYSTEM),Darwin)
 	GPP						= g++
-	
-	# MacPorts installs boost and others into /opt/local
-	GPP_HEADER_PATHS		+= -I/opt/local/include
-	GPP_LIB_PATHS			+= -L/opt/local/lib
 	
 	# Strange, but this need for server
 	GPP_LIBS				+= -lboost_system-mt -lboost_filesystem-mt
@@ -94,15 +116,17 @@ endif
 GPP_HEADER_PATHS			+= -I"$(abspath $(SOURCES_DIR))"
 GPP_LIB_PATHS				+= -L"$(abspath $(LIBS_DIR))"
 
+
 # Installation prefixes
 # Config
-PREFIX_CONFIG_FULL			= $(PREFIX_CONFIG)/unitrack
+PREFIX_CONFIG_FULL			= "$(PREFIX_CONFIG)/$(PROJECT_NAME)"
 
 # WWW data
-PREFIX_WWW_FULL				= $(PREFIX_WWW)/unitrack
+PREFIX_WWW_FULL				= "$(PREFIX_WWW)/$(PROJECT_NAME)"
 
 GPP_PROJECT_DATA			+= -DPATH_CONFIG="\"$(PREFIX_CONFIG_FULL)/$(CONFIG)\""	\
 							   -DPATH_WWW="\"$(PREFIX_WWW_FULL)/$(WWW)\""
+
 
 # Compiler flags
 GPP_COMPILE_FLAGS			+= -pipe -fPIC -O2 -Wall -std=c++14 -c $(GPP_PROJECT_DATA) $(EXTRA_CPP_FLAGS)
@@ -139,6 +163,7 @@ export BUILD_DIR_ABS		= $(abspath $(BUILD_DIR))
 export LIBS_DIR_ABS			= $(abspath $(LIBS_DIR))
 export OBJECTS_DIR_ABS		= $(abspath $(OBJECTS_DIR))
 export TEST_DIR_ABS			= $(abspath $(TEST_DIR))
+export THIRDPARTY_DIR_ABS	= $(abspath $(THIRDPARTY_DIR))
 
 export MODULES
 
@@ -149,6 +174,7 @@ BUILD_DIR_CURR				= $(BUILD_DIR_ABS)
 LIBS_DIR_CURR				= $(LIBS_DIR_ABS)
 OBJECTS_DIR_CURR			= $(OBJECTS_DIR_ABS)
 TEST_DIR_CURR				= $(TEST_DIR_ABS)
+THIRDPARTY_DIR_CURR			= $(THIRDPARTY_DIR_ABS)
 
 
 # Files
@@ -170,11 +196,11 @@ GPP_LIBS_CURR				= $(addprefix -lut_,$(MODULES))
 
 
 # Targets
-.PHONY:														\
-	all clean clean-tests									\
-	install-bin install-config install-www install			\
-	uninstall-bin uninstall-config uninstall-www uninstall	\
-	upgrade happy git-pull									\
+.PHONY:																		\
+	all distclean clean clean-main clean-tests dirs main third-party		\
+	install-bin   install-config   install-www   install					\
+	uninstall-bin uninstall-config uninstall-www uninstall uninstall-all	\
+	upgrade happy git-pull													\
 	check dirs modules main objects run tests run-tests
 
 
@@ -184,12 +210,21 @@ GPP_LIBS_CURR				= $(addprefix -lut_,$(MODULES))
 all: dirs main
 
 
+# Cleaning all builded files (submodules and third-party too!)
+distclean: clean clean-main
+	$(MAKE) -C "$(THIRDPARTY_DIR_CURR)" clean
+
+
 # Cleaning project submodules (not third-party!) too
 clean: clean-tests
 	$(MAKE) -C $(SOURCES_DIR_CURR) clean;
 	for T in $(MODULES); do																	\
 		$(MAKE) -C "$(call get_sources_files,$$T)" MODULE_NAME="$$T" clean;					\
 	done
+
+
+clean-main:
+	rm $(TARGET_FILES) 2>/dev/null || true
 
 
 clean-tests:
@@ -202,7 +237,7 @@ clean-tests:
 
 install-bin:
 	@echo "$(COLOR_RUN)Installing files to \"$(PREFIX_LIBS)\"...$(COLOR_RESET)"
-	install $(MODULE_FILES_ABS) $(PREFIX_LIBS)
+	install $(MODULE_FILES_ABS) $(THIRDPARTY_FILES_ABS) $(PREFIX_LIBS)
 	
 	@echo "$(COLOR_RUN)Installing files to \"$(PREFIX_TARGET)\"...$(COLOR_RESET)"
 	install $(TARGET_FILES) $(PREFIX_TARGET)
@@ -235,7 +270,7 @@ install: install-bin install-config install-www
 
 uninstall-bin:
 	rm $(addprefix $(PREFIX_TARGET)/,$(MAIN_TARGETS))
-	rm $(addprefix $(PREFIX_LIBS)/,$(MODULE_FILES))
+	rm $(addprefix $(PREFIX_LIBS)/,$(MODULE_FILES) $(THIRDPARTY_FILES))
 	@echo "$(COLOR_PASS)==> Binaries removed.$(COLOR_RESET)"
 
 
@@ -249,7 +284,10 @@ uninstall-www:
 	@echo "$(COLOR_PASS)==> WWW data removed.$(COLOR_RESET)"
 
 
-uninstall: uninstall-bin uninstall-config uninstall-www
+uninstall: uninstall-bin
+
+
+uninstall-all: uninstall uninstall-config uninstall-www
 
 
 upgrade:
@@ -322,6 +360,10 @@ modules: dirs
 			echo "$(COLOR_FAIL)==> Module $$T building failed.$(COLOR_RESET)";					\
 		fi;																						\
 	done
+
+
+third-party:
+	$(MAKE) -C "$(THIRDPARTY_DIR_CURR)"
 
 
 run: all

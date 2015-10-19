@@ -1,0 +1,26 @@
+# Author: Dmitry Kukovinets (d1021976@gmail.com)
+
+# Makefile with system info
+
+# Target system
+export SYSTEM				= $(shell uname -s)
+
+
+ifeq ($(SYSTEM),Darwin)
+	# MacPorts installs boost and others into /opt/local
+	GPP_HEADER_PATHS		+= -I/opt/local/include
+	GPP_LIB_PATHS			+= -L/opt/local/lib
+	
+	OSX_VERSION				= $(shell sw_vers -productVersion)
+	OSX_VERSION_MIN			= $(shell echo $(OSX_VERSION) | cut -d. -f1,2)
+else
+	OSX_VERSION				= ""
+	OSX_VERSION_MIN			= ""
+endif
+
+
+export GPP_HEADER_PATHS
+export GPP_LIB_PATHS
+
+export OSX_VERSION
+export OSX_VERSION_MIN

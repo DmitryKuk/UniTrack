@@ -14,6 +14,7 @@ get_object_files		= $(addprefix $(OBJECTS_DIR_CURR)/,$(1))
 get_target_files		= $(addprefix $(BUILD_DIR_CURR)/,$(1))
 get_test_files			= $(addprefix $(TEST_DIR_CURR)/,$(1))
 get_targets				= $(basename $(1))
+get_thirdparty_files	= $(addprefix $(THIRDPARTY_DIR_CURR)/,$(1))
 
 
 gpp_compile				= $(GPP) $(GPP_COMPILE_FLAGS) $(GPP_HEADER_PATHS)

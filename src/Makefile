@@ -88,11 +88,11 @@ all: dirs main
 
 
 clean: clean-tests
-	rm -rf $(OBJECT_FILES) $(TARGET_LIB_FILE)
+	rm -rf $(OBJECT_FILES) $(TARGET_LIB_FILE) 2>/dev/null || true
 
 
 clean-tests:
-	rm -rf $(TEST_OBJECT_FILES) $(TEST_TARGET_FILES)
+	rm -rf $(TEST_OBJECT_FILES) $(TEST_TARGET_FILES) 2>/dev/null || true
 
 
 # Tests targets

@@ -1,3 +1,7 @@
 [submodule "third-party/json"]
 	path = third-party/json
 	url = https://github.com/nlohmann/json
+[submodule "third-party/mongo-cxx-driver"]
+	path = third-party/mongo-cxx-driver
+	url = https://github.com/mongodb/mongo-cxx-driver/
+	branch = legacy

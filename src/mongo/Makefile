@@ -73,11 +73,11 @@ all: dirs main
 
 
 clean: clean-tests
-	rm -rf $(OBJECT_FILES) $(TARGET_LIB_FILE)
+	rm -rf $(OBJECT_FILES) $(TARGET_LIB_FILE) 
 
 
 clean-tests:
-	rm -rf $(TEST_OBJECT_FILES) $(TEST_TARGET_FILES)
+	rm -rf $(TEST_OBJECT_FILES) $(TEST_TARGET_FILES) 
 
 
 # Tests targets

@@ -269,18 +269,18 @@ install: install-bin install-config install-www
 
 
 uninstall-bin:
-	rm $(addprefix $(PREFIX_TARGET)/,$(MAIN_TARGETS))
-	rm $(addprefix $(PREFIX_LIBS)/,$(MODULE_FILES) $(THIRDPARTY_FILES))
+	rm $(addprefix $(PREFIX_TARGET)/,$(MAIN_TARGETS)) 2>/dev/null || true
+	rm $(addprefix $(PREFIX_LIBS)/,$(MODULE_FILES) $(THIRDPARTY_FILES)) 2>/dev/null || true
 	@echo "$(COLOR_PASS)==> Binaries removed.$(COLOR_RESET)"
 
 
 uninstall-config:
-	rm -r $(addprefix $(PREFIX_CONFIG_FULL)/,$(CONFIG))
+	rm -r $(PREFIX_CONFIG_FULL) 2>/dev/null || true
 	@echo "$(COLOR_PASS)==> Config removed.$(COLOR_RESET)"
 
 
 uninstall-www:
-	rm -r $(addprefix $(PREFIX_WWW_FULL)/,$(WWW))
+	rm -r $(PREFIX_WWW_FULL) 2>/dev/null || true
 	@echo "$(COLOR_PASS)==> WWW data removed.$(COLOR_RESET)"
 
 
@@ -417,14 +417,14 @@ $(MODULE_FILES_ABS): modules
 
 # Main targets
 $(TARGET_FILES): $(HEADER_FILES) modules objects
-	TARGET=$(subst $(BUILD_DIR_CURR)/,,$@);														\
-	echo "$(COLOR_RUN)Linking target: $$TARGET (global)...$(COLOR_RESET)";						\
-	$(call gpp_link) $(GPP_LIBS_CURR) -o "$@" $(MAIN_OBJECT_FILES) $(OBJECT_FILES);				\
-	STATUS=$$?;																					\
-	if [ "X$$STATUS" = 'X0' ]; then																\
-		echo "$(COLOR_PASS)==> Target $$TARGET linked successfully.$(COLOR_RESET)";				\
-	else																						\
-		echo "$(COLOR_FAIL)==> Target $$TARGET linking failed.$(COLOR_RESET)";					\
+	TARGET=$(subst $(BUILD_DIR_CURR)/,,$@);																	\
+	echo "$(COLOR_RUN)Linking target: $$TARGET (global)...$(COLOR_RESET)";									\
+	$(call gpp_link) $(GPP_LIBS_CURR) -o "$@" $(MAIN_OBJECT_FILES) $(THIRDPARTY_FILES_ABS) $(OBJECT_FILES);	\
+	STATUS=$$?;																								\
+	if [ "X$$STATUS" = 'X0' ]; then																			\
+		echo "$(COLOR_PASS)==> Target $$TARGET linked successfully.$(COLOR_RESET)";							\
+	else																									\
+		echo "$(COLOR_FAIL)==> Target $$TARGET linking failed.$(COLOR_RESET)";								\
 	fi;
 
 

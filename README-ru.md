@@ -24,24 +24,30 @@ Please, see [README-en.md](https://github.com/DmitryKuk/UniTrack/blob/master/REA
 ### Требования:
 - g++-5 или лучше (или clang++-3.6 или лучше, или любой другой компилятор C++14 с поддержкой std::regex, move-семантики и много чего ещё, *лучше всего -- полная поддержка 14-го стандарта*).
 - Boost (протестирована версия: 1.58).
-- MongoDB C Driver (сейчас не используется).
 - GNU Make (и немного shell) для сборки проекта.
+- Scons для сборки [Mongo-cxx-driver (Legacy with C++11)](https://github.com/mongodb/mongo-cxx-driver/tree/legacy).
 
 
 ### Сборка и установка
 1. Загрузка исходного кода:
     - `git clone --recursive https://github.com/DmitryKuk/UniTrack`
+        + или `git clone https://github.com/DmitryKuk/UniTrack` (внешние зависимости будут загружены при сборке)
     - и `cd UniTrack/`
 2. Сборка и установка:
-    - просто `make happy` (использует `sudo` для установки)
-    - или `make` и `sudo make install`
+    - просто `make happy` (использует `sudo` для установки; необходимо будет ввести пароль)
+    - или:
+        + `make third-party`
+        + `sudo make install third-party`
+        + `make`
+        + `sudo make install`
     - *любой из способов автоматически установит конфигурацию по умолчанию и данные сайта*
 3. Запуск:
     - `unitrack` (по умолчанию, `/usr/bin/unitrack`)
 4. Обновление:
     - `make upgrade` для автоматического удаления старой версии, загрузки обновлений, сборки и установки новой версии (использует `sudo`)
 5. Удаление:
-    - `sudo make uninstall` для полного удаления всех библиотек и исполняемых файлов из вашей системы
+    - `sudo make uninstall` для удаления всех библиотек и исполняемых файлов из вашей системы
+    - или `sudo make uninstall-all` для полного удаления (исполняемые файлы, конфигурация по умолчанию, данные сайта и внешние зависимости)
 6. Ручная настройка (**не используйте, если не знаете, зачем это вам**):
     - **Используйте только если хотите восстановить повреждённый файл конфигурации или сайт!**
     - **НЕ требуется при любом способе установки, указанном выше!**
@@ -52,6 +58,8 @@ Please, see [README-en.md](https://github.com/DmitryKuk/UniTrack/blob/master/REA
 ### Зависимости
 - [Boost](http://www.boost.org/) *(протестирована версия: 1.58)*
 - [JSON for Modern C++](https://github.com/nlohmann/json) *Niels Lohmann*
+    + Автоматически управляемая зависимость (через git submodules).
+- [Mongo-cxx-driver (Legacy with C++11)](https://github.com/mongodb/mongo-cxx-driver/tree/legacy)
     + Автоматически управляемая зависимость (через git submodules).
 
 

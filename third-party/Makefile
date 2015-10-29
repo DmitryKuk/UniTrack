@@ -40,6 +40,7 @@ all:
 	# Downloading submodules, if them was not cloned
 	git submodule update --init
 	
+	
 	# Dir for logs of thirdparty modules building and installing
 	mkdir -p $(LOGS_DIR)
 	

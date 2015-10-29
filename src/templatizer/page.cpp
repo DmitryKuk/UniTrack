@@ -139,9 +139,6 @@ templatizer::page::load()
 						= templatizer::module_registrar::default_module_registrar.module(command);
 					chunk_ptrs.emplace_back(chunk_generator(std::move(argument)));
 				}
-				
-				
-				++it;
 			}
 			
 			

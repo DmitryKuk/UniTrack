@@ -7,24 +7,27 @@
 # ---===     Project installation properties      ===---
 
 # Project name
-PROJECT_NAME	= UniTrack
+PROJECT_NAME		= UniTrack
 
 # Main executable file name
-MAIN_EXEC_NAME	= unitrack
+MAIN_EXEC_NAME		= unitrack
 
 
 # Installation directories
+# Third-party installation prefix (see $(PREFIX_THIRDPARTY)/{include,libs} directories)
+PREFIX_THIRDPARTY	= "/opt/$(MAIN_EXEC_NAME)"
+
 # Shared libraries
-PREFIX_LIBS		= /usr/lib
+PREFIX_LIBS			= /usr/lib
 
 # Executables
-PREFIX_TARGET	= /usr/bin
+PREFIX_TARGET		= /usr/bin
 
 # Config
-PREFIX_CONFIG	= /etc
+PREFIX_CONFIG		= /etc
 
 # WWW data
-PREFIX_WWW		= /var
+PREFIX_WWW			= /var
 
 # ---===  End of project installation properties  ===---
 
@@ -34,28 +37,28 @@ PREFIX_WWW		= /var
 
 # Project directories
 # Sources only
-SOURCES_DIR		= src
+SOURCES_DIR			= src
 
 # Result of build only (executable)
-BUILD_DIR		= build
+BUILD_DIR			= build
 
 # Static libraries (for modules)
-LIBS_DIR		= libs
+LIBS_DIR			= libs
 
 # All .o files (including tests)
-OBJECTS_DIR		= obj
+OBJECTS_DIR			= obj
 
 # All test executables
-TEST_DIR		= test
+TEST_DIR			= test
 
 # Config
-CONFIG			= config
+CONFIG				= config
 
 # WWW data
-WWW				= www
+WWW					= www
 
 # Third-party
-THIRDPARTY_DIR	= third-party
+THIRDPARTY_DIR		= third-party
 
 
 # Modules should be linked as dynamic libraries (not third-party!)
@@ -71,7 +74,7 @@ MODULES =						\
 MAIN_TARGETS = "$(MAIN_EXEC_NAME)"
 
 
-# Tests (extra tests, that must do some specific. For usual tests
+# Tests (extra tests, that must do some specific. For regular tests
 # see Makefiles of main part and modules).
 TEST_SOURCES_CPP =				\
 	
@@ -101,13 +104,11 @@ include $(MAKEFILE_THIRDPARTY_CONFIG_ABS)
 ifeq ($(SYSTEM),Darwin)
 	GPP						= g++
 	
-	# Strange, but this need for server
 	GPP_LIBS				+= -lboost_system-mt -lboost_filesystem-mt
 else
 	# Use g++-5 because of c++14 features
 	GPP						= g++-5
 	
-	# Strange, but this need for server
 	GPP_LIBS				+= -lboost_system -lpthread -lboost_filesystem
 endif
 
@@ -147,6 +148,10 @@ export GPP_LIBS
 export GPP_COMPILE_FLAGS
 export GPP_LINK_FLAGS
 export GPP_SHARED_LIB_FLAGS
+
+
+# Export thirdparty installation prefix
+export PREFIX_THIRDPARTY
 
 
 # Terminal colors (0 -- reset, 1 -- bold, 31 -- red, 32 -- green, 34 -- blue).
@@ -196,11 +201,11 @@ GPP_LIBS_CURR				= $(addprefix -lut_,$(MODULES))
 
 
 # Targets
-.PHONY:																		\
-	all distclean clean clean-main clean-tests dirs main third-party		\
-	install-bin   install-config   install-www   install					\
-	uninstall-bin uninstall-config uninstall-www uninstall uninstall-all	\
-	upgrade happy git-pull													\
+.PHONY:																							\
+	all distclean clean clean-main clean-tests dirs main third-party							\
+	install-third-party   install-bin   install-config   install-www   install					\
+	uninstall-third-party uninstall-bin uninstall-config uninstall-www uninstall uninstall-all	\
+	one-step-make upgrade happy git-pull														\
 	check dirs modules main objects run tests run-tests
 
 
@@ -233,6 +238,10 @@ clean-tests:
 	for T in $(MODULES); do																	\
 		$(MAKE) -C "$(call get_sources_files,$$T)" MODULE_NAME="$$T" clean-tests;			\
 	done
+
+
+install-third-party:
+	$(MAKE) -C "$(THIRDPARTY_DIR_CURR)" install
 
 
 install-bin:
@@ -268,6 +277,10 @@ install-www:
 install: install-bin install-config install-www
 
 
+uninstall-third-party:
+	$(MAKE) -C "$(THIRDPARTY_DIR_CURR)" uninstall
+
+
 uninstall-bin:
 	rm $(addprefix $(PREFIX_TARGET)/,$(MAIN_TARGETS)) 2>/dev/null || true
 	rm $(addprefix $(PREFIX_LIBS)/,$(MODULE_FILES) $(THIRDPARTY_FILES)) 2>/dev/null || true
@@ -290,22 +303,54 @@ uninstall: uninstall-bin
 uninstall-all: uninstall uninstall-config uninstall-www
 
 
-upgrade:
-	@echo "$(COLOR_PASS)NOTE:$(COLOR_RESET) \`upgrade' command will occur an error, if program was not installed."
-	sudo $(MAKE) uninstall-bin uninstall-www
+one-step-make:
+	# Third-party
+	$(MAKE) third-party
 	
-	$(MAKE) git-pull
+	@echo "$(COLOR_RUN)Please, enter the password (if need) for installation of third-party " \
+		  "modules or press Ctrl+C...$(COLOR_RESET)"
+	sudo make install-third-party
+	
+	
+	# The main program
 	$(MAKE)
+
+
+upgrade:
+	# Uninstallation
+	@echo "$(COLOR_RUN)Please, enter the password (if need) for uninstallation " \
+		  "of the old version or press Ctrl+C...$(COLOR_RESET)"
+	sudo make uninstall-third-party uninstall-bin uninstall-www
 	
-	@echo "$(COLOR_RUN)Please, enter the password (if need) for installation or press Ctrl+C...$(COLOR_RESET)"
+	
+	# Cleaning the built files
+	$(MAKE) distclean
+	
+	
+	# Downloading the new version
+	$(MAKE) git-pull
+	
+	
+	# Building and installation
+	$(MAKE) one-step-make
+	
+	@echo "$(COLOR_RUN)Please, enter the password (if need) for installation " \
+		  "or press Ctrl+C...$(COLOR_RESET)"
 	sudo make install-bin install-www
+	
+	
 	@echo "$(COLOR_PASS)==> Successfully upgraded.$(COLOR_RESET)"
 
 
-happy: git-pull all
-	@echo "$(COLOR_RUN)Please, enter the password (if need) for installation or press Ctrl+C...$(COLOR_RESET)"
+happy: git-pull
+	$(MAKE) one-step-make
+	
+	@echo "$(COLOR_RUN)Please, enter the password (if need) for installation " \
+		  "or press Ctrl+C...$(COLOR_RESET)"
 	sudo make install
+	
 	@echo "$(COLOR_PASS)==> Successfully built and installed.$(COLOR_RESET)"
+	
 	
 	@echo "$(COLOR_PASS)NOTE:$(COLOR_RESET) To work with $(PROJECT_NAME) try following commands:" \
 		  "$(addprefix \n    ,$(MAIN_TARGETS))"
@@ -413,6 +458,10 @@ $(OBJECT_FILES) $(MAIN_OBJECT_FILES): objects
 
 # Building of all module files
 $(MODULE_FILES_ABS): modules
+
+
+# Building of all third-party files
+$(THIRDPARTY_FILES_ABS): third-party
 
 
 # Main targets

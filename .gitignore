@@ -27,3 +27,6 @@ libs/*
 *.app
 build/*
 test/*
+
+# Third party logs
+third-party/log/

@@ -300,7 +300,7 @@ uninstall-www:
 uninstall: uninstall-bin
 
 
-uninstall-all: uninstall uninstall-config uninstall-www
+uninstall-all: uninstall uninstall-third-party uninstall-config uninstall-www
 
 
 one-step-make:

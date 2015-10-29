@@ -10,8 +10,8 @@ JOBS							= 4
 
 LOGS_DIR						= log
 
-MONGO_BUILD_LOG_FILE			= "$(LOGS_DIR)/mongo-cxx-driver_build_log.txt"
-MONGO_INSTALL_LOG_FILE			= "$(LOGS_DIR)/mongo-cxx-driver_install_log.txt"
+MONGO_BUILD_LOG_FILE			= $(LOGS_DIR)/mongo-cxx-driver_build_log.txt
+MONGO_INSTALL_LOG_FILE			= $(LOGS_DIR)/mongo-cxx-driver_install_log.txt
 
 
 # Project library dir
@@ -37,6 +37,9 @@ endif
 
 
 all:
+	# Downloading submodules, if them was not cloned
+	git submodule update --init
+	
 	# Dir for logs of thirdparty modules building and installing
 	mkdir -p $(LOGS_DIR)
 	

@@ -88,7 +88,11 @@ all: dirs main
 
 
 clean: clean-tests
-	rm -rf $(OBJECT_FILES) $(TARGET_LIB_FILE) 2>/dev/null || true
+	rm -rf $(OBJECT_FILES) $(MAIN_OBJECT_FILES) 2>/dev/null || true
+
+
+clean-main:
+	rm $(MAIN_TARGET) 2>/dev/null || true
 
 
 clean-tests:
@@ -99,7 +103,23 @@ clean-tests:
 check: dirs run-tests
 
 
+dirs:
+	mkdir -p $(sort $(dir $(OBJECT_FILES) $(TEST_OBJECT_FILES) \
+						  $(TEST_TARGET_FILES)))
+
+
 main: $(OBJECT_FILES) $(MAIN_OBJECT_FILES)
+
+
+run: all
+	echo "$(COLOR_RUN)Running program: $MAIN_TARGET...$(COLOR_RESET)";							\
+	$(call get_target_files,$MAIN_TARGET);														\
+	STATUS=$$?;																					\
+	if [ "X$$STATUS" = 'X0' ]; then																\
+		echo "$(COLOR_PASS)==> Program $MAIN_TARGET completed successfully.$(COLOR_RESET)";		\
+	else																						\
+		echo "$(COLOR_FAIL)==> Program $MAIN_TARGET failed with code: $$STATUS.$(COLOR_RESET)";	\
+	fi
 
 
 tests: $(TEST_TARGET_FILES)
@@ -130,3 +150,16 @@ $(OBJECTS_DIR_CURR)/%.o: $(SOURCES_DIR_CURR)/%.cpp $(HEADER_FILES)
 $(TEST_DIR_CURR)/%: $(OBJECTS_DIR_CURR)/%.o $(HEADER_FILES) $(OBJECT_FILES)
 	@echo "    $(COLOR_RUN)Linking test: $(subst $(TEST_DIR_CURR)/,,$@) (main)...$(COLOR_RESET)"
 	$(call gpp_main_test_link) -o '$@' '$<' $(OBJECT_FILES)
+
+
+# Main target
+$(TARGET_FILE): $()
+	TARGET=$(subst $(BUILD_DIR_CURR)/,,$@);														\
+	echo "$(COLOR_RUN)Linking target: $$TARGET (main)...$(COLOR_RESET)";						\
+	$(call gpp_link) $(GPP_LIBS_CURR) -o "$@" $(THIRDPARTY_FILES_ABS);							\
+	STATUS=$$?;																					\
+	if [ "X$$STATUS" = 'X0' ]; then																\
+		echo "$(COLOR_PASS)==> Target $$TARGET linked successfully.$(COLOR_RESET)";				\
+	else																						\
+		echo "$(COLOR_FAIL)==> Target $$TARGET linking failed.$(COLOR_RESET)";					\
+	fi;

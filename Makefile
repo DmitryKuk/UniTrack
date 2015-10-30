@@ -71,13 +71,7 @@ MODULES =						\
 
 
 # Executables
-MAIN_TARGETS = "$(MAIN_EXEC_NAME)"
-
-
-# Tests (extra tests, that must do some specific. For regular tests
-# see Makefiles of main part and modules).
-TEST_SOURCES_CPP =				\
-	
+MAIN_TARGET = "$(MAIN_EXEC_NAME)"
 
 # ---===    End of project internal properties    ===---
 
@@ -182,17 +176,10 @@ TEST_DIR_CURR				= $(TEST_DIR_ABS)
 THIRDPARTY_DIR_CURR			= $(THIRDPARTY_DIR_ABS)
 
 
-# Files
-OBJECT_FILES				= $(OBJECTS_DIR_CURR)/*.o
-TEST_OBJECT_FILES			= $(call get_object_files,$(TEST_OBJECTS))
-
 # Target files
-TARGET_FILES				= $(call get_target_files,$(MAIN_TARGETS))
+TARGET_FILE				= $(call get_target_files,$(MAIN_TARGET))
 
-TEST_TARGETS				= $(call get_targets,$(TEST_SOURCES_CPP))
-TEST_TARGET_FILES			= $(call get_test_files,$(TEST_TARGETS))
-
-# Module dinamic libraries
+# Module dynamic libraries
 MODULE_FILES_ABS			= $(call get_target_lib_files,$(MODULES))
 MODULE_FILES				= $(notdir $(MODULE_FILES_ABS))
 
@@ -202,22 +189,23 @@ GPP_LIBS_CURR				= $(addprefix -lut_,$(MODULES))
 
 # Targets
 .PHONY:																							\
-	all distclean clean clean-main clean-tests dirs main third-party							\
+	all distclean clean clean-main clean-tests dirs third-party									\
 	install-third-party   install-bin   install-config   install-www   install					\
 	uninstall-third-party uninstall-bin uninstall-config uninstall-www uninstall uninstall-all	\
 	one-step-make upgrade happy git-pull														\
-	check dirs modules main objects run tests run-tests
+	check dirs modules objects run tests run-tests
 
 
 .SILENT:
 
 
-all: dirs main
+all: dirs
+	$(MAKE) -C $(SOURCES_DIR_CURR)
 
 
-# Cleaning all builded files (submodules and third-party too!)
-distclean: clean clean-main
-	$(MAKE) -C "$(THIRDPARTY_DIR_CURR)" clean
+# Cleaning all built files (submodules and third-party too!)
+distclean: clean clean-main clean-third-party
+	rm -rf $(BUILD_DIR_CURR) $(LIBS_DIR_CURR) $(OBJECTS_DIR_CURR) $(TEST_DIR_CURR)
 
 
 # Cleaning project submodules (not third-party!) too
@@ -228,12 +216,15 @@ clean: clean-tests
 	done
 
 
+clean-third-party:
+	$(MAKE) -C "$(THIRDPARTY_DIR_CURR)" clean
+
+
 clean-main:
-	rm $(TARGET_FILES) 2>/dev/null || true
+	$(MAKE) -C $(SOURCES_DIR_CURR) clean-main
 
 
 clean-tests:
-	rm -rf $(TEST_OBJECT_FILES) $(TEST_TARGET_FILES)
 	$(MAKE) -C $(SOURCES_DIR_CURR) clean-tests;
 	for T in $(MODULES); do																	\
 		$(MAKE) -C "$(call get_sources_files,$$T)" MODULE_NAME="$$T" clean-tests;			\
@@ -249,7 +240,7 @@ install-bin:
 	install $(MODULE_FILES_ABS) $(THIRDPARTY_FILES_ABS) $(PREFIX_LIBS)
 	
 	@echo "$(COLOR_RUN)Installing files to \"$(PREFIX_TARGET)\"...$(COLOR_RESET)"
-	install $(TARGET_FILES) $(PREFIX_TARGET)
+	install $(TARGET_FILE) $(PREFIX_TARGET)
 	
 	@echo "$(COLOR_PASS)==> Binaries installed.$(COLOR_RESET)"
 
@@ -282,7 +273,7 @@ uninstall-third-party:
 
 
 uninstall-bin:
-	rm $(addprefix $(PREFIX_TARGET)/,$(MAIN_TARGETS)) 2>/dev/null || true
+	rm $(addprefix $(PREFIX_TARGET)/,$(MAIN_TARGET)) 2>/dev/null || true
 	rm $(addprefix $(PREFIX_LIBS)/,$(MODULE_FILES) $(THIRDPARTY_FILES)) 2>/dev/null || true
 	@echo "$(COLOR_PASS)==> Binaries removed.$(COLOR_RESET)"
 
@@ -353,20 +344,20 @@ happy: git-pull
 	
 	
 	@echo "$(COLOR_PASS)NOTE:$(COLOR_RESET) To work with $(PROJECT_NAME) try following commands:" \
-		  "$(addprefix \n    ,$(MAIN_TARGETS))"
+		  "$(addprefix \n    ,$(MAIN_TARGET))"
 	
 	@echo "$(COLOR_PASS)NOTE:$(COLOR_RESET) Next times you can simply do:"
 	@echo '    make upgrade'
 
 
 git-pull:
-	echo '$(COLOR_RUN)Downloading new version...$(COLOR_RESET)';						\
-	git pull --recurse-submodules=yes;													\
-	STATUS=$$?;																			\
-	if [ "X$$STATUS" = 'X0' ]; then														\
-		echo '$(COLOR_PASS)==> New version downloaded.$(COLOR_RESET)';					\
-	else																				\
-		echo "$(COLOR_FAIL)==> Download failed with status: $$STATUS.$(COLOR_RESET)";	\
+	echo '$(COLOR_RUN)Downloading new version...$(COLOR_RESET)';								\
+	git pull --recurse-submodules=yes;															\
+	STATUS=$$?;																					\
+	if [ "X$$STATUS" = 'X0' ]; then																\
+		echo '$(COLOR_PASS)==> New version downloaded.$(COLOR_RESET)';							\
+	else																						\
+		echo "$(COLOR_FAIL)==> Download failed with status: $$STATUS.$(COLOR_RESET)";			\
 	fi
 
 
@@ -375,12 +366,7 @@ check: run-tests
 
 
 dirs:
-	mkdir -p $(sort $(BUILD_DIR_CURR) $(LIBS_DIR_CURR) \
-					$(OBJECTS_DIR_CURR) $(TEST_DIR_CURR) \
-					$(dir $(OBJECT_FILES) $(MAIN_OBJECT_FILES)))
-
-
-main: $(TARGET_FILES)
+	mkdir -p $(BUILD_DIR_CURR) $(LIBS_DIR_CURR) $(OBJECTS_DIR_CURR) $(TEST_DIR_CURR)
 
 
 objects:
@@ -412,20 +398,11 @@ third-party:
 
 
 run: all
-	for T in $(MAIN_TARGETS); do																\
-		echo "$(COLOR_RUN)Running program: $$T...$(COLOR_RESET)";								\
-		$(call get_target_files,$$T);															\
-		STATUS=$$?;																				\
-		if [ "X$$STATUS" = 'X0' ]; then															\
-			echo "$(COLOR_PASS)==> Program $$T completed successfully.$(COLOR_RESET)";			\
-		else																					\
-			echo "$(COLOR_FAIL)==> Program $$T failed with code: $$STATUS.$(COLOR_RESET)";		\
-		fi;																						\
-	done
+	$(MAKE) -C $(SOURCES_DIR_CURR) run
 
 
-# Running tests for submodules too
-tests: modules objects $(TEST_TARGET_FILES)
+# Building tests for submodules too
+tests: modules objects
 	$(MAKE) -C "$(SOURCES_DIR_CURR)" tests;														\
 	for T in $(MODULES); do																		\
 		$(MAKE) -C "$(call get_sources_files,$$T)" MODULE_NAME="$$T" tests;						\
@@ -434,26 +411,10 @@ tests: modules objects $(TEST_TARGET_FILES)
 
 # Running tests for submodules too
 run-tests: dirs tests
-	if [ "X$(TEST_TARGETS)" != "X" ]; then																\
-		for T in $(TEST_TARGETS); do																	\
-			echo "$(COLOR_RUN)Running test: $$T (global)...$(COLOR_RESET)";								\
-			$(call get_test_files,$$T);																	\
-			STATUS=$$?;																					\
-			if [ "X$$STATUS" = 'X0' ]; then																\
-				echo "$(COLOR_PASS)==> Test $$T (global) passed.$(COLOR_RESET)";						\
-			else																						\
-				echo "$(COLOR_FAIL)==> Test $$T (global) failed with code: $$STATUS.$(COLOR_RESET)";	\
-			fi;																							\
-		done;																							\
-	fi;																									\
-	$(MAKE) -C "$(SOURCES_DIR_CURR)" run-tests;															\
-	for T in $(MODULES); do																				\
-		$(MAKE) -C "$(call get_sources_files,$$T)" MODULE_NAME="$$T" run-tests;							\
+	$(MAKE) -C "$(SOURCES_DIR_CURR)" run-tests;													\
+	for T in $(MODULES); do																		\
+		$(MAKE) -C "$(call get_sources_files,$$T)" MODULE_NAME="$$T" run-tests;					\
 	done
-
-
-# Building of all object files of the main part
-$(OBJECT_FILES) $(MAIN_OBJECT_FILES): objects
 
 
 # Building of all module files
@@ -462,22 +423,3 @@ $(MODULE_FILES_ABS): modules
 
 # Building of all third-party files
 $(THIRDPARTY_FILES_ABS): third-party
-
-
-# Main targets
-$(TARGET_FILES): $(HEADER_FILES) modules objects
-	TARGET=$(subst $(BUILD_DIR_CURR)/,,$@);																	\
-	echo "$(COLOR_RUN)Linking target: $$TARGET (global)...$(COLOR_RESET)";									\
-	$(call gpp_link) $(GPP_LIBS_CURR) -o "$@" $(MAIN_OBJECT_FILES) $(THIRDPARTY_FILES_ABS) $(OBJECT_FILES);	\
-	STATUS=$$?;																								\
-	if [ "X$$STATUS" = 'X0' ]; then																			\
-		echo "$(COLOR_PASS)==> Target $$TARGET linked successfully.$(COLOR_RESET)";							\
-	else																									\
-		echo "$(COLOR_FAIL)==> Target $$TARGET linking failed.$(COLOR_RESET)";								\
-	fi;
-
-
-# Tests
-$(TEST_DIR_CURR)/%: $(OBJECTS_DIR_CURR)/%.o $(HEADER_FILES) $(OBJECT_FILES)
-	@echo "    $(COLOR_RUN)Linking test: $(subst $(TEST_DIR_CURR)/,,$@) (global)...$(COLOR_RESET)"
-	$(call gpp_global_test_link) -o '$@' '$<' $(OBJECT_FILES)

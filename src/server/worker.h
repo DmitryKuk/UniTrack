@@ -7,7 +7,6 @@
 #include <list>
 
 #include <boost/asio.hpp>
-#include <boost/lockfree/spsc_queue.hpp>
 
 #include <logger/logger.h>
 #include <server/client_manager.h>

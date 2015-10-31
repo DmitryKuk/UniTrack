@@ -37,9 +37,17 @@ MODULES_SRC_DIR_CURR	= $(MODULES_SRC_DIR_ABS)
 MODULES_OBJ_DIR_CURR	= $(MODULES_OBJ_DIR_ABS)
 MODULES_TEST_DIR_CURR	= $(MODULES_TEST_DIR_ABS)
 
+TARGETS_SRC_DIR_CURR	= $(TARGETS_SRC_DIR_ABS)
+TARGETS_OBJ_DIR_CURR	= $(TARGETS_OBJ_DIR_ABS)
+TARGETS_TEST_DIR_CURR	= $(TARGETS_TEST_DIR_ABS)
+
 
 export GPP_HEADER_PATHS	+= -I'$(PREFIX_THIRDPARTY)/include' -I'$(MODULES_SRC_DIR_CURR)'
-export GPP_LIB_PATHS	+= -I'$(PREFIX_THIRDPARTY)/lib'
+export GPP_LIB_PATHS	+= -L'$(PREFIX_THIRDPARTY)/lib' -L'$(LIB_DIR_CURR)'
+
+
+export MODULES			= $(notdir $(shell find '$(MODULES_SRC_DIR_CURR)/' -maxdepth 1 -type d))
+export TARGETS			= $(notdir $(shell find '$(TARGETS_SRC_DIR_CURR)/' -maxdepth 1 -type d))
 
 
 # Targets
@@ -55,10 +63,11 @@ export GPP_LIB_PATHS	+= -I'$(PREFIX_THIRDPARTY)/lib'
 
 
 all: #dirs modules targets
-	@echo "$(COLOR_PASS)Here 1: $(HELLO)$(COLOR_RESET)"
-	@echo "$(COLOR_RUN)Here 1!$(COLOR_RESET)"
-	@echo $(call get_src_files,123)
-	$(MAKE) -C src/modules/base MODULE_NAME=base
+	# @echo "$(COLOR_PASS)Here 1: $(HELLO)$(COLOR_RESET)"
+	# @echo "$(COLOR_RUN)Here 1!$(COLOR_RESET)"
+	# @echo $(call get_src_files,123)
+	# $(MAKE) -C src/modules/base MODULE_NAME=base
+	$(MAKE) -C src/targets/unitrack TARGET_NAME=unitrack
 
 
 # Cleaning all built files (submodules and third-party too!)

@@ -9,18 +9,9 @@
 # Sources only
 SRC_DIR					= src
 
-# Modules sources only (without `src/' prefix)
-MODULES_ONLY_DIR		= modules
-
-# Modules sources only
-MODULES_SRC_DIR			= $(SRC_DIR)/$(MODULES_ONLY_DIR)
-
-# Targets sources only
-TARGETS_DIR				= $(SRC_DIR)/targets
-
-
 # Building results only
 BUILD_DIR				= build
+
 
 # Executables
 BIN_DIR					= $(BUILD_DIR)/bin
@@ -30,11 +21,23 @@ LIB_DIR					= $(BUILD_DIR)/lib
 
 # All .o files (including tests)
 OBJ_DIR					= $(BUILD_DIR)/obj
-MODULES_OBJ_DIR			= $(OBJ_DIR)/$(MODULES_ONLY_DIR)
 
 # All test executables
 TEST_DIR				= $(BUILD_DIR)/test
+
+
+# Modules dirs
+MODULES_ONLY_DIR		= modules
+MODULES_SRC_DIR			= $(SRC_DIR)/$(MODULES_ONLY_DIR)
+MODULES_OBJ_DIR			= $(OBJ_DIR)/$(MODULES_ONLY_DIR)
 MODULES_TEST_DIR		= $(TEST_DIR)/$(MODULES_ONLY_DIR)
+
+
+# Targets dirs
+TARGETS_ONLY_DIR		= targets
+TARGETS_SRC_DIR			= $(SRC_DIR)/$(TARGETS_ONLY_DIR)
+TARGETS_OBJ_DIR			= $(OBJ_DIR)/$(TARGETS_ONLY_DIR)
+TARGETS_TEST_DIR		= $(TEST_DIR)/$(TARGETS_ONLY_DIR)
 
 
 # Config
@@ -67,6 +70,14 @@ export WWW_DIR_ABS			= $(PROJECT_ROOT)/$(WWW_DIR)
 
 export THIRDPARTY_DIR_ABS	= $(PROJECT_ROOT)/$(THIRDPARTY_DIR)
 
+
+# Modules dirs
 export MODULES_SRC_DIR_ABS	= $(PROJECT_ROOT)/$(MODULES_SRC_DIR)
 export MODULES_OBJ_DIR_ABS	= $(PROJECT_ROOT)/$(MODULES_OBJ_DIR)
 export MODULES_TEST_DIR_ABS	= $(PROJECT_ROOT)/$(MODULES_TEST_DIR)
+
+
+# Targets dirs
+export TARGETS_SRC_DIR_ABS	= $(PROJECT_ROOT)/$(TARGETS_SRC_DIR)
+export TARGETS_OBJ_DIR_ABS	= $(PROJECT_ROOT)/$(TARGETS_OBJ_DIR)
+export TARGETS_TEST_DIR_ABS	= $(PROJECT_ROOT)/$(TARGETS_TEST_DIR)

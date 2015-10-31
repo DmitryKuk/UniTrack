@@ -16,11 +16,10 @@ cpp_to_obj				= $(1:.cpp=.o)
 
 get_test_files			= $(addprefix $(TEST_DIR_CURR)/,$(1))
 get_targets				= $(basename $(1))
+get_libs				= $(addprefix -l$(PROJECT_LIB_PREFIX),$(1))
+get_external_libs		= $(addprefix -l,$(1))
 
 
 gpp_compile				= $(GPP) $(GPP_COMPILE_FLAGS) $(GPP_HEADER_PATHS)
 gpp_shared_lib			= $(GPP) $(GPP_SHARED_LIB_FLAGS) $(GPP_LIB_PATHS) $(GPP_LIBS)
 gpp_link				= $(GPP) $(GPP_LINK_FLAGS) $(GPP_LIB_PATHS) $(GPP_LIBS)
-gpp_test_link			= $(GPP) $(GPP_LINK_FLAGS) $(GPP_LIB_PATHS) $(GPP_LIBS) -lut_$(TARGET_LIB)
-gpp_main_test_link		= $(GPP) $(GPP_LINK_FLAGS) $(GPP_LIB_PATHS) $(GPP_LIBS) $(addprefix -lut_,$(MODULES))
-gpp_global_test_link	= $(gpp_main_test_link)

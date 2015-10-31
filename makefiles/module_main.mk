@@ -10,8 +10,8 @@ include $(MAKEFILE_UTILITY_ABS)
 include config.mk
 
 
-GPP_LIBS					+= $(addprefix -l,$(EXTERNAL_LIBS))
-GPP_LIBS					+= $(addprefix -l$(PROJECT_LIB_PREFIX),$(MODULE_DEPS))
+GPP_LIBS					+= $(call get_external_libs,$(EXTERNAL_LIBS))
+GPP_LIBS					+= $(call get_libs,$(MODULE_DEPS))
 
 
 # Paths
@@ -53,9 +53,12 @@ OBJ_FILES					= $(call get_obj_files,$(call cpp_to_obj,$(OBJ_CPPS)))
 # Tests
 TEST_CPPS					= $(subst $(SRC_DIR_CURR)/,,$(TEST_SRC_CPP))
 TEST_OBJ_FILES				= $(call get_obj_files,$(call cpp_to_obj,$(TEST_CPPS)))
-TEST_TARGET_FILES			= $(call get_test_files,$(call get_targets,$(TEST_CPPS)))
+
+TEST_TARGETS				= $(call get_targets,$(TEST_CPPS))
+TEST_TARGET_FILES			= $(call get_test_files,$(TEST_TARGETS))
 
 
+# Targets
 .PHONY: all clean clean-tests check dirs main tests run-tests
 .SILENT:
 
@@ -75,7 +78,8 @@ check: dirs run-tests
 
 
 dirs:
-	mkdir -p $(sort $(dir $(TARGET_LIB_FILE) $(OBJ_FILES) $(TEST_OBJ_FILES) $(TEST_TARGET_FILES)))
+	mkdir -p $(sort $(dir $(TARGET_LIB_FILE) $(OBJ_FILES) \
+						  $(TEST_OBJ_FILES) $(TEST_TARGET_FILES)))
 
 
 main: $(TARGET_LIB_FILE)
@@ -87,13 +91,13 @@ tests: $(TEST_TARGET_FILES)
 run-tests: tests
 	if [ "X$(TEST_TARGETS)" != "X" ]; then																		\
 		for T in $(TEST_TARGETS); do																			\
-			echo "$(COLOR_RUN)Running test: $$T ($(MODULE_NAME))...$(COLOR_RESET)";								\
+			echo "$(COLOR_RUN)[$(MODULE_NAME)]  Running test: $$T...$(COLOR_RESET)";							\
 			$(call get_test_files,$$T);																			\
 			STATUS=$$?;																							\
 			if [ "X$$STATUS" == 'X0' ]; then																	\
-				echo "$(COLOR_PASS)==> Test $$T ($(MODULE_NAME)) passed.$(COLOR_RESET)";						\
+				echo "$(COLOR_PASS)==> [$(MODULE_NAME)]  Test $$T passed.$(COLOR_RESET)";						\
 			else																								\
-				echo "$(COLOR_FAIL)==> Test $$T ($(MODULE_NAME)) failed with code: $$STATUS.$(COLOR_RESET)";	\
+				echo "$(COLOR_FAIL)==> [$(MODULE_NAME)]  Test $$T failed with code: $$STATUS.$(COLOR_RESET)";	\
 			fi;																									\
 		done;																									\
 	fi
@@ -101,19 +105,16 @@ run-tests: tests
 
 # Objects compilation (universal for main program and tests)
 $(OBJ_DIR_CURR)/%.o: $(SRC_DIR_CURR)/%.cpp $(HEADER_FILES)
-	@echo "    $(COLOR_RUN)Compiling: $(subst $(OBJ_DIR_CURR)/,,$@) ($(MODULE_NAME))...$(COLOR_RESET)"
-	@echo $(call gpp_compile) -o '$@' '$<'
+	@echo "    $(COLOR_RUN)[$(MODULE_NAME)]  Compiling: $(subst $(OBJ_DIR_CURR)/,,$@)...$(COLOR_RESET)"
 	$(call gpp_compile) -o '$@' '$<'
 
 
 $(TARGET_LIB_FILE): $(HEADER_FILES) $(OBJ_FILES)
-	@echo "    $(COLOR_RUN)Linking shared lib: $(subst $(LIBS_DIR_CURR)/,,$@) ($(MODULE_NAME))...$(COLOR_RESET)"
-	@echo $(call gpp_shared_lib) -o '$@' $(OBJ_FILES)
+	@echo "    $(COLOR_RUN)[$(MODULE_NAME)]  Linking shared lib: $(subst $(LIB_DIR_CURR)/,,$@)...$(COLOR_RESET)"
 	$(call gpp_shared_lib) -o '$@' $(OBJ_FILES)
 
 
 # Tests
-$(TEST_DIR_CURR)/%: $(OBJ_DIR_CURR)/%.o $(HEADER_FILES) $(OBJ_FILES)
-	@echo "    $(COLOR_RUN)Linking test: $(subst $(TEST_DIR_CURR)/,,$@) ($(MODULE_NAME))...$(COLOR_RESET)"
-	@echo $(call gpp_link) -o '$@' '$<' $(OBJ_FILES)
-	$(call gpp_link) -o '$@' '$<' $(OBJ_FILES)
+$(TEST_DIR_CURR)/%: $(OBJ_DIR_CURR)/%.o $(HEADER_FILES) $(TARGET_LIB_FILE)
+	@echo "    $(COLOR_RUN)[$(MODULE_NAME)]  Linking test: $(subst $(TEST_DIR_CURR)/,,$@)...$(COLOR_RESET)"
+	$(call gpp_link) $(call get_libs,$(MODULE_NAME)) -o '$@' '$<'

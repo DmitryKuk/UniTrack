@@ -1,1 +1,1 @@
-main.mk
+../../../makefiles/target_main.mk

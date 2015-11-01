@@ -4,9 +4,11 @@
 
 
 # Helper functions
-include $(MAKEFILE_UTILITY_ABS)
+include $(MK_UTILITY_ABS)
 
-LIB_DIR_CURR				= $(LIB_DIR_ABS)
+# Recursive targets' and modules' targets
+include $(MK_RECURSIVE_ABS)
+
 
 # Targets
 .PHONY: all clean clean-tests check dirs main tests run-tests
@@ -116,11 +118,3 @@ $(TEST_DIR_CURR)/%: $(OBJ_DIR_CURR)/%.o $(HEADER_FILES) $(TARGET_FILE)
 		echo '$(COLOR_FAIL)==> [$(TARGET_TYPE): $(TARGET_NAME)] '				\
 			 "Test building failed (status: $$STATUS).$(COLOR_RESET)";			\
 	fi
-
-
-# Module dependencies recursive building
-$(LIB_DIR_CURR)/%.so:
-	MODULE_NAME=$(basename $(subst lib$(PROJECT_LIB_PREFIX),,$(notdir $@)));	\
-	echo "    $(COLOR_RUN)[$(TARGET_TYPE): $(TARGET_NAME)] "					\
-		  "Building module dependency: $$MODULE_NAME...$(COLOR_RESET)";			\
-	$(MAKE) -C "$(MODULES_SRC_DIR_ABS)/$$MODULE_NAME" TARGET_NAME=$$MODULE_NAME

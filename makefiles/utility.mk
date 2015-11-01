@@ -1,8 +1,8 @@
 # Author: Dmitry Kukovinets (d1021976@gmail.com)
 
 # This Makefile contains some useful functions, that can simplify writing Makefiles for submodules.
-# NOTE: the root Makefile exports MAKEFILE_UTILITY_ABS varialbe, so don't forget:
-# include $(MAKEFILE_UTILITY_ABS)
+# NOTE: the root Makefile exports MK_UTILITY_ABS varialbe, so don't forget:
+# include $(MK_UTILITY_ABS)
 
 
 # Helper functions
@@ -13,6 +13,7 @@ get_lib_files			= $(addsuffix .so,$(addprefix $(LIB_DIR_CURR)/lib$(PROJECT_LIB_P
 get_obj_files			= $(addprefix $(OBJ_DIR_CURR)/,$(1))
 
 cpp_to_obj				= $(1:.cpp=.o)
+lib_to_module			= $(basename $(subst lib$(PROJECT_LIB_PREFIX),,$(notdir $1)))
 
 get_test_files			= $(addprefix $(TEST_DIR_CURR)/,$(1))
 get_targets				= $(basename $(1))

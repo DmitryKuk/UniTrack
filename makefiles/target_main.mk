@@ -4,7 +4,7 @@
 
 
 # Helper functions
-include $(MAKEFILE_UTILITY_ABS)
+include $(MK_UTILITY_ABS)
 
 # Target config
 include config.mk
@@ -85,5 +85,4 @@ TEST_TARGET_FILES			= $(call get_test_files,$(TEST_TARGETS))
 
 # Targets
 export TARGET_TYPE			= Target
-# TARGET_NAME is defined, when this make command is called
-include $(MAKEFILE_TARGETS_ABS)
+include $(MK_TARGETS_ABS)

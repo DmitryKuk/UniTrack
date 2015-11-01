@@ -7,7 +7,7 @@ MODULE_NAME					= $(TARGET_NAME)
 
 
 # Helper functions
-include $(MAKEFILE_UTILITY_ABS)
+include $(MK_UTILITY_ABS)
 
 # Module config
 include config.mk
@@ -69,4 +69,4 @@ TEST_TARGET_FILES			= $(call get_test_files,$(TEST_TARGETS))
 
 # Targets
 export TARGET_TYPE			= Module
-include $(MAKEFILE_TARGETS_ABS)
+include $(MK_TARGETS_ABS)

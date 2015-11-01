@@ -56,8 +56,6 @@ THIRDPARTY_DIR			= third-party
 
 # Absolute paths
 export SRC_DIR_ABS			= $(PROJECT_ROOT)/$(SRC_DIR)
-export MODULES_DIR_ABS		= $(PROJECT_ROOT)/$(MODULES_DIR)
-export TARGETS_DIR_ABS		= $(PROJECT_ROOT)/$(TARGETS_DIR)
 
 export BUILD_DIR_ABS		= $(PROJECT_ROOT)/$(BUILD_DIR)
 export BIN_DIR_ABS			= $(PROJECT_ROOT)/$(BIN_DIR)

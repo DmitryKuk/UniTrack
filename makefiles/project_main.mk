@@ -4,25 +4,28 @@
 
 
 export PROJECT_ROOT			= $(shell pwd)
-export MAKEFILE_DIR_ABS		= $(PROJECT_ROOT)/makefiles
+export MK_DIR_ABS			= $(PROJECT_ROOT)/makefiles
 
 
-include $(MAKEFILE_DIR_ABS)/colors.mk
-include $(MAKEFILE_DIR_ABS)/config.mk
-include $(MAKEFILE_DIR_ABS)/config_internal.mk
-include $(MAKEFILE_DIR_ABS)/platform.mk
+include $(MK_DIR_ABS)/colors.mk
+include $(MK_DIR_ABS)/config.mk
+include $(MK_DIR_ABS)/config_internal.mk
+include $(MK_DIR_ABS)/platform.mk
 
 # Helper functions
-export MAKEFILE_UTILITY_ABS = $(MAKEFILE_DIR_ABS)/utility.mk
-include $(MAKEFILE_UTILITY_ABS)
+export MK_UTILITY_ABS 		= $(MK_DIR_ABS)/utility.mk
+include $(MK_UTILITY_ABS)
 
 # Common targets for modules and targets Makefiles
-export MAKEFILE_TARGETS_ABS	= $(MAKEFILE_DIR_ABS)/targets.mk
+export MK_TARGETS_ABS		= $(MK_DIR_ABS)/targets.mk
+
+# Recursive targets' and modules' targets
+export MK_RECURSIVE_ABS		= $(MK_DIR_ABS)/recursive.mk
+include $(MK_RECURSIVE_ABS)
 
 
 # Current module pathes
 SRC_DIR_CURR				= $(SRC_DIR_ABS)
-TARGETS_DIR_CURR			= $(TARGETS_DIR_ABS)
 
 BUILD_DIR_CURR				= $(BUILD_DIR_ABS)
 BIN_DIR_CURR				= $(BIN_DIR_ABS)
@@ -66,40 +69,49 @@ export TARGETS				= $(notdir $(shell find '$(TARGETS_SRC_DIR_CURR)/' -maxdepth 1
 .SILENT:
 
 
-all: #dirs modules targets
-	@echo "$(COLOR_FAIL)Module templatizer:$(COLOR_RESET)"
-	$(MAKE) -C src/modules/templatizer TARGET_NAME=templatizer
+all: modules targets
+
+
+modules: $(call get_lib_files,$(MODULES))
+
+
+targets: $(call get_bin_files,$(TARGETS))
+
+
+clean-targets:
+	for TARGET in $(TARGETS); do															\
+		$(MAKE) -C "$(TARGETS_SRC_DIR_CURR)/$$TARGET" "TARGET_NAME=$$TARGET" clean;			\
+	done
+
+
+clean-modules:
+	for MODULE in $(MODULES); do															\
+		$(MAKE) -C "$(MODULES_SRC_DIR_CURR)/$$MODULE" "TARGET_NAME=$$MODULE" clean;			\
+	done
+
+
+clean-tests:
+	for TARGET in $(TARGETS); do															\
+		$(MAKE) -C "$(TARGETS_SRC_DIR_CURR)/$$TARGET" "TARGET_NAME=$$TARGET" clean-tests;	\
+	done
 	
-	@echo "\n$(COLOR_FAIL)Target unitrack:$(COLOR_RESET)"
-	$(MAKE) -C src/targets/unitrack TARGET_NAME=unitrack
-
-
-# Cleaning all built files (submodules and third-party too!)
-# distclean: clean clean-main clean-third-party
-# 	rm -rf $(BUILD_DIR_CURR) $(LIB_DIR_CURR) $(OBJ_DIR_CURR) $(TEST_DIR_CURR)
-
-
-# # Cleaning project submodules (not third-party!) too
-# clean: clean-tests
-# 	$(MAKE) -C $(SRC_DIR_CURR) clean;
-# 	for T in $(MODULES); do																	\
-# 		$(MAKE) -C "$(call get_sources_files,$$T)" MODULE_NAME="$$T" clean;					\
-# 	done
+	for MODULE in $(MODULES); do															\
+		$(MAKE) -C "$(MODULES_SRC_DIR_CURR)/$$MODULE" "TARGET_NAME=$$MODULE" clean-tests;	\
+	done
 
 
 # clean-third-party:
 # 	$(MAKE) -C "$(THIRDPARTY_DIR_CURR)" clean
 
 
-# clean-main:
-# 	$(MAKE) -C $(SRC_DIR_CURR) clean-main
+# Cleaning project targets and modules (not third-party!)
+clean: clean-targets clean-modules
 
 
-# clean-tests:
-# 	$(MAKE) -C $(SRC_DIR_CURR) clean-tests;
-# 	for T in $(MODULES); do																	\
-# 		$(MAKE) -C "$(call get_sources_files,$$T)" MODULE_NAME="$$T" clean-tests;			\
-# 	done
+# Cleaning all built files (submodules and third-party too!)
+distclean:
+	rm -rf $(BUILD_DIR_CURR)
+
 
 
 # install-third-party:

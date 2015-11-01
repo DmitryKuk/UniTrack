@@ -12,6 +12,10 @@ include $(MK_DIR_ABS)/config.mk
 include $(MK_DIR_ABS)/config_internal.mk
 include $(MK_DIR_ABS)/platform.mk
 
+# Helper functions
+export MK_UTILITY_ABS 		= $(MK_DIR_ABS)/utility.mk
+include $(MK_UTILITY_ABS)
+
 # Common targets for modules and targets Makefiles
 export MK_TARGETS_ABS		= $(MK_DIR_ABS)/targets.mk
 
@@ -51,11 +55,6 @@ export GPP_COMPILE_FLAGS	+= $(GPP_PROJECT_DATA)
 
 export MODULES				= $(notdir $(shell find '$(MODULES_SRC_DIR_CURR)/' -maxdepth 1 -type d))
 export TARGETS				= $(notdir $(shell find '$(TARGETS_SRC_DIR_CURR)/' -maxdepth 1 -type d))
-
-
-# Helper functions
-export MK_UTILITY_ABS 		= $(MK_DIR_ABS)/utility.mk
-include $(MK_UTILITY_ABS)
 
 
 # Targets

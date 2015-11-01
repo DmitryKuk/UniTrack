@@ -1,6 +1,6 @@
 # Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-# Makefile with config for base module.
+# Makefile with config for templatizer module.
 
 
 # Other modules this module depends on

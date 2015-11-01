@@ -3,6 +3,9 @@
 # Makefile for server part of this program.
 
 
+MODULE_NAME					= $(TARGET_NAME)
+
+
 # Helper functions
 include $(MAKEFILE_UTILITY_ABS)
 
@@ -66,5 +69,4 @@ TEST_TARGET_FILES			= $(call get_test_files,$(TEST_TARGETS))
 
 # Targets
 export TARGET_TYPE			= Module
-export TARGET_NAME			= $(MODULE_NAME)
 include $(MAKEFILE_TARGETS_ABS)

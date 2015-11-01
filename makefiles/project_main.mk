@@ -58,14 +58,17 @@ export TARGETS				= $(notdir $(shell find '$(TARGETS_SRC_DIR_CURR)/' -maxdepth 1
 
 
 # Targets
-.PHONY:					\
-	all modules targets	\
-	clean-targets
+.PHONY:																				\
+	all          targets        modules        tests        third-party 			\
+	clean  clean-targets  clean-modules  clean-tests  clean-third-party  distclean	\
+	
 
 
 .SILENT:
 
 
+
+# Building
 all: modules targets
 
 
@@ -73,6 +76,21 @@ targets: $(call get_bin_files,$(TARGETS))
 
 
 modules: $(call get_lib_files,$(MODULES))
+
+
+tests:
+	$(call for_each_target,tests)
+	$(call for_each_module,tests)
+
+
+third-party:
+	$(MAKE) -C "$(THIRDPARTY_DIR_CURR)"
+
+
+
+# Cleaning
+# Cleaning project targets and modules (not third-party!)
+clean: clean-targets clean-modules
 
 
 clean-targets:
@@ -88,12 +106,8 @@ clean-tests:
 	$(call for_each_module,clean-tests)
 
 
-# clean-third-party:
-# 	$(MAKE) -C "$(THIRDPARTY_DIR_CURR)" clean
-
-
-# Cleaning project targets and modules (not third-party!)
-clean: clean-targets clean-modules
+clean-third-party:
+	$(MAKE) -C "$(THIRDPARTY_DIR_CURR)" clean
 
 
 # Cleaning all built files (submodules and third-party too!)
@@ -102,6 +116,7 @@ distclean:
 
 
 
+# Installing
 # install-third-party:
 # 	$(MAKE) -C "$(THIRDPARTY_DIR_CURR)" install
 

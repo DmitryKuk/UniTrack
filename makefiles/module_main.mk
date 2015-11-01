@@ -10,7 +10,7 @@ MODULE_NAME					= $(TARGET_NAME)
 include $(MK_UTILITY_ABS)
 
 # Module config
-include config.mk
+-include config.mk
 
 
 GPP_LIBS					+= $(call get_external_libs,$(EXTERNAL_LIBS))

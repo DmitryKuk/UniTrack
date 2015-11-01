@@ -7,7 +7,7 @@
 include $(MK_UTILITY_ABS)
 
 # Target config
-include config.mk
+-include config.mk
 
 
 GPP_LIBS					+= $(call get_external_libs,$(EXTERNAL_LIBS))

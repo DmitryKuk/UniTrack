@@ -12,10 +12,6 @@ include $(MK_DIR_ABS)/config.mk
 include $(MK_DIR_ABS)/config_internal.mk
 include $(MK_DIR_ABS)/platform.mk
 
-# Helper functions
-export MK_UTILITY_ABS 		= $(MK_DIR_ABS)/utility.mk
-include $(MK_UTILITY_ABS)
-
 # Common targets for modules and targets Makefiles
 export MK_TARGETS_ABS		= $(MK_DIR_ABS)/targets.mk
 
@@ -57,13 +53,15 @@ export MODULES				= $(notdir $(shell find '$(MODULES_SRC_DIR_CURR)/' -maxdepth 1
 export TARGETS				= $(notdir $(shell find '$(TARGETS_SRC_DIR_CURR)/' -maxdepth 1 -type d))
 
 
+# Helper functions
+export MK_UTILITY_ABS 		= $(MK_DIR_ABS)/utility.mk
+include $(MK_UTILITY_ABS)
+
+
 # Targets
-.PHONY:																							\
-	all distclean clean clean-main clean-tests dirs third-party									\
-	install-third-party   install-bin   install-config   install-www   install					\
-	uninstall-third-party uninstall-bin uninstall-config uninstall-www uninstall uninstall-all	\
-	one-step-make upgrade happy git-pull														\
-	check dirs modules objects run tests run-tests
+.PHONY:					\
+	all modules targets	\
+	clean-targets
 
 
 .SILENT:
@@ -72,32 +70,23 @@ export TARGETS				= $(notdir $(shell find '$(TARGETS_SRC_DIR_CURR)/' -maxdepth 1
 all: modules targets
 
 
-modules: $(call get_lib_files,$(MODULES))
-
-
 targets: $(call get_bin_files,$(TARGETS))
 
 
+modules: $(call get_lib_files,$(MODULES))
+
+
 clean-targets:
-	for TARGET in $(TARGETS); do															\
-		$(MAKE) -C "$(TARGETS_SRC_DIR_CURR)/$$TARGET" "TARGET_NAME=$$TARGET" clean;			\
-	done
+	$(call for_each_target,clean)
 
 
 clean-modules:
-	for MODULE in $(MODULES); do															\
-		$(MAKE) -C "$(MODULES_SRC_DIR_CURR)/$$MODULE" "TARGET_NAME=$$MODULE" clean;			\
-	done
+	$(call for_each_module,clean)
 
 
 clean-tests:
-	for TARGET in $(TARGETS); do															\
-		$(MAKE) -C "$(TARGETS_SRC_DIR_CURR)/$$TARGET" "TARGET_NAME=$$TARGET" clean-tests;	\
-	done
-	
-	for MODULE in $(MODULES); do															\
-		$(MAKE) -C "$(MODULES_SRC_DIR_CURR)/$$MODULE" "TARGET_NAME=$$MODULE" clean-tests;	\
-	done
+	$(call for_each_target,clean-tests)
+	$(call for_each_module,clean-tests)
 
 
 # clean-third-party:

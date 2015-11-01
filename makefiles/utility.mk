@@ -24,3 +24,14 @@ get_external_libs		= $(addprefix -l,$(1))
 gpp_compile				= $(GPP) $(GPP_COMPILE_FLAGS) $(GPP_HEADER_PATHS)
 gpp_shared_lib			= $(GPP) $(GPP_SHARED_LIB_FLAGS) $(GPP_LIB_PATHS) $(GPP_LIBS)
 gpp_link				= $(GPP) $(GPP_LINK_FLAGS) $(GPP_LIB_PATHS) $(GPP_LIBS)
+
+
+# Usage example: $(call for_each,base logger server,$(MODULES_DIR_CURR),clean)
+for_each				=													\
+	for T in $(1); do														\
+		$(MAKE) -C "$(2)/$$T" "TARGET_NAME=$$T" $(3);						\
+	done
+
+# Usage example: $(call for_each_target,clean)
+for_each_target			= $(call for_each,$(TARGETS),$(TARGETS_SRC_DIR_CURR),$(1))
+for_each_module			= $(call for_each,$(MODULES),$(MODULES_SRC_DIR_CURR),$(1))

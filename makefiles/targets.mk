@@ -66,7 +66,6 @@ $(OBJ_DIR_CURR)/%.o: $(SRC_DIR_CURR)/%.cpp $(HEADER_FILES)
 
 # Target executable linking
 $(TARGET_FILE): $(HEADER_FILES) $(OBJ_FILES) $(MAIN_OBJ_FILES) $(MODULE_DEPS)
-	@echo "$(COLOR_PASS)Target$(COLOR_RESET) $@  =>  $(MODULE_DEPS)"
 	@echo "    $(COLOR_RUN)[$(TARGET_TYPE): $(TARGET_NAME)] "					\
 		  "Linking executable: $(subst $(BIN_DIR_CURR)/,,$@)...$(COLOR_RESET)"
 	# @echo $(call gpp_link) -o '$@' $(OBJ_FILES) $(MAIN_OBJ_FILES)
@@ -76,7 +75,6 @@ $(TARGET_FILE): $(HEADER_FILES) $(OBJ_FILES) $(MAIN_OBJ_FILES) $(MODULE_DEPS)
 # Target shared library linking
 $(TARGET_LIB_FILE): $(HEADER_FILES) $(OBJ_FILES) $(MODULE_DEPS)
 	@echo "PROJECT_LIB_PREFIX: $(PROJECT_LIB_PREFIX)"
-	@echo "$(COLOR_PASS)Lib$(COLOR_RESET) $@  =>  $(MODULE_DEPS)"
 	@echo "    $(COLOR_RUN)[$(TARGET_TYPE): $(TARGET_NAME)] "					\
 		  "Linking shared lib: $(subst $(LIB_DIR_CURR)/,,$@)...$(COLOR_RESET)"
 	# @echo $(call gpp_shared_lib) -o '$@' $(OBJ_FILES)

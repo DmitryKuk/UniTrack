@@ -2,11 +2,12 @@
 
 # Makefile with config for unitrack target.
 
-# Other modules this module depends on
+
+# Other modules this target depends on
 export MODULE_DEPS	 		= base logger server templatizer
 
 
-# External libs this module depends on
+# External libs this target depends on
 ifeq ($(SYSTEM),Darwin)
 	EXTERNAL_LIBS			= boost_system-mt boost_filesystem-mt
 else

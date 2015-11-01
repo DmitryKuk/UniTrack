@@ -16,38 +16,42 @@ include $(MAKEFILE_DIR_ABS)/platform.mk
 export MAKEFILE_UTILITY_ABS = $(MAKEFILE_DIR_ABS)/utility.mk
 include $(MAKEFILE_UTILITY_ABS)
 
+# Common targets for modules and targets Makefiles
+export MAKEFILE_TARGETS_ABS	= $(MAKEFILE_DIR_ABS)/targets.mk
+
 
 # Current module pathes
-SRC_DIR_CURR			= $(SRC_DIR_ABS)
-TARGETS_DIR_CURR		= $(TARGETS_DIR_ABS)
+SRC_DIR_CURR				= $(SRC_DIR_ABS)
+TARGETS_DIR_CURR			= $(TARGETS_DIR_ABS)
 
-BUILD_DIR_CURR			= $(BUILD_DIR_ABS)
-BIN_DIR_CURR			= $(BIN_DIR_ABS)
-LIB_DIR_CURR			= $(LIB_DIR_ABS)
-OBJ_DIR_CURR			= $(OBJ_DIR_ABS)
+BUILD_DIR_CURR				= $(BUILD_DIR_ABS)
+BIN_DIR_CURR				= $(BIN_DIR_ABS)
+LIB_DIR_CURR				= $(LIB_DIR_ABS)
+OBJ_DIR_CURR				= $(OBJ_DIR_ABS)
 
-TEST_DIR_CURR			= $(TEST_DIR_ABS)
+TEST_DIR_CURR				= $(TEST_DIR_ABS)
 
-CONFIG_DIR_CURR			= $(CONFIG_DIR_ABS)
-WWW_DIR_CURR			= $(WWW_DIR_ABS)
+CONFIG_DIR_CURR				= $(CONFIG_DIR_ABS)
+WWW_DIR_CURR				= $(WWW_DIR_ABS)
 
-THIRDPARTY_DIR_CURR		= $(THIRDPARTY_DIR_ABS)
+THIRDPARTY_DIR_CURR			= $(THIRDPARTY_DIR_ABS)
 
-MODULES_SRC_DIR_CURR	= $(MODULES_SRC_DIR_ABS)
-MODULES_OBJ_DIR_CURR	= $(MODULES_OBJ_DIR_ABS)
-MODULES_TEST_DIR_CURR	= $(MODULES_TEST_DIR_ABS)
+MODULES_SRC_DIR_CURR		= $(MODULES_SRC_DIR_ABS)
+MODULES_OBJ_DIR_CURR		= $(MODULES_OBJ_DIR_ABS)
+MODULES_TEST_DIR_CURR		= $(MODULES_TEST_DIR_ABS)
 
-TARGETS_SRC_DIR_CURR	= $(TARGETS_SRC_DIR_ABS)
-TARGETS_OBJ_DIR_CURR	= $(TARGETS_OBJ_DIR_ABS)
-TARGETS_TEST_DIR_CURR	= $(TARGETS_TEST_DIR_ABS)
-
-
-export GPP_HEADER_PATHS	+= -I'$(PREFIX_THIRDPARTY)/include' -I'$(MODULES_SRC_DIR_CURR)'
-export GPP_LIB_PATHS	+= -L'$(PREFIX_THIRDPARTY)/lib' -L'$(LIB_DIR_CURR)'
+TARGETS_SRC_DIR_CURR		= $(TARGETS_SRC_DIR_ABS)
+TARGETS_OBJ_DIR_CURR		= $(TARGETS_OBJ_DIR_ABS)
+TARGETS_TEST_DIR_CURR		= $(TARGETS_TEST_DIR_ABS)
 
 
-export MODULES			= $(notdir $(shell find '$(MODULES_SRC_DIR_CURR)/' -maxdepth 1 -type d))
-export TARGETS			= $(notdir $(shell find '$(TARGETS_SRC_DIR_CURR)/' -maxdepth 1 -type d))
+export GPP_HEADER_PATHS		+= -I'$(PREFIX_THIRDPARTY)/include' -I'$(MODULES_SRC_DIR_CURR)'
+export GPP_LIB_PATHS		+= -L'$(PREFIX_THIRDPARTY)/lib' -L'$(LIB_DIR_CURR)'
+export GPP_COMPILE_FLAGS	+= $(GPP_PROJECT_DATA)
+
+
+export MODULES				= $(notdir $(shell find '$(MODULES_SRC_DIR_CURR)/' -maxdepth 1 -type d))
+export TARGETS				= $(notdir $(shell find '$(TARGETS_SRC_DIR_CURR)/' -maxdepth 1 -type d))
 
 
 # Targets
@@ -63,10 +67,7 @@ export TARGETS			= $(notdir $(shell find '$(TARGETS_SRC_DIR_CURR)/' -maxdepth 1 
 
 
 all: #dirs modules targets
-	# @echo "$(COLOR_PASS)Here 1: $(HELLO)$(COLOR_RESET)"
-	# @echo "$(COLOR_RUN)Here 1!$(COLOR_RESET)"
-	# @echo $(call get_src_files,123)
-	# $(MAKE) -C src/modules/base MODULE_NAME=base
+	$(MAKE) -C src/modules/templatizer MODULE_NAME=templatizer
 	$(MAKE) -C src/targets/unitrack TARGET_NAME=unitrack
 
 

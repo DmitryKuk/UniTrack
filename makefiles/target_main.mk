@@ -17,8 +17,8 @@ GPP_LIBS					+= $(call get_libs,$(MODULE_DEPS))
 # Paths
 SRC_DIR_CURR				= $(TARGETS_SRC_DIR_ABS)/$(TARGET_NAME)
 BIN_DIR_CURR				= $(BIN_DIR_ABS)
-OBJ_DIR_CURR				= $(MODULES_OBJ_DIR_ABS)/$(TARGET_NAME)
-TEST_DIR_CURR				= $(MODULES_TEST_DIR_ABS)/$(TARGET_NAME)
+OBJ_DIR_CURR				= $(TARGETS_OBJ_DIR_ABS)/$(TARGET_NAME)
+TEST_DIR_CURR				= $(TARGETS_TEST_DIR_ABS)/$(TARGET_NAME)
 TARGETS_SRC_DIR_CURR		= $(TARGETS_SRC_DIR_ABS)/$(TARGET_NAME)
 
 
@@ -33,18 +33,29 @@ HEADER_FILES =										\
 		\( -name '*.h' -or -name '*.hpp' \))
 
 
-SRC_CPP_FILES =										\
-	$(shell find '$(SRC_DIR_CURR)'					\
-		\( -type f -or -type l \)					\
-		-not \( -name 'test*' -or -name 'main*' \)	\
-		-name '*.cpp')
+# .cpp files in BFS order
+SRC_CPP_FILES =												\
+	$(shell													\
+		DIRS=$(SRC_DIR_CURR);								\
+		while [ "X$$DIRS" != "X" ]; do						\
+			find $$DIRS -d 1 \( -type f -or -type l \) 		\
+				 -not \( -name 'test*' -or -name 'main*' \)	\
+				 -name '*.cpp';								\
+			DIRS=$$(find $$DIRS -d 1 -type d);				\
+		done												\
+	)
 
 
-MAIN_CPP_FILES =									\
-	$(shell find '$(SRC_DIR_CURR)'					\
-		\( -type f -or -type l \)					\
-		-not -name 'test*'							\
-		-name '*.cpp')
+# main*.cpp files in BFS order
+MAIN_CPP_FILES =											\
+	$(shell													\
+		DIRS=$(SRC_DIR_CURR);								\
+		while [ "X$$DIRS" != "X" ]; do						\
+			find $$DIRS -d 1 \( -type f -or -type l \) 		\
+				 -name 'main*.cpp';							\
+			DIRS=$$(find $$DIRS -d 1 -type d);				\
+		done												\
+	)
 
 
 # Tests
@@ -73,62 +84,67 @@ TEST_TARGET_FILES			= $(call get_test_files,$(TEST_TARGETS))
 
 
 # Targets
-.PHONY: all clean clean-tests check dirs main tests run-tests
-.SILENT:
+export TARGET_TYPE			= Target
+include $(MAKEFILE_TARGETS_ABS)
 
 
-all: dirs main
+
+# .PHONY: all clean clean-tests check dirs main tests run-tests
+# .SILENT:
+
+# all: dirs main hi
 
 
-clean: clean-tests
-	rm -rf $(OBJ_FILES) $(TARGET_FILE) 2>/dev/null || true
+# clean: clean-tests
+# 	rm -rf $(OBJ_FILES) $(TARGET_FILE) 2>/dev/null || true
 
 
-clean-tests:
-	rm -rf $(TEST_OBJ_FILES) $(TEST_TARGET_FILES) 2>/dev/null || true
+# clean-tests:
+# 	rm -rf $(TEST_OBJ_FILES) $(TEST_TARGET_FILES) 2>/dev/null || true
 
 
-check: dirs run-tests
+# check: dirs run-tests
 
 
-dirs:
-	@echo mkdir -p $(sort $(dir $(TARGET_FILE) $(OBJ_FILES) $(MAIN_OBJ_FILES) \
-						  $(TEST_OBJ_FILES) $(TEST_TARGET_FILES)))
+# dirs:
+# 	mkdir -p $(sort $(dir $(TARGET_FILE) $(OBJ_FILES) $(MAIN_OBJ_FILES) \
+# 						  $(TEST_OBJ_FILES) $(TEST_TARGET_FILES)))
 
 
-main: $(TARGET_FILE)
+# main: $(TARGET_FILE)
 
 
-tests: $(TEST_TARGET_FILES)
+# tests: $(TEST_TARGET_FILES)
 
 
-run-tests: tests
-	if [ "X$(TEST_TARGETS)" != "X" ]; then																		\
-		for T in $(TEST_TARGETS); do																			\
-			echo "$(COLOR_RUN)[$(TARGET_NAME)]  Running test: $$T...$(COLOR_RESET)";							\
-			$(call get_test_files,$$T);																			\
-			STATUS=$$?;																							\
-			if [ "X$$STATUS" == 'X0' ]; then																	\
-				echo "$(COLOR_PASS)==> [$(TARGET_NAME)]  Test $$T passed.$(COLOR_RESET)";						\
-			else																								\
-				echo "$(COLOR_FAIL)==> [$(TARGET_NAME)]  Test $$T failed with code: $$STATUS.$(COLOR_RESET)";	\
-			fi;																									\
-		done;																									\
-	fi
+# run-tests: tests
+# 	if [ "X$(TEST_TARGETS)" != "X" ]; then																				\
+# 		for T in $(TEST_TARGETS); do																					\
+# 			echo "$(COLOR_RUN)[Target: $(TARGET_NAME)]  Running test: $$T...$(COLOR_RESET)";							\
+# 			$(call get_test_files,$$T);																					\
+# 			STATUS=$$?;																									\
+# 			if [ "X$$STATUS" == 'X0' ]; then																			\
+# 				echo "$(COLOR_PASS)==> [Target: $(TARGET_NAME)]  Test $$T passed.$(COLOR_RESET)";						\
+# 			else																										\
+# 				echo "$(COLOR_FAIL)==> [Target: $(TARGET_NAME)]  Test $$T failed with code: $$STATUS.$(COLOR_RESET)";	\
+# 			fi;																											\
+# 		done;																											\
+# 	fi
 
 
-# Objects compilation (universal for main program and tests)
-$(OBJ_DIR_CURR)/%.o: $(SRC_DIR_CURR)/%.cpp $(HEADER_FILES)
-	@echo "    $(COLOR_RUN)[$(TARGET_NAME)]  Compiling: $(subst $(OBJ_DIR_CURR)/,,$@)...$(COLOR_RESET)"
-	@echo $(call gpp_compile) -o '$@' '$<'
+# # Objects compilation (universal for main program and tests)
+# $(OBJ_DIR_CURR)/%.o: $(SRC_DIR_CURR)/%.cpp $(HEADER_FILES)
+# 	@echo "    $(COLOR_RUN)[Target: $(TARGET_NAME)]  Compiling: $(subst $(OBJ_DIR_CURR)/,,$@)...$(COLOR_RESET)"
+# 	$(call gpp_compile) -o '$@' '$<'
 
 
-$(TARGET_FILE): $(HEADER_FILES) $(OBJ_FILES) $(MAIN_OBJ_FILES)
-	@echo "    $(COLOR_RUN)[$(TARGET_NAME)]  Linking executable: $(subst $(BIN_DIR_CURR)/,,$@)...$(COLOR_RESET)"
-	@echo $(call gpp_link) -o '$@' $(OBJ_FILES) $(MAIN_OBJ_FILES)
+# # Target executable linking
+# $(TARGET_FILE): $(HEADER_FILES) $(OBJ_FILES) $(MAIN_OBJ_FILES)
+# 	@echo "    $(COLOR_RUN)[Target: $(TARGET_NAME)]  Linking executable: $(subst $(BIN_DIR_CURR)/,,$@)...$(COLOR_RESET)"
+# 	$(call gpp_link) -o '$@' $(OBJ_FILES) $(MAIN_OBJ_FILES)
 
 
-# Tests
-$(TEST_DIR_CURR)/%: $(OBJ_DIR_CURR)/%.o $(HEADER_FILES) $(TARGET_FILE)
-	@echo "    $(COLOR_RUN)[$(TARGET_NAME)]  Linking test: $(subst $(TEST_DIR_CURR)/,,$@)...$(COLOR_RESET)"
-	@echo $(call gpp_link) -o '$@' '$<' $(OBJ_FILES)
+# # Tests
+# $(TEST_DIR_CURR)/%: $(OBJ_DIR_CURR)/%.o $(HEADER_FILES) $(TARGET_FILE)
+# 	@echo "    $(COLOR_RUN)[Target: $(TARGET_NAME)]  Linking test: $(subst $(TEST_DIR_CURR)/,,$@)...$(COLOR_RESET)"
+# 	$(call gpp_link) -o '$@' '$<' $(OBJ_FILES)

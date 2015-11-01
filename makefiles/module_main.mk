@@ -29,11 +29,17 @@ HEADER_FILES =									\
 		\( -name '*.h' -or -name '*.hpp' \))
 
 
-SRC_CPP_FILES =									\
-	$(shell find '$(SRC_DIR_CURR)'				\
-		\( -type f -or -type l \)				\
-		-not -name 'test*'						\
-		-name '*.cpp')
+# .cpp files in BFS order
+SRC_CPP_FILES =												\
+	$(shell													\
+		DIRS=$(SRC_DIR_CURR);								\
+		while [ "X$$DIRS" != "X" ]; do						\
+			find $$DIRS -d 1 \( -type f -or -type l \) 		\
+				 -not \( -name 'test*' -or -name 'main*' \)	\
+				 -name '*.cpp';								\
+			DIRS=$$(find $$DIRS -d 1 -type d);				\
+		done												\
+	)
 
 
 # Tests
@@ -59,62 +65,68 @@ TEST_TARGET_FILES			= $(call get_test_files,$(TEST_TARGETS))
 
 
 # Targets
-.PHONY: all clean clean-tests check dirs main tests run-tests
-.SILENT:
+export TARGET_TYPE			= Module
+export TARGET_NAME			= $(MODULE_NAME)
+include $(MAKEFILE_TARGETS_ABS)
 
 
-all: dirs main
+# .PHONY: all clean clean-tests check dirs main tests run-tests
+# .SILENT:
 
 
-clean: clean-tests
-	rm -rf $(OBJ_FILES) $(TARGET_LIB_FILE) 2>/dev/null || true
+# all: dirs main
 
 
-clean-tests:
-	rm -rf $(TEST_OBJ_FILES) $(TEST_TARGET_FILES) 2>/dev/null || true
+# clean: clean-tests
+# 	rm -rf $(OBJ_FILES) $(TARGET_LIB_FILE) 2>/dev/null || true
 
 
-check: dirs run-tests
+# clean-tests:
+# 	rm -rf $(TEST_OBJ_FILES) $(TEST_TARGET_FILES) 2>/dev/null || true
 
 
-dirs:
-	mkdir -p $(sort $(dir $(TARGET_LIB_FILE) $(OBJ_FILES) \
-						  $(TEST_OBJ_FILES) $(TEST_TARGET_FILES)))
+# check: dirs run-tests
 
 
-main: $(TARGET_LIB_FILE)
+# dirs:
+# 	mkdir -p $(sort $(dir $(TARGET_LIB_FILE) $(OBJ_FILES) \
+# 						  $(TEST_OBJ_FILES) $(TEST_TARGET_FILES)))
 
 
-tests: $(TEST_TARGET_FILES)
+# main: $(TARGET_LIB_FILE)
 
 
-run-tests: tests
-	if [ "X$(TEST_TARGETS)" != "X" ]; then																		\
-		for T in $(TEST_TARGETS); do																			\
-			echo "$(COLOR_RUN)[$(MODULE_NAME)]  Running test: $$T...$(COLOR_RESET)";							\
-			$(call get_test_files,$$T);																			\
-			STATUS=$$?;																							\
-			if [ "X$$STATUS" == 'X0' ]; then																	\
-				echo "$(COLOR_PASS)==> [$(MODULE_NAME)]  Test $$T passed.$(COLOR_RESET)";						\
-			else																								\
-				echo "$(COLOR_FAIL)==> [$(MODULE_NAME)]  Test $$T failed with code: $$STATUS.$(COLOR_RESET)";	\
-			fi;																									\
-		done;																									\
-	fi
+# tests: $(TEST_TARGET_FILES)
 
 
-# Objects compilation (universal for main program and tests)
-$(OBJ_DIR_CURR)/%.o: $(SRC_DIR_CURR)/%.cpp $(HEADER_FILES)
-	@echo "    $(COLOR_RUN)[$(MODULE_NAME)]  Compiling: $(subst $(OBJ_DIR_CURR)/,,$@)...$(COLOR_RESET)"
-	$(call gpp_compile) -o '$@' '$<'
+# run-tests: tests
+# 	if [ "X$(TEST_TARGETS)" != "X" ]; then																				\
+# 		for T in $(TEST_TARGETS); do																					\
+# 			echo "$(COLOR_RUN)[Module: $(MODULE_NAME)]  Running test: $$T...$(COLOR_RESET)";							\
+# 			$(call get_test_files,$$T);																					\
+# 			STATUS=$$?;																									\
+# 			if [ "X$$STATUS" == 'X0' ]; then																			\
+# 				echo "$(COLOR_PASS)==> [Module: $(MODULE_NAME)]  Test $$T passed.$(COLOR_RESET)";						\
+# 			else																										\
+# 				echo "$(COLOR_FAIL)==> [Module: $(MODULE_NAME)]  Test $$T failed with code: $$STATUS.$(COLOR_RESET)";	\
+# 			fi;																											\
+# 		done;																											\
+# 	fi
 
 
-$(TARGET_LIB_FILE): $(HEADER_FILES) $(OBJ_FILES)
-	@echo "    $(COLOR_RUN)[$(MODULE_NAME)]  Linking shared lib: $(subst $(LIB_DIR_CURR)/,,$@)...$(COLOR_RESET)"
-	$(call gpp_shared_lib) -o '$@' $(OBJ_FILES)
+# # Objects compilation (universal for main program and tests)
+# $(OBJ_DIR_CURR)/%.o: $(SRC_DIR_CURR)/%.cpp $(HEADER_FILES)
+# 	@echo "    $(COLOR_RUN)[Module: $(MODULE_NAME)]  Compiling: $(subst $(OBJ_DIR_CURR)/,,$@)...$(COLOR_RESET)"
+# 	$(call gpp_compile) -o '$@' '$<'
 
 
-# Tests
-$(TEST_DIR_CURR)/%: $(OBJ_DIR_CURR)/%.o $(HEADER_FILES) $(TARGET_LIB_FILE)
-	@echo "    $(COLOR_RUN)[$(MODULE_NAME)]  Linking test: $(subst $(TEST_DIR_CURR)/,,$@)...$(COLOR_RESET)"
-	$(call gpp_link) $(call get_libs,$(MODULE_NAME)) -o '$@' '$<'
+# # Target shared library linking
+# $(TARGET_LIB_FILE): $(HEADER_FILES) $(OBJ_FILES)
+# 	@echo "    $(COLOR_RUN)[Module: $(MODULE_NAME)]  Linking shared lib: $(subst $(LIB_DIR_CURR)/,,$@)...$(COLOR_RESET)"
+# 	$(call gpp_shared_lib) -o '$@' $(OBJ_FILES)
+
+
+# # Tests
+# $(TEST_DIR_CURR)/%: $(OBJ_DIR_CURR)/%.o $(HEADER_FILES) $(TARGET_LIB_FILE)
+# 	@echo "    $(COLOR_RUN)[Module: $(MODULE_NAME)]  Linking test: $(subst $(TEST_DIR_CURR)/,,$@)...$(COLOR_RESET)"
+# 	$(call gpp_link) $(call get_libs,$(MODULE_NAME)) -o '$@' '$<'

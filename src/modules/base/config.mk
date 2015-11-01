@@ -1,6 +1,6 @@
 # Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-# Makefile with config for base part of this program.
+# Makefile with config for base module.
 
 
 # Other modules this module depends on

@@ -11,7 +11,7 @@ include $(MK_RECURSIVE_ABS)
 
 
 # Targets
-.PHONY: all clean clean-tests check dirs main tests run-tests
+.PHONY: all clean clean-tests check dirs main tests run-tests install uninstall
 .SILENT:
 
 
@@ -62,7 +62,7 @@ run-tests: tests
 # Objects compilation (universal for main program and tests)
 $(OBJ_DIR_CURR)/%.o: $(SRC_DIR_CURR)/%.cpp $(HEADER_FILES)
 	OBJ=$(subst $(OBJ_DIR_CURR)/,,$@);											\
-	echo '    $(COLOR_RUN)[$(TARGET_TYPE): $(TARGET_NAME)] '					\
+	echo "$(COLOR_RUN)    [$(TARGET_TYPE): $(TARGET_NAME)] "					\
 		 "Compiling: $$OBJ...$(COLOR_RESET)";									\
 	$(call gpp_compile) -o '$@' '$<';											\
 	STATUS=$$?;																	\
@@ -76,30 +76,30 @@ $(OBJ_DIR_CURR)/%.o: $(SRC_DIR_CURR)/%.cpp $(HEADER_FILES)
 
 # Target executable linking
 $(TARGET_FILE): $(HEADER_FILES) $(OBJ_FILES) $(MAIN_OBJ_FILES) $(call get_lib_files,$(MODULE_DEPS))
-	echo '    $(COLOR_RUN)[$(TARGET_TYPE): $(TARGET_NAME)] '					\
-		 'Linking executable: $(subst $(BIN_DIR_CURR)/,,$@)...$(COLOR_RESET)';	\
+	echo "$(COLOR_RUN)    [$(TARGET_TYPE): $(TARGET_NAME)] "					\
+		 "Linking executable: $(subst $(BIN_DIR_CURR)/,,$@)...$(COLOR_RESET)";	\
 	$(call gpp_link) -o '$@' $(OBJ_FILES) $(MAIN_OBJ_FILES);					\
 	STATUS=$$?;																	\
 	if [ "X$$STATUS" == 'X0' ]; then											\
-		echo '$(COLOR_PASS)==> [$(TARGET_TYPE): $(TARGET_NAME)] '				\
-			 'Built successfully.$(COLOR_RESET)';								\
+		echo "$(COLOR_PASS)==> [$(TARGET_TYPE): $(TARGET_NAME)] "				\
+			 "Built successfully.$(COLOR_RESET)";								\
 	else																		\
-		echo '$(COLOR_FAIL)==> [$(TARGET_TYPE): $(TARGET_NAME)] '				\
+		echo "$(COLOR_FAIL)==> [$(TARGET_TYPE): $(TARGET_NAME)] "				\
 			 "Building failed (status: $$STATUS).$(COLOR_RESET)";				\
 	fi
 
 
 # Target shared library linking
 $(TARGET_LIB_FILE): $(HEADER_FILES) $(OBJ_FILES) $(call get_lib_files,$(MODULE_DEPS))
-	echo '    $(COLOR_RUN)[$(TARGET_TYPE): $(TARGET_NAME)] '					\
-		 'Linking shared lib: $(subst $(LIB_DIR_CURR)/,,$@)...$(COLOR_RESET)';	\
+	echo "$(COLOR_RUN)    [$(TARGET_TYPE): $(TARGET_NAME)] "					\
+		 "Linking shared lib: $(subst $(LIB_DIR_CURR)/,,$@)...$(COLOR_RESET)";	\
 	$(call gpp_shared_lib) -o '$@' $(OBJ_FILES);								\
 	STATUS=$$?;																	\
 	if [ "X$$STATUS" == 'X0' ]; then											\
-		echo '$(COLOR_PASS)==> [$(TARGET_TYPE): $(TARGET_NAME)] '				\
-			 'Built successfully.$(COLOR_RESET)';								\
+		echo "$(COLOR_PASS)==> [$(TARGET_TYPE): $(TARGET_NAME)] "				\
+			 "Built successfully.$(COLOR_RESET)";								\
 	else																		\
-		echo '$(COLOR_FAIL)==> [$(TARGET_TYPE): $(TARGET_NAME)] '				\
+		echo "$(COLOR_FAIL)==> [$(TARGET_TYPE): $(TARGET_NAME)] "				\
 			 "Building failed (status: $$STATUS).$(COLOR_RESET)";				\
 	fi
 
@@ -107,14 +107,64 @@ $(TARGET_LIB_FILE): $(HEADER_FILES) $(OBJ_FILES) $(call get_lib_files,$(MODULE_D
 # Tests
 $(TEST_DIR_CURR)/%: $(OBJ_DIR_CURR)/%.o $(HEADER_FILES) $(TARGET_FILE)
 	TEST=$(subst $(TEST_DIR_CURR)/,,$@);										\
-	echo '    $(COLOR_RUN)[$(TARGET_TYPE): $(TARGET_NAME)] '					\
+	echo "$(COLOR_RUN)    [$(TARGET_TYPE): $(TARGET_NAME)] "					\
 		 "Linking test: $$TEST...$(COLOR_RESET)";								\
 	$(call gpp_link) -o '$@' '$<' $(OBJ_FILES);									\
 	STATUS=$$?;																	\
 	if [ "X$$STATUS" == 'X0' ]; then											\
-		echo '$(COLOR_PASS)==> [$(TARGET_TYPE): $(TARGET_NAME)] '				\
-			 'Test built successfully.$(COLOR_RESET)';							\
+		echo "$(COLOR_PASS)==> [$(TARGET_TYPE): $(TARGET_NAME)] "				\
+			 "Test built successfully.$(COLOR_RESET)";							\
 	else																		\
-		echo '$(COLOR_FAIL)==> [$(TARGET_TYPE): $(TARGET_NAME)] '				\
+		echo "$(COLOR_FAIL)==> [$(TARGET_TYPE): $(TARGET_NAME)] "				\
 			 "Test building failed (status: $$STATUS).$(COLOR_RESET)";			\
 	fi
+
+
+
+# Install/uninstall targets
+ifeq ($(TARGET_TYPE),Target)
+
+
+install: all
+	@echo "$(COLOR_RUN)    [$(TARGET_TYPE): $(TARGET_NAME)] "					\
+		  "Installing executable to "$(PREFIX_BIN)"...$(COLOR_RESET)"
+	install '$(TARGET_FILE)' '$(PREFIX_BIN)'
+	
+	@echo "$(COLOR_PASS)==> [$(TARGET_TYPE): $(TARGET_NAME)] "					\
+		  "Executable installed.$(COLOR_RESET)"
+
+
+uninstall:
+	@echo "$(COLOR_RUN)    [$(TARGET_TYPE): $(TARGET_NAME)] "					\
+		  "Uninstalling executable from "$(PREFIX_BIN)"...$(COLOR_RESET)"
+	
+	rm '$(PREFIX_BIN)/$(notdir $(TARGET_FILE))'
+	
+	@echo "$(COLOR_PASS)==> [$(TARGET_TYPE): $(TARGET_NAME)] "					\
+		  "Executable uninstalled.$(COLOR_RESET)"
+
+
+else ifeq ($(TARGET_TYPE),Module)
+
+
+install: all
+	@echo "$(COLOR_RUN)    [$(TARGET_TYPE): $(TARGET_NAME)] "					\
+		  "Installing shared lib to "$(PREFIX_LIB)"...$(COLOR_RESET)"
+	
+	install '$(TARGET_LIB_FILE)' '$(PREFIX_LIB)'
+	
+	@echo "$(COLOR_PASS)==> [$(TARGET_TYPE): $(TARGET_NAME)] "					\
+		  "Shared lib installed.$(COLOR_RESET)"
+
+
+uninstall:
+	@echo "$(COLOR_RUN)    [$(TARGET_TYPE): $(TARGET_NAME)] "					\
+		  "Uninstalling shared lib from "$(PREFIX_LIB)"...$(COLOR_RESET)"
+	
+	rm '$(PREFIX_LIB)/$(notdir $(TARGET_LIB_FILE))'
+	
+	@echo "$(COLOR_PASS)==> [$(TARGET_TYPE): $(TARGET_NAME)] "					\
+		  "Shared lib uninstalled.$(COLOR_RESET)"
+
+
+endif

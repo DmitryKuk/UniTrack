@@ -30,7 +30,7 @@ prepare_to_build:
 	git submodule update --init
 	
 	# Directory for logs of thirdparty modules building and installing
-	mkdir -p $(LOGS_DIR)
+	mkdir -p "$(LOGS_DIR)"
 
 
 clean:

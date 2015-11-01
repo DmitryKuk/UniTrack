@@ -27,7 +27,7 @@ PREFIX_BIN			= /usr/bin
 PREFIX_LIB			= /usr/lib
 
 # Third-party installation prefix (see $(PREFIX_THIRDPARTY)/{include,libs} directories)
-PREFIX_THIRDPARTY	= /opt/$(PROJECT_NAME_LOW)
+PREFIX_THIRDPARTY	= /opt/local/$(PROJECT_NAME_LOW)
 
 # Config
 PREFIX_CONFIG		= /etc/$(PROJECT_NAME_LOW)

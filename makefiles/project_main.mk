@@ -58,10 +58,11 @@ export TARGETS				= $(notdir $(shell find '$(TARGETS_SRC_DIR_CURR)/' -maxdepth 1
 
 
 # Targets
-.PHONY:																							\
-	all            targets              modules        tests          third-party 				\
-	clean    clean-targets        clean-modules  clean-tests    clean-third-party  distclean	\
-	install                                                   install-third-party
+.PHONY:																				\
+	all          targets        modules        tests        third-party 			\
+	clean  clean-targets  clean-modules  clean-tests  clean-third-party  distclean	\
+	install      install-third-party    install-config    install-www				\
+	uninstall  uninstall-third-party  uninstall-config  uninstall-www
 
 
 .SILENT:
@@ -117,61 +118,59 @@ distclean:
 
 
 # Installing
+install: install-config install-www
+	$(call for_each_target,install)
+	$(call for_each_module,install)
+
+
 install-third-party:
 	$(MAKE) -C "$(THIRDPARTY_DIR_CURR)" install
 
 
-# install-bin:
-# 	@echo "$(COLOR_RUN)Installing files to \"$(PREFIX_LIB)\"...$(COLOR_RESET)"
-# 	install $(MODULE_FILES_ABS) $(PREFIX_LIB)
+install-config:
+	@echo "$(COLOR_RUN)[Global]  Creating directories in \"$(PREFIX_CONFIG)\"...$(COLOR_RESET)"
+	find '$(CONFIG_DIR)' -type d -not -name '.*' |												\
+	while read DIR; do install -d "$(PREFIX_CONFIG)/$$DIR"; done
 	
-# 	@echo "$(COLOR_RUN)Installing files to \"$(PREFIX_TARGET)\"...$(COLOR_RESET)"
-# 	install $(TARGET_FILE) $(PREFIX_TARGET)
+	@echo "$(COLOR_RUN)[Global]  Installing WWW files to \"$(PREFIX_CONFIG)\"...$(COLOR_RESET)"
+	find '$(CONFIG_DIR)' -type f -not -name '.*' |												\
+	while read FILE; do install "$$FILE" "$(PREFIX_CONFIG)/$$FILE"; done
 	
-# 	@echo "$(COLOR_PASS)==> Binaries installed.$(COLOR_RESET)"
+	@echo "$(COLOR_PASS)==> [Global]  Config installed.$(COLOR_RESET)"
 
 
-# install-config:
-# 	@echo "$(COLOR_RUN)Creating directories in \"$(PREFIX_CONFIG_FULL)\"...$(COLOR_RESET)"
-# 	find $(CONFIG) -type d -not -name '.*' | while read DIR; do install -d "$(PREFIX_CONFIG_FULL)/$$DIR"; done
+install-www:
+	@echo "$(COLOR_RUN)[Global]  Creating directories in \"$(PREFIX_WWW)\"...$(COLOR_RESET)"
+	find '$(WWW_DIR)' -type d -not -name '.*' |													\
+	while read DIR; do install -d "$(PREFIX_WWW)/$$DIR"; done
 	
-# 	@echo "$(COLOR_RUN)Installing files to \"$(PREFIX_CONFIG_FULL)\"...$(COLOR_RESET)"
-# 	find $(CONFIG) -type f -not -name '.*' | while read FILE; do install "$$FILE" "$(PREFIX_CONFIG_FULL)/$$FILE"; done
+	@echo "$(COLOR_RUN)[Global]  Installing WWW files to \"$(PREFIX_WWW)\"...$(COLOR_RESET)"
+	find '$(WWW_DIR)' -type f -not -name '.*' |													\
+	while read FILE; do install "$$FILE" "$(PREFIX_WWW)/$$FILE"; done
 	
-# 	@echo "$(COLOR_PASS)==> Config installed.$(COLOR_RESET)"
+	@echo "$(COLOR_PASS)==> [Global]  WWW data installed.$(COLOR_RESET)"
 
 
-# install-www:
-# 	@echo "$(COLOR_RUN)Creating directories in \"$(PREFIX_WWW_FULL)\"...$(COLOR_RESET)"
-# 	find $(WWW) -type d -not -name '.*' | while read DIR; do install -d "$(PREFIX_WWW_FULL)/$$DIR"; done
-	
-# 	@echo "$(COLOR_RUN)Installing files to \"$(PREFIX_WWW_FULL)\"...$(COLOR_RESET)"
-# 	find $(WWW) -type f -not -name '.*' | while read FILE; do install "$$FILE" "$(PREFIX_WWW_FULL)/$$FILE"; done
-	
-# 	@echo "$(COLOR_PASS)==> WWW data installed.$(COLOR_RESET)"
 
-
-# install: install-bin install-config install-www
+# Uninstalling
+uninstall: uninstall-www
+	$(call for_each_target,uninstall)
+	$(call for_each_module,uninstall)
 
 
 uninstall-third-party:
 	$(MAKE) -C "$(THIRDPARTY_DIR_CURR)" uninstall
 
 
-# uninstall-bin:
-# 	rm $(addprefix $(PREFIX_TARGET)/,$(MAIN_TARGET)) 2>/dev/null || true
-# 	rm $(addprefix $(PREFIX_LIB)/,$(MODULE_FILES) $(THIRDPARTY_FILES)) 2>/dev/null || true
-# 	@echo "$(COLOR_PASS)==> Binaries removed.$(COLOR_RESET)"
+uninstall-config:
+	rm -r '$(PREFIX_CONFIG)' 2>/dev/null || true
+	@echo "$(COLOR_PASS)==> [Global]  Config removed.$(COLOR_RESET)"
 
 
-# uninstall-config:
-# 	rm -r $(PREFIX_CONFIG_FULL) 2>/dev/null || true
-# 	@echo "$(COLOR_PASS)==> Config removed.$(COLOR_RESET)"
+uninstall-www:
+	rm -r '$(PREFIX_WWW)' 2>/dev/null || true
+	@echo "$(COLOR_PASS)==> [Global]  WWW data removed.$(COLOR_RESET)"
 
-
-# uninstall-www:
-# 	rm -r $(PREFIX_WWW_FULL) 2>/dev/null || true
-# 	@echo "$(COLOR_PASS)==> WWW data removed.$(COLOR_RESET)"
 
 
 # uninstall: uninstall-bin

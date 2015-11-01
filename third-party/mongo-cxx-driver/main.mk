@@ -48,16 +48,18 @@ clean:
 
 
 install:
-	DIRS=$(addprefix $(PREFIX_THIRDPARTY)/,include lib);									\
-	echo '$(COLOR_RUN)Installing MongoDB C++ driver to $$DIRS...$(COLOR_RESET)';			\
-	mkdir -p $(DIRS);																		\
-	scons $(MONGO_FLAGS) install >$(MONGO_INSTALL_LOG_FILE) 2>&1;							\
-	STATUS=$$?;																				\
-	if [ "X$$STATUS" == "X0" ]; then														\
-		echo '$(COLOR_PASS)==> MongoDB C++ driver installed successfully.$(COLOR_RESET)';	\
-	else																					\
-		echo "$(COLOR_FAIL)==> MongoDB C++ driver installation failed (status: $$STATUS)."	\
-			 '(See $(realpath $(MONGO_INSTALL_LOG_FILE)) for details)$(COLOR_RESET)';		\
+	DIR=$(PREFIX_THIRDPARTY);															\
+	echo "$(COLOR_RUN)Installing MongoDB C++ driver to \"$$DIR\"...$(COLOR_RESET)";		\
+	mkdir -p "$$DIR";																	\
+	scons $(MONGO_FLAGS) install >$(MONGO_INSTALL_LOG_FILE) 2>&1;						\
+	STATUS=$$?;																			\
+	if [ "X$$STATUS" == "X0" ]; then													\
+		echo '$(COLOR_PASS)==> MongoDB C++ driver'										\
+			 'installed successfully.$(COLOR_RESET)';									\
+	else																				\
+		echo '$(COLOR_FAIL)==> MongoDB C++ driver installation failed'					\
+			 "(status: $$STATUS)."														\
+			 '(See $(realpath $(MONGO_INSTALL_LOG_FILE)) for details)$(COLOR_RESET)';	\
 	fi
 
 

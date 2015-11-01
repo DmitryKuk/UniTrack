@@ -18,8 +18,8 @@ clean:
 
 install:
 	DIR=$(PREFIX_THIRDPARTY)/include;													\
-	echo '$(COLOR_RUN)Installing Nlohmann JSON to $$DIR...$(COLOR_RESET)';				\
-	mkdir -p "$(DIR)";																	\
+	echo "$(COLOR_RUN)Installing Nlohmann JSON to \"$$DIR\"...$(COLOR_RESET)";			\
+	mkdir -p "$$DIR";																	\
 	install "$(JSON_PATH)/src/json.hpp" "$$DIR";										\
 	STATUS=$$?;																			\
 	if [ "X$$STATUS" == "X0" ]; then													\

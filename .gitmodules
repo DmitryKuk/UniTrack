@@ -1,5 +1,5 @@
 [submodule "third-party/json"]
-	path = third-party/json
+	path = third-party/json/json/t
 	url = https://github.com/nlohmann/json
 [submodule "third-party/mongo-cxx-driver"]
 	path = third-party/mongo-cxx-driver

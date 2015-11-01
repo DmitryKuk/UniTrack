@@ -58,10 +58,10 @@ export TARGETS				= $(notdir $(shell find '$(TARGETS_SRC_DIR_CURR)/' -maxdepth 1
 
 
 # Targets
-.PHONY:																				\
-	all          targets        modules        tests        third-party 			\
-	clean  clean-targets  clean-modules  clean-tests  clean-third-party  distclean	\
-	
+.PHONY:																							\
+	all            targets              modules        tests          third-party 				\
+	clean    clean-targets        clean-modules  clean-tests    clean-third-party  distclean	\
+	install                                                   install-third-party
 
 
 .SILENT:
@@ -117,8 +117,8 @@ distclean:
 
 
 # Installing
-# install-third-party:
-# 	$(MAKE) -C "$(THIRDPARTY_DIR_CURR)" install
+install-third-party:
+	$(MAKE) -C "$(THIRDPARTY_DIR_CURR)" install
 
 
 # install-bin:
@@ -154,8 +154,8 @@ distclean:
 # install: install-bin install-config install-www
 
 
-# uninstall-third-party:
-# 	$(MAKE) -C "$(THIRDPARTY_DIR_CURR)" uninstall
+uninstall-third-party:
+	$(MAKE) -C "$(THIRDPARTY_DIR_CURR)" uninstall
 
 
 # uninstall-bin:

@@ -67,7 +67,10 @@ export TARGETS				= $(notdir $(shell find '$(TARGETS_SRC_DIR_CURR)/' -maxdepth 1
 
 
 all: #dirs modules targets
+	@echo "$(COLOR_FAIL)Module templatizer:$(COLOR_RESET)"
 	$(MAKE) -C src/modules/templatizer MODULE_NAME=templatizer
+	
+	@echo "\n$(COLOR_FAIL)Target unitrack:$(COLOR_RESET)"
 	$(MAKE) -C src/targets/unitrack TARGET_NAME=unitrack
 
 

@@ -8,8 +8,8 @@ export MK_DIR_ABS			= $(PROJECT_ROOT)/makefiles
 
 
 include $(MK_DIR_ABS)/colors.mk
-include $(MK_DIR_ABS)/config.mk
 include $(MK_DIR_ABS)/config_internal.mk
+include $(MK_DIR_ABS)/config.mk
 include $(MK_DIR_ABS)/platform.mk
 
 # Helper functions
@@ -48,25 +48,38 @@ TARGETS_OBJ_DIR_CURR		= $(TARGETS_OBJ_DIR_ABS)
 TARGETS_TEST_DIR_CURR		= $(TARGETS_TEST_DIR_ABS)
 
 
+
+# ---===           Project macros            ===---
+
+GPP_PROJECT_DATA			+= -DPATH_CONFIG="\"$(PREFIX_CONFIG)/$(CONFIG_DIR)\""	\
+							   -DPATH_WWW="\"$(PREFIX_WWW)/$(WWW_DIR)\""
+
+# ---===        End of project macros        ===---
+
+
+
 export GPP_HEADER_PATHS		+= -I'$(PREFIX_THIRDPARTY)/include' -I'$(MODULES_SRC_DIR_CURR)'
 export GPP_LIB_PATHS		+= -L'$(PREFIX_THIRDPARTY)/lib' -L'$(LIB_DIR_CURR)'
 export GPP_COMPILE_FLAGS	+= $(GPP_PROJECT_DATA)
 
 
-export MODULES				= $(notdir $(shell find '$(MODULES_SRC_DIR_CURR)/' -maxdepth 1 -type d))
-export TARGETS				= $(notdir $(shell find '$(TARGETS_SRC_DIR_CURR)/' -maxdepth 1 -type d))
+export MODULES				= $(notdir $(shell find '$(MODULES_SRC_DIR_CURR)' -depth 1 -type d))
+export TARGETS				= $(notdir $(shell find '$(TARGETS_SRC_DIR_CURR)' -depth 1 -type d))
 
 
 # Targets
-.PHONY:																				\
-	all          targets        modules        tests        third-party 			\
-	clean  clean-targets  clean-modules  clean-tests  clean-third-party  distclean	\
-	install      install-third-party    install-config    install-www				\
-	uninstall  uninstall-third-party  uninstall-config  uninstall-www
+.PHONY:																					\
+	all          targets        modules        tests        third-party 				\
+	clean  clean-targets  clean-modules  clean-tests  clean-third-party  distclean		\
+																						\
+	run																					\
+																						\
+	install      install-bin    install-third-party    install-config    install-www	\
+	uninstall  uninstall-bin  uninstall-third-party  uninstall-config  uninstall-www	\
+	uninstall-all
 
 
 .SILENT:
-
 
 
 # Building
@@ -117,8 +130,17 @@ distclean:
 
 
 
+# Running
+run: all
+	$(call for_each_target,run)
+
+
+
 # Installing
-install: install-config install-www
+install: install-bin install-config install-www
+
+
+install-bin:
 	$(call for_each_target,install)
 	$(call for_each_module,install)
 
@@ -153,7 +175,10 @@ install-www:
 
 
 # Uninstalling
-uninstall: uninstall-www
+uninstall: uninstall-bin uninstall-www
+
+
+uninstall-bin:
 	$(call for_each_target,uninstall)
 	$(call for_each_module,uninstall)
 
@@ -173,117 +198,78 @@ uninstall-www:
 
 
 
-# uninstall: uninstall-bin
+uninstall-all: uninstall-bin uninstall-www uninstall-third-party uninstall-config
 
 
-# uninstall-all: uninstall uninstall-third-party uninstall-config uninstall-www
-
-
-# one-step-make:
-# 	# Third-party
-# 	$(MAKE) third-party
+one-step-make:
+	# Third-party
+	$(MAKE) third-party
 	
-# 	@echo "$(COLOR_RUN)Please, enter the password (if need) for installation of third-party " \
-# 		  "modules or press Ctrl+C...$(COLOR_RESET)"
-# 	sudo make install-third-party
+	@echo "$(COLOR_RUN)Please, enter the password (if need) for installation of third-party " \
+		  "modules or press Ctrl+C...$(COLOR_RESET)"
+	sudo make install-third-party
 	
 	
-# 	# The main program
-# 	$(MAKE)
+	# The main program
+	$(MAKE)
 
 
-# upgrade:
-# 	# Uninstallation
-# 	@echo "$(COLOR_RUN)Please, enter the password (if need) for uninstallation " \
-# 		  "of the old version or press Ctrl+C...$(COLOR_RESET)"
-# 	sudo make uninstall-third-party uninstall-bin uninstall-www
+upgrade:
+	# Uninstallation
+	@echo "$(COLOR_RUN)Please, enter the password (if need) for uninstallation " \
+		  "of the old version or press Ctrl+C...$(COLOR_RESET)"
+	sudo make uninstall-bin uninstall-www uninstall-third-party
 	
 	
-# 	# Cleaning the built files
-# 	$(MAKE) distclean
+	# Cleaning the built files
+	$(MAKE) distclean clean-third-party
 	
 	
-# 	# Downloading the new version
-# 	$(MAKE) git-pull
+	# Downloading the new version
+	$(MAKE) git-pull
 	
 	
-# 	# Building and installation
-# 	$(MAKE) one-step-make
+	# Building and installation
+	$(MAKE) one-step-make
 	
-# 	@echo "$(COLOR_RUN)Please, enter the password (if need) for installation " \
-# 		  "or press Ctrl+C...$(COLOR_RESET)"
-# 	sudo make install-bin install-www
-	
-	
-# 	@echo "$(COLOR_PASS)==> Successfully upgraded.$(COLOR_RESET)"
-
-
-# happy: git-pull
-# 	$(MAKE) one-step-make
-	
-# 	@echo "$(COLOR_RUN)Please, enter the password (if need) for installation " \
-# 		  "or press Ctrl+C...$(COLOR_RESET)"
-# 	sudo make install
-	
-# 	@echo "$(COLOR_PASS)==> Successfully built and installed.$(COLOR_RESET)"
+	@echo "$(COLOR_RUN)Please, enter the password (if need) for installation " \
+		  "or press Ctrl+C...$(COLOR_RESET)"
+	sudo make install-bin install-www
 	
 	
-# 	@echo "$(COLOR_PASS)NOTE:$(COLOR_RESET) To work with $(PROJECT_NAME) try following commands:" \
-# 		  "$(addprefix \n    ,$(MAIN_TARGET))"
+	@echo "$(COLOR_PASS)==> Successfully upgraded.$(COLOR_RESET)"
+
+
+happy: git-pull
+	$(MAKE) one-step-make
 	
-# 	@echo "$(COLOR_PASS)NOTE:$(COLOR_RESET) Next times you can simply do:"
-# 	@echo '    make upgrade'
+	@echo "$(COLOR_RUN)Please, enter the password (if need) for installation " \
+		  "or press Ctrl+C...$(COLOR_RESET)"
+	sudo make install
+	
+	@echo "$(COLOR_PASS)==> Successfully built and installed.$(COLOR_RESET)"
+	
+	
+	@echo "$(COLOR_PASS)NOTE:$(COLOR_RESET) To work with $(PROJECT_NAME) try following commands:" \
+		  "$(addprefix \n    ,$(MAIN_TARGET))"
+	
+	@echo "$(COLOR_PASS)NOTE:$(COLOR_RESET) Next times you can simply do:"
+	@echo '    make upgrade'
 
 
-# git-pull:
-# 	echo '$(COLOR_RUN)Downloading new version...$(COLOR_RESET)';								\
-# 	git pull --recurse-submodules=yes;															\
-# 	STATUS=$$?;																					\
-# 	if [ "X$$STATUS" = 'X0' ]; then																\
-# 		echo '$(COLOR_PASS)==> New version downloaded.$(COLOR_RESET)';							\
-# 	else																						\
-# 		echo "$(COLOR_FAIL)==> Download failed with status: $$STATUS.$(COLOR_RESET)";			\
-# 	fi
+git-pull:
+	echo '$(COLOR_RUN)Downloading new version...$(COLOR_RESET)';								\
+	git pull --recurse-submodules=yes;															\
+	STATUS=$$?;																					\
+	if [ "X$$STATUS" = 'X0' ]; then																\
+		echo '$(COLOR_PASS)==> New version downloaded.$(COLOR_RESET)';							\
+	else																						\
+		echo "$(COLOR_FAIL)==> Download failed with status: $$STATUS.$(COLOR_RESET)";			\
+	fi
 
 
-# # Tests targets
-# check: run-tests
-
-
-# dirs:
-# 	mkdir -p $(BUILD_DIR_CURR) $(LIB_DIR_CURR) $(OBJ_DIR_CURR) $(TEST_DIR_CURR)
-
-
-# objects:
-# 	echo '$(COLOR_RUN)Building objects...$(COLOR_RESET)';										\
-# 	$(MAKE) -C $(SRC_DIR_CURR);																\
-# 	STATUS=$$?;																					\
-# 	if [ "X$$STATUS" = 'X0' ]; then																\
-# 		echo '$(COLOR_PASS)==> Objects built successfully.$(COLOR_RESET)';						\
-# 	else																						\
-# 		echo '$(COLOR_FAIL)==> Objects building failed.$(COLOR_RESET)';							\
-# 	fi;
-
-
-# modules: dirs
-# 	for T in $(MODULES); do																		\
-# 		echo "$(COLOR_RUN)Building module: $$T...$(COLOR_RESET)";								\
-# 		$(MAKE) -C "$(call get_sources_files,$$T)" MODULE_NAME="$$T";							\
-# 		STATUS=$$?;																				\
-# 		if [ "X$$STATUS" = 'X0' ]; then															\
-# 			echo "$(COLOR_PASS)==> Module $$T built successfully.$(COLOR_RESET)";				\
-# 		else																					\
-# 			echo "$(COLOR_FAIL)==> Module $$T building failed.$(COLOR_RESET)";					\
-# 		fi;																						\
-# 	done
-
-
-# third-party:
-# 	$(MAKE) -C "$(THIRDPARTY_DIR_CURR)"
-
-
-# run: all
-# 	$(MAKE) -C $(SRC_DIR_CURR) run
+# Tests targets
+check: run-tests
 
 
 # # Building tests for submodules too

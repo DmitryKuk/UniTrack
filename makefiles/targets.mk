@@ -11,11 +11,16 @@ include $(MK_RECURSIVE_ABS)
 
 
 # Targets
-.PHONY: all clean clean-tests check dirs main tests run-tests install uninstall
+.PHONY: all start_message clean clean-tests check dirs main tests run-tests run install uninstall
 .SILENT:
 
 
-all: dirs main
+all: start_message dirs main
+
+
+start_message:
+	@echo "$(COLOR_RUN)[$(TARGET_TYPE): $(TARGET_NAME)] "						\
+		  "Building...$(COLOR_RESET)"
 
 
 clean: clean-tests
@@ -77,7 +82,7 @@ $(OBJ_DIR_CURR)/%.o: $(SRC_DIR_CURR)/%.cpp $(HEADER_FILES)
 # Target executable linking
 $(TARGET_FILE): $(HEADER_FILES) $(OBJ_FILES) $(MAIN_OBJ_FILES) $(call get_lib_files,$(MODULE_DEPS))
 	echo "$(COLOR_RUN)    [$(TARGET_TYPE): $(TARGET_NAME)] "					\
-		 "Linking executable: $(subst $(BIN_DIR_CURR)/,,$@)...$(COLOR_RESET)";	\
+		 "Linking executable: $(subst $(BIN_DIR_ABS)/,,$@)...$(COLOR_RESET)";	\
 	$(call gpp_link) -o '$@' $(OBJ_FILES) $(MAIN_OBJ_FILES);					\
 	STATUS=$$?;																	\
 	if [ "X$$STATUS" == 'X0' ]; then											\
@@ -92,7 +97,7 @@ $(TARGET_FILE): $(HEADER_FILES) $(OBJ_FILES) $(MAIN_OBJ_FILES) $(call get_lib_fi
 # Target shared library linking
 $(TARGET_LIB_FILE): $(HEADER_FILES) $(OBJ_FILES) $(call get_lib_files,$(MODULE_DEPS))
 	echo "$(COLOR_RUN)    [$(TARGET_TYPE): $(TARGET_NAME)] "					\
-		 "Linking shared lib: $(subst $(LIB_DIR_CURR)/,,$@)...$(COLOR_RESET)";	\
+		 "Linking shared lib: $(subst $(LIB_DIR_ABS)/,,$@)...$(COLOR_RESET)";	\
 	$(call gpp_shared_lib) -o '$@' $(OBJ_FILES);								\
 	STATUS=$$?;																	\
 	if [ "X$$STATUS" == 'X0' ]; then											\
@@ -121,8 +126,23 @@ $(TEST_DIR_CURR)/%: $(OBJ_DIR_CURR)/%.o $(HEADER_FILES) $(TARGET_FILE)
 
 
 
-# Install/uninstall targets
+# Run, install/uninstall targets
 ifeq ($(TARGET_TYPE),Target)
+
+
+run: all
+	echo "$(COLOR_RUN)[$(TARGET_TYPE): $(TARGET_NAME)] "						\
+		 "Running...$(COLOR_RESET)";											\
+	OLD_DIR=$$( pwd );															\
+	cd '$(PROJECT_ROOT)' && ( $(TARGET_FILE); cd "$$OLD_DIR" );					\
+	STATUS=$$?;																	\
+	if [ "X$$STATUS" == 'X0' ]; then											\
+		echo "$(COLOR_PASS)==> [$(TARGET_TYPE): $(TARGET_NAME)] "				\
+			 "Done successfully.$(COLOR_RESET)";								\
+	else																		\
+		echo "$(COLOR_FAIL)==> [$(TARGET_TYPE): $(TARGET_NAME)] "				\
+			 "Running failed (status: $$STATUS).$(COLOR_RESET)";				\
+	fi
 
 
 install: all

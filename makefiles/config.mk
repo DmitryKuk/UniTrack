@@ -38,14 +38,6 @@ PREFIX_WWW			= /var/$(PROJECT_NAME_LOW)
 # ---===  End of project installation properties  ===---
 
 
-# ---===     Project macros properties      ===---
-
-GPP_PROJECT_DATA			+= -DPATH_CONFIG="\"$(PREFIX_CONFIG)/$(CONFIG)\""	\
-							   -DPATH_WWW="\"$(PREFIX_WWW)/$(WWW)\""
-
-# ---===  End of project macros properties  ===---
-
-
 export PROJECT_NAME
 export PROJECT_NAME_LOW
 export PROJECT_LIB_PREFIX
@@ -58,5 +50,3 @@ export PREFIX_THIRDPARTY
 
 export PREFIX_CONFIG
 export PREFIX_WWW
-
-export GPP_PROJECT_DATA

@@ -6,10 +6,10 @@
 # ---===       Project internal properties        ===---
 
 # Project directories (addresses with $(PROJECT_ROOT) as current directory)
-# Sources only
+# Sources
 SRC_DIR					= src
 
-# Building results only
+# Building results
 BUILD_DIR				= build
 
 
@@ -51,7 +51,6 @@ WWW_DIR					= www
 THIRDPARTY_DIR			= third-party
 
 # ---===    End of project internal properties    ===---
-
 
 
 # Absolute paths

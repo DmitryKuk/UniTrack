@@ -78,7 +78,7 @@ export TARGETS				= $(notdir $(shell find '$(TARGETS_SRC_DIR_CURR)' -depth 1 -ty
 																						\
 	run  check  run-tests																\
 																						\
-	one-step-make  upgrade  happy  git-pull
+	one-step-make  upgrade  happy  git-pull  lines
 
 
 .SILENT:
@@ -279,3 +279,12 @@ git-pull:
 	else																						\
 		echo "$(COLOR_FAIL)==> Download failed with status: $$STATUS.$(COLOR_RESET)";			\
 	fi
+
+
+lines:
+	function lines_count() {																	\
+		( find -E $$2 $$3 -type f -regex "$$1" -exec grep -ch '^' {} \; |						\
+	 	  tr "\n" '+' && echo '0' ) | bc;														\
+	};																							\
+	echo "Total lines of all C++-sources: $$( lines_count '.*\.(cpp|h|hpp)' $(SRC_DIR_ABS) )";	\
+	echo "Total lines of all Makefiles:   $$( lines_count '.*\.mk' $(MK_DIR_ABS) $(SRC_DIR_ABS) )"

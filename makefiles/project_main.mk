@@ -72,11 +72,13 @@ export TARGETS				= $(notdir $(shell find '$(TARGETS_SRC_DIR_CURR)' -depth 1 -ty
 	all          targets        modules        tests        third-party 				\
 	clean  clean-targets  clean-modules  clean-tests  clean-third-party  distclean		\
 																						\
-	run																					\
-																						\
 	install      install-bin    install-third-party    install-config    install-www	\
 	uninstall  uninstall-bin  uninstall-third-party  uninstall-config  uninstall-www	\
-	uninstall-all
+	uninstall-all																		\
+																						\
+	run  check  run-tests																\
+																						\
+	one-step-make  upgrade  happy  git-pull
 
 
 .SILENT:
@@ -127,12 +129,6 @@ clean-third-party:
 # Cleaning all built files (submodules and third-party too!)
 distclean:
 	rm -rf $(BUILD_DIR_CURR)
-
-
-
-# Running
-run: all
-	$(call for_each_target,run)
 
 
 
@@ -201,6 +197,23 @@ uninstall-www:
 uninstall-all: uninstall-bin uninstall-www uninstall-third-party uninstall-config
 
 
+
+# Running
+run: all
+	$(call for_each_target,run)
+
+
+# Tests targets
+check: run-tests
+
+
+run-tests:
+	$(call for_each_target,run-tests)
+	$(call for_each_module,run-tests)
+
+
+
+# Other
 one-step-make:
 	# Third-party
 	$(MAKE) third-party
@@ -266,27 +279,3 @@ git-pull:
 	else																						\
 		echo "$(COLOR_FAIL)==> Download failed with status: $$STATUS.$(COLOR_RESET)";			\
 	fi
-
-
-# Tests targets
-check: run-tests
-
-
-# # Building tests for submodules too
-# tests: modules objects
-# 	$(MAKE) -C "$(SRC_DIR_CURR)" tests;														\
-# 	for T in $(MODULES); do																		\
-# 		$(MAKE) -C "$(call get_sources_files,$$T)" MODULE_NAME="$$T" tests;						\
-# 	done
-
-
-# # Running tests for submodules too
-# run-tests: dirs tests
-# 	$(MAKE) -C "$(SRC_DIR_CURR)" run-tests;													\
-# 	for T in $(MODULES); do																		\
-# 		$(MAKE) -C "$(call get_sources_files,$$T)" MODULE_NAME="$$T" run-tests;					\
-# 	done
-
-
-# # Building of all module files
-# $(MODULE_FILES_ABS): modules

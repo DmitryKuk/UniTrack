@@ -31,7 +31,7 @@ clean-tests:
 	rm -rf $(TEST_OBJ_FILES) $(TEST_TARGET_FILES) 2>/dev/null || true
 
 
-check: dirs run-tests
+check: run-tests
 
 
 dirs:
@@ -46,7 +46,7 @@ main: $(TARGET_FILE) $(TARGET_LIB_FILE)
 tests: $(TEST_TARGET_FILES)
 
 
-run-tests: tests
+run-tests: dirs tests
 	if [ "X$(TEST_TARGETS)" != "X" ]; then										\
 		for T in $(TEST_TARGETS); do											\
 			echo "$(COLOR_RUN)[$(TARGET_TYPE): $(TARGET_NAME)] "				\

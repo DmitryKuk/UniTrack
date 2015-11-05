@@ -10,7 +10,7 @@
 namespace server {
 
 
-class server_error: public std::server_error
+class server_error: public std::logic_error
 {
 public:
 	explicit server_error(const std::string &what_arg);

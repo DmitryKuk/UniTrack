@@ -26,11 +26,14 @@ server::server_http::server_http(logger::logger &logger,
 			for (auto port: this->parameters_.ports) {
 				try {
 					this->acceptor_ptrs_.emplace_back(
-						new server::acceptor(this->logger(),
-											 *this,
-											 { .port = port },
-											 this->acceptors_io_service_,
-											 this->workers_io_service_));
+						std::make_unique<server::acceptor>(
+							this->logger(),
+							*this,
+							server::acceptor_parameters{ .port = port },
+							this->acceptors_io_service_,
+							this->workers_io_service_
+						)
+					);
 				} catch (const boost::system::system_error &e) {
 					this->logger().stream(logger::level::error)
 						<< "Server: Accepting on port: " << port
@@ -48,17 +51,15 @@ server::server_http::server_http(logger::logger &logger,
 			auto workers_count = this->parameters_.workers;
 			this->worker_ptrs_.reserve(workers_count);
 			
-			worker_parameters parameters;
-			
-			worker_id_t current_worker_id = 0;
-			while (workers_count--) {
-				parameters.id = current_worker_id++;
-				
-				std::unique_ptr<server::worker> worker_ptr(
-					new server::worker(this->logger(),
-									   parameters,
-									   this->workers_io_service_,
-									   this->host_manager()));
+			for (server::worker_parameters parameters{ .id = 0 };
+				 workers_count--;
+				 ++parameters.id) {
+				auto worker_ptr = std::make_unique<server::worker>(
+					this->logger(),
+					parameters,
+					this->workers_io_service_,
+					this->host_manager()
+				);
 				
 				this->workers_dispatch_table_.emplace(worker_ptr->thread_id(), worker_ptr->id());
 				this->worker_ptrs_.emplace_back(std::move(worker_ptr));

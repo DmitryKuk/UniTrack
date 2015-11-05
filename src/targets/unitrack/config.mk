@@ -4,7 +4,7 @@
 
 
 # Other modules this target depends on
-export MODULE_DEPS	 		= base logger server templatizer
+export MODULE_DEPS	 		= base logger server templatizer logic
 
 
 # External libs this target depends on
@@ -13,4 +13,5 @@ ifeq ($(SYSTEM),Darwin)
 else
 	EXTERNAL_LIBS			= boost_system pthread boost_filesystem
 endif
+EXTERNAL_LIBS				+= mongoclient
 export EXTERNAL_LIBS

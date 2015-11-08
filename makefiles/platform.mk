@@ -27,7 +27,7 @@ export GPP_LIBS				=
 
 
 ifeq ($(SYSTEM),Darwin)
-	include $(MK_DIR_ABS)/platform_macosx.mk
+	include $(MK_DIR)/platform_macosx.mk
 else
-	include $(MK_DIR_ABS)/platform_other.mk
+	include $(MK_DIR)/platform_other.mk
 endif

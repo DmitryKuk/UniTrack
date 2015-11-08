@@ -3,38 +3,54 @@
 # Makefile for server part of this program.
 
 
+THIS_MAKEFILE				:= $(call where-am-i)
+
+# Target name: logger, unitrack, etc...
+TARGET_NAME					:= $(call target_name_from_this,$(THIS_MAKEFILE))
+
+
 # Helper functions
-include $(MK_UTILITY_ABS)
+include $(MK_UTILITY)
 
 # Target config
--include config.mk
+-include $(notdir $(THIS_MAKEFILE))/config.mk
 
 
-GPP_LIBS					+= $(call get_external_libs,$(EXTERNAL_LIBS))
-GPP_LIBS					+= $(call get_libs,$(MODULE_DEPS))
+# Unique target data
+ID							:= target_$(TARGET_NAME)
+$(ID)_TARGET_NAME			:= $(TARGET_NAME)
+$(ID)_TARGET_TYPE			:= Target
+
+
+$(ID)_MODULE_DEPS			:= $(MODULE_DEPS)
+$(ID)_EXTERNAL_LIBS			:= $(EXTERNAL_LIBS)
+
+
+$(ID)_GPP_LIBS				:= $(call get_external_libs,$($(ID)_EXTERNAL_LIBS))
+$(ID)_GPP_LIBS				:= $(call get_libs,$($(ID)_MODULE_DEPS))
 
 
 # Paths
-SRC_DIR_CURR				= $(TARGETS_SRC_DIR_ABS)/$(TARGET_NAME)
-OBJ_DIR_CURR				= $(TARGETS_OBJ_DIR_ABS)/$(TARGET_NAME)
-TEST_DIR_CURR				= $(TARGETS_TEST_DIR_ABS)/$(TARGET_NAME)
+$(ID)_SRC_DIR_CURR			:= $(TARGETS_SRC_DIR)/$($(ID)_TARGET_NAME)
+$(ID)_OBJ_DIR_CURR			:= $(TARGETS_OBJ_DIR)/$($(ID)_TARGET_NAME)
+$(ID)_TEST_DIR_CURR			:= $(TARGETS_TEST_DIR)/$($(ID)_TARGET_NAME)
 
 
-GPP_HEADER_PATHS			+= -I'$(SRC_DIR_CURR)'
+$(ID)_GPP_HEADER_PATHS		:= -I'$($(ID)_SRC_DIR_CURR)'
 
 
 # Sources and headers
-HEADER_FILES =												\
-	$(shell find '$(SRC_DIR_CURR)'							\
+$(ID)_HEADER_FILES :=										\
+	$(shell find '$($(ID)_SRC_DIR_CURR)'					\
 		\( -type f -or -type l \)							\
 		-not -name 'test*'									\
 		\( -name '*.h' -or -name '*.hpp' \))
 
 
 # .cpp files in BFS order
-SRC_CPP_FILES =												\
+$(ID)_SRC_CPP_FILES :=										\
 	$(shell													\
-		DIRS=$(SRC_DIR_CURR);								\
+		DIRS=$($(ID)_SRC_DIR_CURR);							\
 		while [ "X$$DIRS" != "X" ]; do						\
 			find $$DIRS -d 1 \( -type f -or -type l \) 		\
 				 -not \( -name 'test*' -or -name 'main*' \)	\
@@ -45,9 +61,9 @@ SRC_CPP_FILES =												\
 
 
 # main*.cpp files in BFS order
-MAIN_CPP_FILES =											\
+$(ID)_MAIN_CPP_FILES :=										\
 	$(shell													\
-		DIRS=$(SRC_DIR_CURR);								\
+		DIRS=$($(ID)_SRC_DIR_CURR);							\
 		while [ "X$$DIRS" != "X" ]; do						\
 			find $$DIRS -d 1 \( -type f -or -type l \) 		\
 				 -name 'main*.cpp';							\
@@ -57,30 +73,29 @@ MAIN_CPP_FILES =											\
 
 
 # Tests
-TEST_SRC_CPP_FILES =										\
-	$(shell find '$(SRC_DIR_CURR)'							\
+$(ID)_TEST_SRC_CPP_FILES :=									\
+	$(shell find '$($(ID)_SRC_DIR_CURR)'					\
 		\( -type f -or -type l \)							\
 		-name 'test*.cpp')
 
 
 # Target dynamic library
-TARGET_FILE					= $(call get_bin_files,$(TARGET_NAME))
+$(ID)_TARGET_FILE			:= $(call get_bin_files,$($(ID)_TARGET_NAME))
 
 # Objects
-OBJ_CPPS					= $(subst $(SRC_DIR_CURR)/,,$(SRC_CPP_FILES))
-OBJ_FILES					= $(call get_obj_files,$(call cpp_to_obj,$(OBJ_CPPS)))
-
-MAIN_OBJ_CPPS				= $(subst $(SRC_DIR_CURR)/,,$(MAIN_CPP_FILES))
-MAIN_OBJ_FILES				= $(call get_obj_files,$(call cpp_to_obj,$(MAIN_OBJ_CPPS)))
+$(ID)_OBJ_CPPS				:= $(subst $($(ID)_SRC_DIR_CURR)/,,$($(ID)_SRC_CPP_FILES))
+$(ID)_OBJ_FILES				:= $(call get_obj_files,$(call cpp_to_obj,$($(ID)_OBJ_CPPS)))
+$(warning $($(ID)_OBJ_FILES))
+$(ID)_MAIN_OBJ_CPPS			:= $(subst $($(ID)_SRC_DIR_CURR)/,,$($(ID)_MAIN_CPP_FILES))
+$(ID)_MAIN_OBJ_FILES		:= $(call get_obj_files,$(call cpp_to_obj,$($(ID)_MAIN_OBJ_CPPS)))
 
 # Tests
-TEST_CPPS					= $(subst $(SRC_DIR_CURR)/,,$(TEST_SRC_CPP))
-TEST_OBJ_FILES				= $(call get_obj_files,$(call cpp_to_obj,$(TEST_CPPS)))
+$(ID)_TEST_CPPS				:= $(subst $($(ID)_SRC_DIR_CURR)/,,$($(ID)_TEST_SRC_CPP))
+$(ID)_TEST_OBJ_FILES		:= $(call get_obj_files,$(call cpp_to_obj,$($(ID)_TEST_CPPS)))
 
-TEST_TARGETS				= $(call get_targets,$(TEST_CPPS))
-TEST_TARGET_FILES			= $(call get_test_files,$(TEST_TARGETS))
+$(ID)_TEST_TARGETS			:= $(call get_targets,$($(ID)_TEST_CPPS))
+$(ID)_TEST_TARGET_FILES		:= $(call get_test_files,$($(ID)_TEST_TARGETS))
 
 
 # Targets
-export TARGET_TYPE			= Target
-include $(MK_TARGETS_ABS)
+include $(MK_TARGETS)

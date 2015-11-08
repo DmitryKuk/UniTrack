@@ -3,50 +3,25 @@
 # This is the root Makefile of project.
 
 
-export PROJECT_ROOT			= $(shell pwd)
-export MK_DIR_ABS			= $(PROJECT_ROOT)/makefiles
+# Helper function. Returns name of current makefile
+where-am-i					= $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
 
 
-include $(MK_DIR_ABS)/colors.mk
-include $(MK_DIR_ABS)/config_internal.mk
-include $(MK_DIR_ABS)/config.mk
-include $(MK_DIR_ABS)/platform.mk
+# Directory with makefiles
+MK_DIR						= makefiles
+
+
+include $(MK_DIR)/colors.mk
+include $(MK_DIR)/config_internal.mk
+include $(MK_DIR)/config.mk
+include $(MK_DIR)/platform.mk
 
 # Helper functions
-export MK_UTILITY_ABS 		= $(MK_DIR_ABS)/utility.mk
-include $(MK_UTILITY_ABS)
+export MK_UTILITY	 		= $(MK_DIR)/utility.mk
+include $(MK_UTILITY)
 
 # Common targets for modules and targets Makefiles
-export MK_TARGETS_ABS		= $(MK_DIR_ABS)/targets.mk
-
-# Recursive targets' and modules' targets
-export MK_RECURSIVE_ABS		= $(MK_DIR_ABS)/recursive.mk
-include $(MK_RECURSIVE_ABS)
-
-
-# Current module pathes
-SRC_DIR_CURR				= $(SRC_DIR_ABS)
-
-BUILD_DIR_CURR				= $(BUILD_DIR_ABS)
-BIN_DIR_CURR				= $(BIN_DIR_ABS)
-LIB_DIR_CURR				= $(LIB_DIR_ABS)
-OBJ_DIR_CURR				= $(OBJ_DIR_ABS)
-
-TEST_DIR_CURR				= $(TEST_DIR_ABS)
-
-CONFIG_DIR_CURR				= $(CONFIG_DIR_ABS)
-WWW_DIR_CURR				= $(WWW_DIR_ABS)
-
-THIRDPARTY_DIR_CURR			= $(THIRDPARTY_DIR_ABS)
-
-MODULES_SRC_DIR_CURR		= $(MODULES_SRC_DIR_ABS)
-MODULES_OBJ_DIR_CURR		= $(MODULES_OBJ_DIR_ABS)
-MODULES_TEST_DIR_CURR		= $(MODULES_TEST_DIR_ABS)
-
-TARGETS_SRC_DIR_CURR		= $(TARGETS_SRC_DIR_ABS)
-TARGETS_OBJ_DIR_CURR		= $(TARGETS_OBJ_DIR_ABS)
-TARGETS_TEST_DIR_CURR		= $(TARGETS_TEST_DIR_ABS)
-
+export MK_TARGETS			= $(MK_DIR)/targets.mk
 
 
 # ---===           Project macros            ===---
@@ -58,18 +33,18 @@ GPP_PROJECT_DATA			+= -DPATH_CONFIG="\"$(PREFIX_CONFIG)/$(CONFIG_DIR)\""	\
 
 
 
-export GPP_HEADER_PATHS		+= -I'$(PREFIX_THIRDPARTY)/include' -I'$(MODULES_SRC_DIR_CURR)'
-export GPP_LIB_PATHS		+= -L'$(PREFIX_THIRDPARTY)/lib' -L'$(LIB_DIR_CURR)'
+export GPP_HEADER_PATHS		+= -I'$(PREFIX_THIRDPARTY)/include' -I'$(MODULES_SRC_DIR)'
+export GPP_LIB_PATHS		+= -L'$(PREFIX_THIRDPARTY)/lib' -L'$(LIB_DIR)'
 export GPP_COMPILE_FLAGS	+= $(GPP_PROJECT_DATA)
 
 
-export MODULES				= $(notdir $(shell find '$(MODULES_SRC_DIR_CURR)' -depth 1 -type d))
-export TARGETS				= $(notdir $(shell find '$(TARGETS_SRC_DIR_CURR)' -depth 1 -type d))
+export MODULES				= $(notdir $(shell find '$(MODULES_SRC_DIR)' -depth 1 -type d))
+export TARGETS				= $(notdir $(shell find '$(TARGETS_SRC_DIR)' -depth 1 -type d))
 
 
 # Targets
 .PHONY:																					\
-	all          targets        modules        tests        third-party 				\
+	all  dirs    targets        modules        tests        third-party 				\
 	clean  clean-targets  clean-modules  clean-tests  clean-third-party  distclean		\
 																						\
 	install      install-bin    install-third-party    install-config    install-www	\
@@ -88,10 +63,23 @@ export TARGETS				= $(notdir $(shell find '$(TARGETS_SRC_DIR_CURR)' -depth 1 -ty
 all: modules targets
 
 
-targets: $(call get_bin_files,$(TARGETS))
+dirs:
+	mkdir -p "$(BUILD_DIR)" "$(BIN_DIR)" "$(LIB_DIR)" "$(TEST_DIR)" &&						\
+	FIFO_NAME="$(BUILD_DIR)/dirs_fifo" &&													\
+	mkfifo "$$FIFO_NAME" && (																\
+		find "$(SRC_DIR)" -type d | tee "$$FIFO_NAME" | sed 's,$(SRC_DIR),$(OBJ_DIR),' &	\
+		sed 's,$(SRC_DIR),$(TEST_DIR),' "$$FIFO_NAME"										\
+	) |																						\
+	xargs -n 1 mkdir -p;																	\
+	rm "$$FIFO_NAME"
 
 
-modules: $(call get_lib_files,$(MODULES))
+targets: dirs $(call get_bin_files,$(TARGETS))
+	# @echo "Inside targets: $(call get_bin_files,$(TARGETS))"
+
+
+modules: dirs $(call get_lib_files,$(MODULES))
+	# @echo "Inside modules: $(call get_lib_files,$(MODULES))"
 
 
 tests:
@@ -100,7 +88,7 @@ tests:
 
 
 third-party:
-	$(MAKE) -C "$(THIRDPARTY_DIR_CURR)"
+	$(MAKE) -C "$(THIRDPARTY_DIR)"
 
 
 
@@ -123,12 +111,12 @@ clean-tests:
 
 
 clean-third-party:
-	$(MAKE) -C "$(THIRDPARTY_DIR_CURR)" clean
+	$(MAKE) -C "$(THIRDPARTY_DIR)" clean
 
 
 # Cleaning all built files (submodules and third-party too!)
 distclean:
-	rm -rf $(BUILD_DIR_CURR)
+	rm -rf $(BUILD_DIR)
 
 
 
@@ -142,7 +130,7 @@ install-bin:
 
 
 install-third-party:
-	$(MAKE) -C "$(THIRDPARTY_DIR_CURR)" install
+	$(MAKE) -C "$(THIRDPARTY_DIR)" install
 
 
 install-config:
@@ -180,7 +168,7 @@ uninstall-bin:
 
 
 uninstall-third-party:
-	$(MAKE) -C "$(THIRDPARTY_DIR_CURR)" uninstall
+	$(MAKE) -C "$(THIRDPARTY_DIR)" uninstall
 
 
 uninstall-config:
@@ -286,5 +274,13 @@ lines:
 		( find -E $$2 $$3 -type f -regex "$$1" -exec grep -ch '^' {} \; |						\
 	 	  tr "\n" '+' && echo '0' ) | bc;														\
 	};																							\
-	echo "Total lines of all C++-sources: $$( lines_count '.*\.(cpp|h|hpp)' $(SRC_DIR_ABS) )";	\
-	echo "Total lines of all Makefiles:   $$( lines_count '.*\.mk' $(MK_DIR_ABS) $(SRC_DIR_ABS) )"
+	echo "Total lines of all C++-sources: $$( lines_count '.*\.(cpp|h|hpp)' $(SRC_DIR) )";		\
+	echo "Total lines of all Makefiles:   $$( lines_count '.*\.mk' $(MK_DIR) $(SRC_DIR) )"
+
+
+
+# Targets for building all
+CHILD_MAKEFILES				= $(shell find "$(SRC_DIR)" -name 'Makefile')
+include $(CHILD_MAKEFILES)
+
+ID = 

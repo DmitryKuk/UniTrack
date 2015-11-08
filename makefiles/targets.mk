@@ -12,15 +12,14 @@ $($(ID)_OBJ_DIR_CURR)/%.o: ID := $(ID)
 $($(ID)_OBJ_DIR_CURR)/%.o: $($(ID)_SRC_DIR_CURR)/%.cpp $($(ID)_HEADER_FILES)
 	OBJ=$(subst $($(ID)_OBJ_DIR_CURR)/,,$@);									\
 	echo "$(COLOR_RUN)    Compiling:"											\
-		 ' [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)]:'						\
+		 " [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)]:"						\
 		 " $$OBJ...$(COLOR_RESET)";												\
 	$(call gpp_compile) -o '$@' '$<';											\
 	STATUS=$$?;																	\
 	if [ "X$$STATUS" != 'X0' ]; then 											\
-		echo '$(COLOR_FAIL)==> [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] '	\
-			 "Object file $$OBJ building failed"								\
-			 "(status: $$STATUS).$(COLOR_RESET)";								\
-		rm '$@' 2>/dev/null || true;											\
+		echo '$(COLOR_FAIL)==> Object file building failed:'					\
+			 " [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)]:"					\
+			 " $$OBJ (status: $$STATUS).$(COLOR_RESET)";						\
 	fi
 
 
@@ -33,11 +32,12 @@ $($(ID)_TARGET_FILE): $($(ID)_HEADER_FILES) $($(ID)_OBJ_FILES) $($(ID)_MAIN_OBJ_
 	$(call gpp_link) -o '$@' $($(ID)_OBJ_FILES) $($(ID)_MAIN_OBJ_FILES);		\
 	STATUS=$$?;																	\
 	if [ "X$$STATUS" == 'X0' ]; then											\
-		echo "$(COLOR_PASS)==> [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] "	\
-			 "Built successfully.$(COLOR_RESET)";								\
+		echo "$(COLOR_PASS)==> Built successfully:"								\
+			 " [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)].$(COLOR_RESET)";	\
 	else																		\
-		echo "$(COLOR_FAIL)==> [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] "	\
-			 "Building failed (status: $$STATUS).$(COLOR_RESET)";				\
+		echo "$(COLOR_FAIL)==> Building failed:"								\
+			 " [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)]"					\
+			 "(status: $$STATUS).$(COLOR_RESET)";								\
 	fi
 
 
@@ -50,11 +50,12 @@ $($(ID)_TARGET_LIB_FILE): $($(ID)_HEADER_FILES) $($(ID)_OBJ_FILES) $(call get_li
 	$(call gpp_shared_lib) -o '$@' $($(ID)_OBJ_FILES);							\
 	STATUS=$$?;																	\
 	if [ "X$$STATUS" == 'X0' ]; then											\
-		echo "$(COLOR_PASS)==> [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] "	\
-			 "Built successfully.$(COLOR_RESET)";								\
+		echo "$(COLOR_PASS)==> Built successfully:"								\
+			 " [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)].$(COLOR_RESET)";	\
 	else																		\
-		echo "$(COLOR_FAIL)==> [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] "	\
-			 "Building failed (status: $$STATUS).$(COLOR_RESET)";				\
+		echo "$(COLOR_FAIL)==> Building failed:"								\
+			 " [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)]"					\
+			 "(status: $$STATUS).$(COLOR_RESET)";								\
 	fi
 
 
@@ -67,9 +68,10 @@ $($(ID)_TEST_DIR_CURR)/%: $($(ID)_OBJ_DIR_CURR)/%.o $($(ID)_HEADER_FILES) $($(ID
 	$(call gpp_link) -o '$@' '$<' $($(ID)_OBJ_FILES);							\
 	STATUS=$$?;																	\
 	if [ "X$$STATUS" == 'X0' ]; then											\
-		echo "$(COLOR_PASS)==> [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] "	\
-			 "Test built successfully.$(COLOR_RESET)";							\
+		echo "$(COLOR_PASS)==> Test built successfully:"						\
+			 " [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)].$(COLOR_RESET)";	\
 	else																		\
-		echo "$(COLOR_FAIL)==> [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] "	\
-			 "Test building failed (status: $$STATUS).$(COLOR_RESET)";			\
+		echo "$(COLOR_FAIL)==> Test building failed:"							\
+			 " [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)]"					\
+			 "(status: $$STATUS).$(COLOR_RESET)";								\
 	fi

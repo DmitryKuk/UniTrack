@@ -92,7 +92,7 @@ targets: dirs $(call get_bin_files,$(TARGETS))
 modules: dirs $(call get_lib_files,$(MODULES))
 
 
-tests: $(TEST_TARGET_FILES)
+tests: dirs $(TEST_TARGET_FILES)
 
 
 third-party:

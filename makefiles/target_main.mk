@@ -13,7 +13,7 @@ TARGET_NAME					:= $(call target_name_from_this,$(THIS_MAKEFILE))
 include $(MK_UTILITY)
 
 # Target config
--include $(notdir $(THIS_MAKEFILE))/config.mk
+-include $(dir $(THIS_MAKEFILE))/config.mk
 
 
 # Unique target data
@@ -26,8 +26,8 @@ $(ID)_MODULE_DEPS			:= $(MODULE_DEPS)
 $(ID)_EXTERNAL_LIBS			:= $(EXTERNAL_LIBS)
 
 
-$(ID)_GPP_LIBS				:= $(call get_external_libs,$($(ID)_EXTERNAL_LIBS))
-$(ID)_GPP_LIBS				:= $(call get_libs,$($(ID)_MODULE_DEPS))
+$(ID)_GPP_LIBS				:= $(call get_external_libs,$($(ID)_EXTERNAL_LIBS))	\
+							   $(call get_libs,$($(ID)_MODULE_DEPS))
 
 
 # Paths

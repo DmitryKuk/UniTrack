@@ -24,9 +24,9 @@ get_libs				= $(addprefix -l$(PROJECT_LIB_PREFIX),$(1))
 get_external_libs		= $(addprefix -l,$(1))
 
 
-gpp_compile				= $(GPP) $(GPP_COMPILE_FLAGS) $(GPP_HEADER_PATHS)
-gpp_shared_lib			= $(GPP) $(GPP_SHARED_LIB_FLAGS) $(GPP_LIB_PATHS) $(GPP_LIBS)
-gpp_link				= $(GPP) $(GPP_LINK_FLAGS) $(GPP_LIB_PATHS) $(GPP_LIBS)
+gpp_compile				= $(GPP) $(GPP_COMPILE_FLAGS) $(GPP_HEADER_PATHS) $($(ID)_GPP_HEADER_PATHS)
+gpp_shared_lib			= $(GPP) $(GPP_SHARED_LIB_FLAGS) $(GPP_LIB_PATHS) $($(ID)_GPP_LIB_PATHS) $(GPP_LIBS) $($(ID)_GPP_LIBS)
+gpp_link				= $(GPP) $(GPP_LINK_FLAGS) $(GPP_LIB_PATHS) $($(ID)_GPP_LIB_PATHS) $(GPP_LIBS) $($(ID)_GPP_LIBS)
 
 
 target_name_from_this	= $(shell basename $$( dirname '$(1)' ))

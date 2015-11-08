@@ -17,7 +17,7 @@ include $(MK_UTILITY)
 
 
 # start_message:
-# 	@echo "$(COLOR_RUN)[$(TARGET_TYPE): $(TARGET_NAME)] "						\
+# 	@echo "$(COLOR_RUN)[$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] "						\
 # 		  "Building...$(COLOR_RESET)"
 
 
@@ -47,15 +47,15 @@ include $(MK_UTILITY)
 # run-tests: dirs tests
 # 	if [ "X$(TEST_TARGETS)" != "X" ]; then										\
 # 		for T in $(TEST_TARGETS); do											\
-# 			echo "$(COLOR_RUN)[$(TARGET_TYPE): $(TARGET_NAME)] "				\
+# 			echo "$(COLOR_RUN)[$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] "				\
 # 				 "Running test: $$T...$(COLOR_RESET)";							\
 # 			$(call get_test_files,$$T);											\
 # 			STATUS=$$?;															\
 # 			if [ "X$$STATUS" == 'X0' ]; then									\
-# 				echo "$(COLOR_PASS)==> [$(TARGET_TYPE): $(TARGET_NAME)] "		\
+# 				echo "$(COLOR_PASS)==> [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] "		\
 # 					 "Test $$T passed.$(COLOR_RESET)";							\
 # 			else																\
-# 				echo "$(COLOR_FAIL)==> [$(TARGET_TYPE): $(TARGET_NAME)] "		\
+# 				echo "$(COLOR_FAIL)==> [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] "		\
 # 					 "Test $$T failed with code: $$STATUS.$(COLOR_RESET)";		\
 # 			fi;																	\
 # 		done;																	\
@@ -63,34 +63,43 @@ include $(MK_UTILITY)
 
 
 # Objects compilation (universal for main program and tests)
+$($(ID)_OBJ_DIR_CURR)/%.o: ID := $(ID)
 $($(ID)_OBJ_DIR_CURR)/%.o: $($(ID)_SRC_DIR_CURR)/%.cpp $($(ID)_HEADER_FILES)
-	# OBJ=$(subst $($(ID)_OBJ_DIR_CURR)/,,$@);											\
-	# echo "$(COLOR_RUN)    [$(TARGET_TYPE): $(TARGET_NAME)] "					\
-	# 	 "Compiling: $$OBJ...$(COLOR_RESET)";									\
-	# echo $(call gpp_compile) -o '$@' '$<';											\
-	# STATUS=$$?;																	\
-	# if [ "X$$STATUS" != 'X0' ]; then 											\
-	# 	echo '$(COLOR_FAIL)==> [$(TARGET_TYPE): $(TARGET_NAME)] '				\
-	# 		 "Object file $$OBJ building failed"								\
-	# 		 "(status: $$STATUS).$(COLOR_RESET)";								\
-	# 	rm '$@' 2>/dev/null || true;											\
-	# fi
+	OBJ=$(subst $($(ID)_OBJ_DIR_CURR)/,,$@);									\
+	echo "$(COLOR_RUN)    [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] "		\
+		 "Compiling: $$OBJ...$(COLOR_RESET)";									\
+	$(call gpp_compile) -o '$@' '$<';											\
+	STATUS=$$?;																	\
+	if [ "X$$STATUS" != 'X0' ]; then 											\
+		echo '$(COLOR_FAIL)==> [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] '	\
+			 "Object file $$OBJ building failed"								\
+			 "(status: $$STATUS).$(COLOR_RESET)";								\
+		rm '$@' 2>/dev/null || true;											\
+	fi
 
 # $(warning $($(ID)_TARGET_FILE): $($(ID)_HEADER_FILES) $($(ID)_OBJ_FILES) $($(ID)_MAIN_OBJ_FILES) $(call get_lib_files,$($(ID)_MODULE_DEPS)))
 # Target executable linking
+$($(ID)_TARGET_FILE): ID := $(ID)
 $($(ID)_TARGET_FILE): $($(ID)_HEADER_FILES) $($(ID)_OBJ_FILES) $($(ID)_MAIN_OBJ_FILES) $(call get_lib_files,$($(ID)_MODULE_DEPS))
-	"echo $(COLOR_PASS)Object $(ID):$(COLOR_RESET)  $($(ID)_TARGET_FILE): $($(ID)_HEADER_FILES) $($(ID)_OBJ_FILES) $($(ID)_MAIN_OBJ_FILES) $(call get_lib_files,$($(ID)_MODULE_DEPS))"
-	# echo "$(COLOR_RUN)    [$(TARGET_TYPE): $(TARGET_NAME)] "					\
-	# 	 "Linking executable: $(subst $(BIN_DIR)/,,$@)...$(COLOR_RESET)";		\
-	# echo $(call gpp_link) -o '$@' $($(ID)_OBJ_FILES) $($(ID)_MAIN_OBJ_FILES);					\
-	# STATUS=$$?;																	\
-	# if [ "X$$STATUS" == 'X0' ]; then											\
-	# 	echo "$(COLOR_PASS)==> [$(TARGET_TYPE): $(TARGET_NAME)] "				\
-	# 		 "Built successfully.$(COLOR_RESET)";								\
-	# else																		\
-	# 	echo "$(COLOR_FAIL)==> [$(TARGET_TYPE): $(TARGET_NAME)] "				\
-	# 		 "Building failed (status: $$STATUS).$(COLOR_RESET)";				\
-	# fi
+	# echo "$(COLOR_PASS)Target $(ID):$(COLOR_RESET)"
+	# echo "    TARGET_FILE     = $($(ID)_TARGET_FILE)"
+	# echo "    HEADER_FILES    = $($(ID)_HEADER_FILES)"
+	# echo "    OBJ_FILES       = $($(ID)_OBJ_FILES)"
+	# echo "    MAIN_OBJ_FILES  = $($(ID)_MAIN_OBJ_FILES)"
+	# echo "    MODULE_DEPS     = $(call get_libs,$($(ID)_MODULE_DEPS))"
+	# echo "    EXTERNAL_LIBS   = $(call get_external_libs,$($(ID)_EXTERNAL_LIBS))"
+	
+	echo "$(COLOR_RUN)    [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] "		\
+		 "Linking executable: $(subst $(BIN_DIR)/,,$@)...$(COLOR_RESET)";		\
+	$(call gpp_link) -o '$@' $($(ID)_OBJ_FILES) $($(ID)_MAIN_OBJ_FILES);		\
+	STATUS=$$?;																	\
+	if [ "X$$STATUS" == 'X0' ]; then											\
+		echo "$(COLOR_PASS)==> [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] "	\
+			 "Built successfully.$(COLOR_RESET)";								\
+	else																		\
+		echo "$(COLOR_FAIL)==> [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] "	\
+			 "Building failed (status: $$STATUS).$(COLOR_RESET)";				\
+	fi
 
 
 $(warning $(ID)_TARGET_FILE     =  $($(ID)_TARGET_FILE))
@@ -101,98 +110,106 @@ $(warning $(ID)_MODULE_DEPS     =  $(call get_lib_files,$($(ID)_MODULE_DEPS)))
 $(warning ---)
 
 # Target shared library linking
+$($(ID)_TARGET_LIB_FILE): ID := $(ID)
 $($(ID)_TARGET_LIB_FILE): $($(ID)_HEADER_FILES) $($(ID)_OBJ_FILES) $(call get_lib_files,$($(ID)_MODULE_DEPS))
-	echo "$(COLOR_PASS)Lib $(ID):$(COLOR_RESET)  $($(ID)_TARGET_LIB_FILE): $($(ID)_HEADER_FILES) $($(ID)_OBJ_FILES) $(call get_lib_files,$($(ID)_MODULE_DEPS))"
-	echo $^ | tr ' ' '\n' | grep '.*\.o'
-	echo
-	# echo "$(COLOR_RUN)    [$(TARGET_TYPE): $(TARGET_NAME)] "					\
-	# 	 "Linking shared lib: $(subst $(LIB_DIR)/,,$@)...$(COLOR_RESET)";		\
-	# echo $(call gpp_shared_lib) -o '$@' $($(ID)_OBJ_FILES);								\
-	# STATUS=$$?;																	\
-	# if [ "X$$STATUS" == 'X0' ]; then											\
-	# 	echo "$(COLOR_PASS)==> [$(TARGET_TYPE): $(TARGET_NAME)] "				\
-	# 		 "Built successfully.$(COLOR_RESET)";								\
-	# else																		\
-	# 	echo "$(COLOR_FAIL)==> [$(TARGET_TYPE): $(TARGET_NAME)] "				\
-	# 		 "Building failed (status: $$STATUS).$(COLOR_RESET)";				\
-	# fi
+	# echo "$(COLOR_PASS)Lib $(ID):$(COLOR_RESET)  $($(ID)_TARGET_LIB_FILE): $($(ID)_HEADER_FILES) $($(ID)_OBJ_FILES) $(call get_lib_files,$($(ID)_MODULE_DEPS))"
+	# echo $^ | tr ' ' '\n' | grep '.*\.o'
+	# echo
+	# echo "$(COLOR_PASS)Lib $(ID):$(COLOR_RESET)"
+	# echo "    TARGET_LIB_FILE = $($(ID)_TARGET_LIB_FILE)"
+	# echo "    HEADER_FILES    = $($(ID)_HEADER_FILES)"
+	# echo "    OBJ_FILES       = $($(ID)_OBJ_FILES)"
+	# echo "    MODULE_DEPS     = $(call get_libs,$($(ID)_MODULE_DEPS))"
+	# echo "    EXTERNAL_LIBS   = $(call get_external_libs,$($(ID)_EXTERNAL_LIBS))"
+	
+	echo "$(COLOR_RUN)    [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] "		\
+		 "Linking shared lib: $(subst $(LIB_DIR)/,,$@)...$(COLOR_RESET)";		\
+	$(call gpp_shared_lib) -o '$@' $($(ID)_OBJ_FILES);							\
+	STATUS=$$?;																	\
+	if [ "X$$STATUS" == 'X0' ]; then											\
+		echo "$(COLOR_PASS)==> [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] "	\
+			 "Built successfully.$(COLOR_RESET)";								\
+	else																		\
+		echo "$(COLOR_FAIL)==> [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] "	\
+			 "Building failed (status: $$STATUS).$(COLOR_RESET)";				\
+	fi
 
 
 # Tests
 # $($(ID)_TEST_DIR_CURR)/%: $($(ID)_OBJ_DIR_CURR)/%.o $($(ID)_HEADER_FILES) $($(ID)_TARGET_FILE)
-	# TEST=$(subst $($(ID)_TEST_DIR_CURR)/,,$@);										\
-	# echo "$(COLOR_RUN)    [$(TARGET_TYPE): $(TARGET_NAME)] "					\
+	# TEST=$(subst $($(ID)_TEST_DIR_CURR)/,,$@);								\
+	# echo "$(COLOR_RUN)    [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] "		\
 	# 	 "Linking test: $$TEST...$(COLOR_RESET)";								\
-	# echo $(call gpp_link) -o '$@' '$<' $($(ID)_OBJ_FILES);									\
-	# STATUS=$$?;																	\
+	# echo $(call gpp_link) -o '$@' '$<' $($(ID)_OBJ_FILES);					\
+	# STATUS=$$?;																\
 	# if [ "X$$STATUS" == 'X0' ]; then											\
-	# 	echo "$(COLOR_PASS)==> [$(TARGET_TYPE): $(TARGET_NAME)] "				\
+	# 	echo "$(COLOR_PASS)==> [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] "	\
 	# 		 "Test built successfully.$(COLOR_RESET)";							\
 	# else																		\
-	# 	echo "$(COLOR_FAIL)==> [$(TARGET_TYPE): $(TARGET_NAME)] "				\
+	# 	echo "$(COLOR_FAIL)==> [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] "	\
 	# 		 "Test building failed (status: $$STATUS).$(COLOR_RESET)";			\
 	# fi
 
 
 
 # Run, install/uninstall targets
-# ifeq ($(TARGET_TYPE),Target)
+# ifeq ($($(ID)_TARGET_TYPE),Target)
 
 
 # run: all
-# 	echo "$(COLOR_RUN)[$(TARGET_TYPE): $(TARGET_NAME)] "						\
+# 	echo "$(COLOR_RUN)[$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] "						\
 # 		 "Running...$(COLOR_RESET)";											\
 # 	OLD_DIR=$$( pwd );															\
 # 	cd '$(PROJECT_ROOT)' && ( $($(ID)_TARGET_FILE); cd "$$OLD_DIR" );					\
 # 	STATUS=$$?;																	\
 # 	if [ "X$$STATUS" == 'X0' ]; then											\
-# 		echo "$(COLOR_PASS)==> [$(TARGET_TYPE): $(TARGET_NAME)] "				\
+# 		echo "$(COLOR_PASS)==> [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] "				\
 # 			 "Done successfully.$(COLOR_RESET)";								\
 # 	else																		\
-# 		echo "$(COLOR_FAIL)==> [$(TARGET_TYPE): $(TARGET_NAME)] "				\
+# 		echo "$(COLOR_FAIL)==> [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] "				\
 # 			 "Running failed (status: $$STATUS).$(COLOR_RESET)";				\
 # 	fi
 
 
 # install: all
-# 	@echo "$(COLOR_RUN)    [$(TARGET_TYPE): $(TARGET_NAME)] "					\
+# 	@echo "$(COLOR_RUN)    [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] "					\
 # 		  "Installing executable to "$(PREFIX_BIN)"...$(COLOR_RESET)"
 # 	install '$($(ID)_TARGET_FILE)' '$(PREFIX_BIN)'
 	
-# 	@echo "$(COLOR_PASS)==> [$(TARGET_TYPE): $(TARGET_NAME)] "					\
+# 	@echo "$(COLOR_PASS)==> [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] "					\
 # 		  "Executable installed.$(COLOR_RESET)"
 
 
 # uninstall:
-# 	@echo "$(COLOR_RUN)    [$(TARGET_TYPE): $(TARGET_NAME)] "					\
+# 	@echo "$(COLOR_RUN)    [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] "					\
 # 		  "Uninstalling executable from "$(PREFIX_BIN)"...$(COLOR_RESET)"
 	
 # 	rm '$(PREFIX_BIN)/$(notdir $($(ID)_TARGET_FILE))'
 	
-# 	@echo "$(COLOR_PASS)==> [$(TARGET_TYPE): $(TARGET_NAME)] "					\
+# 	@echo "$(COLOR_PASS)==> [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] "					\
 # 		  "Executable uninstalled.$(COLOR_RESET)"
 
 
-# else ifeq ($(TARGET_TYPE),Module)
+# else ifeq ($($(ID)_TARGET_TYPE),Module)
 
 
 # install: all
-# 	@echo "$(COLOR_RUN)    [$(TARGET_TYPE): $(TARGET_NAME)] "					\
+# 	@echo "$(COLOR_RUN)    [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] "					\
 # 		  "Installing shared lib to "$(PREFIX_LIB)"...$(COLOR_RESET)"
 	
 # 	install '$($(ID)_TARGET_LIB_FILE)' '$(PREFIX_LIB)'
 	
-# 	@echo "$(COLOR_PASS)==> [$(TARGET_TYPE): $(TARGET_NAME)] "					\
+# 	@echo "$(COLOR_PASS)==> [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] "					\
 # 		  "Shared lib installed.$(COLOR_RESET)"
 
 
 # uninstall:
-# 	@echo "$(COLOR_RUN)    [$(TARGET_TYPE): $(TARGET_NAME)] "					\
+# 	@echo "$(COLOR_RUN)    [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] "					\
 # 		  "Uninstalling shared lib from "$(PREFIX_LIB)"...$(COLOR_RESET)"
 	
 # 	rm '$(PREFIX_LIB)/$(notdir $($(ID)_TARGET_LIB_FILE))'
 	
-# 	@echo "$(COLOR_PASS)==> [$(TARGET_TYPE): $(TARGET_NAME)] "					\
+# 	@echo "$(COLOR_PASS)==> [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)] "					\
 # 		  "Shared lib uninstalled.$(COLOR_RESET)"
 
 

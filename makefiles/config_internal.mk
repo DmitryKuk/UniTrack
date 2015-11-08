@@ -51,30 +51,3 @@ WWW_DIR					= www
 THIRDPARTY_DIR			= third-party
 
 # ---===    End of project internal properties    ===---
-
-
-# Absolute paths
-export SRC_DIR
-
-export BUILD_DIR
-export BIN_DIR
-export LIB_DIR
-export OBJ_DIR
-export TEST_DIR
-
-export CONFIG_DIR
-export WWW_DIR
-
-export THIRDPARTY_DIR
-
-
-# Modules dirs
-export MODULES_SRC_DIR
-export MODULES_OBJ_DIR
-export MODULES_TEST_DIR
-
-
-# Targets dirs
-export TARGETS_SRC_DIR
-export TARGETS_OBJ_DIR
-export TARGETS_TEST_DIR

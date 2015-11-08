@@ -85,16 +85,20 @@ $(ID)_TARGET_FILE			:= $(call get_bin_files,$($(ID)_TARGET_NAME))
 # Objects
 $(ID)_OBJ_CPPS				:= $(subst $($(ID)_SRC_DIR_CURR)/,,$($(ID)_SRC_CPP_FILES))
 $(ID)_OBJ_FILES				:= $(call get_obj_files,$(call cpp_to_obj,$($(ID)_OBJ_CPPS)))
-$(warning $($(ID)_OBJ_FILES))
+
 $(ID)_MAIN_OBJ_CPPS			:= $(subst $($(ID)_SRC_DIR_CURR)/,,$($(ID)_MAIN_CPP_FILES))
 $(ID)_MAIN_OBJ_FILES		:= $(call get_obj_files,$(call cpp_to_obj,$($(ID)_MAIN_OBJ_CPPS)))
 
 # Tests
-$(ID)_TEST_CPPS				:= $(subst $($(ID)_SRC_DIR_CURR)/,,$($(ID)_TEST_SRC_CPP))
+$(ID)_TEST_CPPS				:= $(subst $($(ID)_SRC_DIR_CURR)/,,$($(ID)_TEST_SRC_CPP_FILES))
 $(ID)_TEST_OBJ_FILES		:= $(call get_obj_files,$(call cpp_to_obj,$($(ID)_TEST_CPPS)))
 
 $(ID)_TEST_TARGETS			:= $(call get_targets,$($(ID)_TEST_CPPS))
 $(ID)_TEST_TARGET_FILES		:= $(call get_test_files,$($(ID)_TEST_TARGETS))
+
+
+# Global list of test targets
+TEST_TARGET_FILES			:= $(TEST_TARGET_FILES) $($(ID)_TEST_TARGET_FILES)
 
 
 # Targets

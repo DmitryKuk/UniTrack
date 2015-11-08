@@ -36,17 +36,3 @@ PREFIX_CONFIG		= /etc/$(PROJECT_NAME_LOW)
 PREFIX_WWW			= /var/$(PROJECT_NAME_LOW)
 
 # ---===  End of project installation properties  ===---
-
-
-export PROJECT_NAME
-export PROJECT_NAME_LOW
-export PROJECT_LIB_PREFIX
-
-export PREFIX_BIN
-export PREFIX_LIB
-
-export PREFIX_THIRDPARTY
-
-
-export PREFIX_CONFIG
-export PREFIX_WWW

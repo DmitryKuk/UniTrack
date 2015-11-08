@@ -17,11 +17,11 @@ include $(MK_DIR)/config.mk
 include $(MK_DIR)/platform.mk
 
 # Helper functions
-export MK_UTILITY	 		= $(MK_DIR)/utility.mk
+MK_UTILITY	 				= $(MK_DIR)/utility.mk
 include $(MK_UTILITY)
 
 # Common targets for modules and targets Makefiles
-export MK_TARGETS			= $(MK_DIR)/targets.mk
+MK_TARGETS					= $(MK_DIR)/targets.mk
 
 
 # ---===           Project macros            ===---
@@ -33,13 +33,22 @@ GPP_PROJECT_DATA			+= -DPATH_CONFIG="\"$(PREFIX_CONFIG)/$(CONFIG_DIR)\""	\
 
 
 
-export GPP_HEADER_PATHS		+= -I'$(PREFIX_THIRDPARTY)/include' -I'$(MODULES_SRC_DIR)'
-export GPP_LIB_PATHS		+= -L'$(PREFIX_THIRDPARTY)/lib' -L'$(LIB_DIR)'
-export GPP_COMPILE_FLAGS	+= $(GPP_PROJECT_DATA)
+GPP_HEADER_PATHS			+= -I'$(PREFIX_THIRDPARTY)/include' -I'$(MODULES_SRC_DIR)'
+GPP_LIB_PATHS				+= -L'$(PREFIX_THIRDPARTY)/lib' -L'$(LIB_DIR)'
+GPP_COMPILE_FLAGS			+= $(GPP_PROJECT_DATA)
 
 
-export MODULES				= $(notdir $(shell find '$(MODULES_SRC_DIR)' -depth 1 -type d))
-export TARGETS				= $(notdir $(shell find '$(TARGETS_SRC_DIR)' -depth 1 -type d))
+MODULES						= $(notdir $(shell find '$(MODULES_SRC_DIR)' -depth 1 -type d))
+TARGETS						= $(notdir $(shell find '$(TARGETS_SRC_DIR)' -depth 1 -type d))
+
+
+# Global lists of test targets
+TEST_TARGET_FILES			= 
+
+
+# Targets for building all
+CHILD_MAKEFILES				= $(shell find "$(SRC_DIR)" -name 'Makefile')
+include $(CHILD_MAKEFILES)
 
 
 # Targets
@@ -59,6 +68,9 @@ export TARGETS				= $(notdir $(shell find '$(TARGETS_SRC_DIR)' -depth 1 -type d)
 .SILENT:
 
 
+.DEFAULT_GOAL				:= all
+
+
 # Building
 all: modules targets
 
@@ -75,16 +87,12 @@ dirs:
 
 
 targets: dirs $(call get_bin_files,$(TARGETS))
-	# @echo "Inside targets: $(call get_bin_files,$(TARGETS))"
 
 
 modules: dirs $(call get_lib_files,$(MODULES))
-	# @echo "Inside modules: $(call get_lib_files,$(MODULES))"
 
 
-tests:
-	$(call for_each_target,tests)
-	$(call for_each_module,tests)
+tests: $(TEST_TARGET_FILES)
 
 
 third-party:
@@ -94,20 +102,8 @@ third-party:
 
 # Cleaning
 # Cleaning project targets and modules (not third-party!)
-clean: clean-targets clean-modules
-
-
-clean-targets:
-	$(call for_each_target,clean)
-
-
-clean-modules:
-	$(call for_each_module,clean)
-
-
-clean-tests:
-	$(call for_each_target,clean-tests)
-	$(call for_each_module,clean-tests)
+clean:
+	rm -rf $(BUILD_DIR)
 
 
 clean-third-party:
@@ -115,8 +111,7 @@ clean-third-party:
 
 
 # Cleaning all built files (submodules and third-party too!)
-distclean:
-	rm -rf $(BUILD_DIR)
+distclean: clean clean-third-party
 
 
 
@@ -125,8 +120,17 @@ install: install-bin install-config install-www
 
 
 install-bin:
-	$(call for_each_target,install)
-	$(call for_each_module,install)
+	for T in $(TARGETS); do															\
+		echo "$(COLOR_RUN)Installing: $(PREFIX_BIN)/$$T...$(COLOR_RESET)";			\
+		install "$(BIN_DIR)/$$T" '$(PREFIX_BIN)';									\
+	done
+	
+	for T in $(MODULES); do															\
+		echo "$(COLOR_RUN)Installing: $(PREFIX_LIB)/lib$$T.so...$(COLOR_RESET)";	\
+		install "$(LIB_DIR)/lib$(PROJECT_LIB_PREFIX)$$T.so" '$(PREFIX_BIN)';		\
+	done
+	
+	@echo "$(COLOR_RUN)==> Executables and shared libs installed.$(COLOR_RESET)"
 
 
 install-third-party:
@@ -134,27 +138,27 @@ install-third-party:
 
 
 install-config:
-	@echo "$(COLOR_RUN)[Global]  Creating directories in \"$(PREFIX_CONFIG)\"...$(COLOR_RESET)"
-	find '$(CONFIG_DIR)' -type d -not -name '.*' |												\
+	@echo "$(COLOR_RUN)Creating directories in \"$(PREFIX_CONFIG)\"...$(COLOR_RESET)"
+	find '$(CONFIG_DIR)' -type d -not -name '.*' |									\
 	while read DIR; do install -d "$(PREFIX_CONFIG)/$$DIR"; done
 	
-	@echo "$(COLOR_RUN)[Global]  Installing WWW files to \"$(PREFIX_CONFIG)\"...$(COLOR_RESET)"
-	find '$(CONFIG_DIR)' -type f -not -name '.*' |												\
+	@echo "$(COLOR_RUN)Installing WWW files to \"$(PREFIX_CONFIG)\"...$(COLOR_RESET)"
+	find '$(CONFIG_DIR)' -type f -not -name '.*' |									\
 	while read FILE; do install "$$FILE" "$(PREFIX_CONFIG)/$$FILE"; done
 	
-	@echo "$(COLOR_PASS)==> [Global]  Config installed.$(COLOR_RESET)"
+	@echo "$(COLOR_PASS)==> Config installed.$(COLOR_RESET)"
 
 
 install-www:
-	@echo "$(COLOR_RUN)[Global]  Creating directories in \"$(PREFIX_WWW)\"...$(COLOR_RESET)"
-	find '$(WWW_DIR)' -type d -not -name '.*' |													\
+	@echo "$(COLOR_RUN)Creating directories in \"$(PREFIX_WWW)\"...$(COLOR_RESET)"
+	find '$(WWW_DIR)' -type d -not -name '.*' |										\
 	while read DIR; do install -d "$(PREFIX_WWW)/$$DIR"; done
 	
-	@echo "$(COLOR_RUN)[Global]  Installing WWW files to \"$(PREFIX_WWW)\"...$(COLOR_RESET)"
-	find '$(WWW_DIR)' -type f -not -name '.*' |													\
+	@echo "$(COLOR_RUN)Installing WWW files to \"$(PREFIX_WWW)\"...$(COLOR_RESET)"
+	find '$(WWW_DIR)' -type f -not -name '.*' |										\
 	while read FILE; do install "$$FILE" "$(PREFIX_WWW)/$$FILE"; done
 	
-	@echo "$(COLOR_PASS)==> [Global]  WWW data installed.$(COLOR_RESET)"
+	@echo "$(COLOR_PASS)==> WWW data installed.$(COLOR_RESET)"
 
 
 
@@ -163,8 +167,9 @@ uninstall: uninstall-bin uninstall-www
 
 
 uninstall-bin:
-	$(call for_each_target,uninstall)
-	$(call for_each_module,uninstall)
+	rm $(addprefix $(PREFIX_BIN)/,$(TARGETS))
+	rm $(addprefix $(PREFIX_LIB)/lib$(PROJECT_LIB_PREFIX),$(addsuffix .so,$(MODULES)))
+	@echo "$(COLOR_PASS)==> Executables and shared libs removed.$(COLOR_RESET)"
 
 
 uninstall-third-party:
@@ -172,13 +177,13 @@ uninstall-third-party:
 
 
 uninstall-config:
-	rm -r '$(PREFIX_CONFIG)' 2>/dev/null || true
-	@echo "$(COLOR_PASS)==> [Global]  Config removed.$(COLOR_RESET)"
+	rm -r '$(PREFIX_CONFIG)'
+	@echo "$(COLOR_PASS)==> Config removed.$(COLOR_RESET)"
 
 
 uninstall-www:
-	rm -r '$(PREFIX_WWW)' 2>/dev/null || true
-	@echo "$(COLOR_PASS)==> [Global]  WWW data removed.$(COLOR_RESET)"
+	rm -r '$(PREFIX_WWW)'
+	@echo "$(COLOR_PASS)==> WWW data removed.$(COLOR_RESET)"
 
 
 
@@ -187,17 +192,56 @@ uninstall-all: uninstall-bin uninstall-www uninstall-third-party uninstall-confi
 
 
 # Running
-run: all
-	$(call for_each_target,run)
+run: targets
+	NUM_SUCCESS=0; NUM_FAIL=0;														\
+	for T in $(TARGETS); do															\
+		echo "$(COLOR_RUN)Running: $$T...$(COLOR_RESET)";							\
+		"./$(BIN_DIR)/$$T";															\
+		STATUS=$$?;																	\
+		if [ "X$$STATUS" == 'X0' ]; then											\
+			echo "$(COLOR_PASS)==> Done successfully: $$T.$(COLOR_RESET)";			\
+			let ++NUM_SUCCESS;														\
+		else																		\
+			echo "$(COLOR_FAIL)==> Running failed: $$T"								\
+				 "(status: $$STATUS).$(COLOR_RESET)";								\
+			let ++NUM_FAIL;															\
+		fi;																			\
+	done;																			\
+	let NUM_TOTAL=NUM_SUCCESS+NUM_FAIL;												\
+	PERC_SUCCESS="$$( echo "100*$$NUM_SUCCESS/$$NUM_TOTAL" | bc )%";				\
+	PERC_FAIL="$$(    echo "100*$$NUM_FAIL/$$NUM_TOTAL"    | bc )%";				\
+	echo "==> Status: "																\
+		 "$(COLOR_PASS)Passed:  $$NUM_SUCCESS,  $$PERC_SUCCESS$(COLOR_RESET)  | "	\
+		 "$(COLOR_FAIL)Failed:  $$NUM_FAIL,  $$PERC_FAIL$(COLOR_RESET)  | "			\
+		 "Total:  $$NUM_TOTAL"
 
 
 # Tests targets
 check: run-tests
 
 
-run-tests:
-	$(call for_each_target,run-tests)
-	$(call for_each_module,run-tests)
+run-tests: tests
+	NUM_SUCCESS=0; NUM_FAIL=0;														\
+	for T in $(TEST_TARGET_FILES); do												\
+		TNAME=$$( echo "$$T" | sed 's,$(TEST_DIR),,' );								\
+		echo "$(COLOR_RUN)Running: $$TNAME...$(COLOR_RESET)";						\
+		"./$$T";																	\
+		STATUS=$$?;																	\
+		if [ "X$$STATUS" == 'X0' ]; then											\
+			let ++NUM_SUCCESS;														\
+		else																		\
+			echo "$(COLOR_FAIL)==> Test failed: $$TNAME"							\
+				 "(status: $$STATUS).$(COLOR_RESET)";								\
+			let ++NUM_FAIL;															\
+		fi;																			\
+	done;																			\
+	let NUM_TOTAL=NUM_SUCCESS+NUM_FAIL;												\
+	PERC_SUCCESS="$$( echo "100*$$NUM_SUCCESS/$$NUM_TOTAL" | bc )%";				\
+	PERC_FAIL="$$(    echo "100*$$NUM_FAIL/$$NUM_TOTAL"    | bc )%";				\
+	echo "==> Status: "																\
+		 "$(COLOR_PASS)Passed:  $$NUM_SUCCESS,  $$PERC_SUCCESS$(COLOR_RESET)  | "	\
+		 "$(COLOR_FAIL)Failed:  $$NUM_FAIL,  $$PERC_FAIL$(COLOR_RESET)  | "			\
+		 "Total:  $$NUM_TOTAL"
 
 
 
@@ -276,11 +320,3 @@ lines:
 	};																							\
 	echo "Total lines of all C++-sources: $$( lines_count '.*\.(cpp|h|hpp)' $(SRC_DIR) )";		\
 	echo "Total lines of all Makefiles:   $$( lines_count '.*\.mk' $(MK_DIR) $(SRC_DIR) )"
-
-
-
-# Targets for building all
-CHILD_MAKEFILES				= $(shell find "$(SRC_DIR)" -name 'Makefile')
-include $(CHILD_MAKEFILES)
-
-ID = 

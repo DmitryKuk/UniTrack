@@ -5,8 +5,8 @@
 
 THIS_MAKEFILE				:= $(call where-am-i)
 
+# Target name: logger, unitrack, etc...
 TARGET_NAME					:= $(call target_name_from_this,$(THIS_MAKEFILE))
-# $(warning $(TARGET_NAME))
 
 
 # Helper functions
@@ -72,11 +72,15 @@ $(ID)_OBJ_CPPS				:= $(subst $($(ID)_SRC_DIR_CURR)/,,$($(ID)_SRC_CPP_FILES))
 $(ID)_OBJ_FILES				:= $(call get_obj_files,$(call cpp_to_obj,$($(ID)_OBJ_CPPS)))
 
 # Tests
-$(ID)_TEST_CPPS				:= $(subst $($(ID)_SRC_DIR_CURR)/,,$($(ID)_TEST_SRC_CPP))
+$(ID)_TEST_CPPS				:= $(subst $($(ID)_SRC_DIR_CURR)/,,$($(ID)_TEST_SRC_CPP_FILES))
 $(ID)_TEST_OBJ_FILES		:= $(call get_obj_files,$(call cpp_to_obj,$($(ID)_TEST_CPPS)))
 
 $(ID)_TEST_TARGETS			:= $(call get_targets,$($(ID)_TEST_CPPS))
 $(ID)_TEST_TARGET_FILES		:= $(call get_test_files,$($(ID)_TEST_TARGETS))
+
+
+# Global list of test targets
+TEST_TARGET_FILES			:= $(TEST_TARGET_FILES) $($(ID)_TEST_TARGET_FILES)
 
 
 # Targets

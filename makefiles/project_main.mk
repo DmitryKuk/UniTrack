@@ -193,6 +193,7 @@ uninstall-all: uninstall-bin uninstall-www uninstall-third-party uninstall-confi
 
 # Running
 run: targets
+	$(def_print_status_table);														\
 	NUM_SUCCESS=0; NUM_FAIL=0;														\
 	for T in $(TARGETS); do															\
 		echo "$(COLOR_RUN)Running: $$T...$(COLOR_RESET)";							\
@@ -207,13 +208,8 @@ run: targets
 			let ++NUM_FAIL;															\
 		fi;																			\
 	done;																			\
-	let NUM_TOTAL=NUM_SUCCESS+NUM_FAIL;												\
-	PERC_SUCCESS="$$( echo "100*$$NUM_SUCCESS/$$NUM_TOTAL" | bc )%";				\
-	PERC_FAIL="$$(    echo "100*$$NUM_FAIL/$$NUM_TOTAL"    | bc )%";				\
-	echo "==> Status: "																\
-		 "$(COLOR_PASS)Passed:  $$NUM_SUCCESS,  $$PERC_SUCCESS$(COLOR_RESET)  | "	\
-		 "$(COLOR_FAIL)Failed:  $$NUM_FAIL,  $$PERC_FAIL$(COLOR_RESET)  | "			\
-		 "Total:  $$NUM_TOTAL"
+	print_status_table
+
 
 
 # Tests targets
@@ -221,6 +217,7 @@ check: run-tests
 
 
 run-tests: tests
+	$(def_print_status_table);														\
 	NUM_SUCCESS=0; NUM_FAIL=0;														\
 	for T in $(TEST_TARGET_FILES); do												\
 		TNAME=$$( echo "$$T" | sed 's,^$(TEST_DIR)/,,' );							\
@@ -235,13 +232,7 @@ run-tests: tests
 			let ++NUM_FAIL;															\
 		fi;																			\
 	done;																			\
-	let NUM_TOTAL=NUM_SUCCESS+NUM_FAIL;												\
-	PERC_SUCCESS="$$( echo "100*$$NUM_SUCCESS/$$NUM_TOTAL" | bc )%";				\
-	PERC_FAIL="$$(    echo "100*$$NUM_FAIL/$$NUM_TOTAL"    | bc )%";				\
-	echo "==> Status: "																\
-		 "$(COLOR_PASS)Passed:  $$NUM_SUCCESS,  $$PERC_SUCCESS$(COLOR_RESET)  | "	\
-		 "$(COLOR_FAIL)Failed:  $$NUM_FAIL,  $$PERC_FAIL$(COLOR_RESET)  | "			\
-		 "Total:  $$NUM_TOTAL"
+	print_status_table
 
 
 

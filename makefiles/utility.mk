@@ -30,3 +30,36 @@ gpp_link				= $(GPP) $(GPP_LINK_FLAGS) $(GPP_LIB_PATHS) $($(ID)_GPP_LIB_PATHS) $
 
 
 target_name_from_this	= $(shell basename $$( dirname '$(1)' ))
+
+
+# Usage: in run and run-tests recipies write:											\
+	$(def_print_status_table);															\
+	NUM_SUCCESS=[Number of passed tests or successfully exited programs];				\
+	NUM_FAIL=[Number of failed tests or unsuccessfully exited programs];				\
+	print_status_table
+def_print_status_table	=																\
+	function print_status_table() {														\
+		HEADER_SUCCESS="Success"; HEADER_FAIL="Fail"; HEADER_TOTAL="Total";				\
+		let NUM_TOTAL=NUM_SUCCESS+NUM_FAIL;												\
+		PERC_SUCCESS="$$( echo "100*$$NUM_SUCCESS/$$NUM_TOTAL" | bc )";					\
+		let PERC_FAIL=100-PERC_SUCCESS;													\
+		PERC_SUCCESS+='%'; PERC_FAIL+='%';												\
+																						\
+		LEN=0;																			\
+		for I in $$HEADER_SUCCESS $$HEADER_SUCCESS $$NUM_SUCCESS $$NUM_FAIL $$NUM_TOTAL	\
+				 $$PERC_SUCCESS $$PERC_FAIL; do											\
+			L=$${\#I}; (( $$L > $$LEN )) && LEN=$$L;									\
+		done;																			\
+																						\
+		FMT="";																			\
+		FMT+="===> Status:  |  $(COLOR_PASS)%$${LEN}s$(COLOR_RESET)  |  ";				\
+		FMT+="$(COLOR_FAIL)%$${LEN}s$(COLOR_RESET)  |  %$${LEN}s  |\n";					\
+		FMT+="              |  $(COLOR_PASS)%$${LEN}s$(COLOR_RESET)  |  ";				\
+		FMT+="$(COLOR_FAIL)%$${LEN}s$(COLOR_RESET)  |  %$${LEN}s  |\n";					\
+		FMT+="              |  $(COLOR_PASS)%$${LEN}s$(COLOR_RESET)  |  ";				\
+		FMT+="$(COLOR_FAIL)%$${LEN}s$(COLOR_RESET)  |  %$${LEN}s  |\n";					\
+																						\
+		printf "$$FMT" "$$HEADER_SUCCESS" "$$HEADER_FAIL" "$$HEADER_TOTAL"				\
+			   "$$NUM_SUCCESS" "$$NUM_FAIL" "$$NUM_TOTAL"								\
+			   "$$PERC_SUCCESS" "$$PERC_FAIL" "100%";									\
+	}

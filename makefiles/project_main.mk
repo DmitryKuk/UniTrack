@@ -53,8 +53,8 @@ include $(CHILD_MAKEFILES)
 
 # Targets
 .PHONY:																					\
-	all  dirs    targets        modules        tests        third-party 				\
-	clean  clean-targets  clean-modules  clean-tests  clean-third-party  distclean		\
+	all  dirs  targets  modules  tests  third-party										\
+	clean  clean-third-party  distclean													\
 																						\
 	install      install-bin    install-third-party    install-config    install-www	\
 	uninstall  uninstall-bin  uninstall-third-party  uninstall-config  uninstall-www	\
@@ -79,8 +79,8 @@ dirs:
 	mkdir -p "$(BUILD_DIR)" "$(BIN_DIR)" "$(LIB_DIR)" "$(TEST_DIR)" &&						\
 	FIFO_NAME="$(BUILD_DIR)/dirs_fifo" &&													\
 	mkfifo "$$FIFO_NAME" && (																\
-		find "$(SRC_DIR)" -type d | tee "$$FIFO_NAME" | sed 's,$(SRC_DIR),$(OBJ_DIR),' &	\
-		sed 's,$(SRC_DIR),$(TEST_DIR),' "$$FIFO_NAME"										\
+		find "$(SRC_DIR)" -type d | tee "$$FIFO_NAME" | sed 's,^$(SRC_DIR),$(OBJ_DIR),' &	\
+		sed 's,^$(SRC_DIR),$(TEST_DIR),' "$$FIFO_NAME"										\
 	) |																						\
 	xargs -n 1 mkdir -p;																	\
 	rm "$$FIFO_NAME"
@@ -223,7 +223,7 @@ check: run-tests
 run-tests: tests
 	NUM_SUCCESS=0; NUM_FAIL=0;														\
 	for T in $(TEST_TARGET_FILES); do												\
-		TNAME=$$( echo "$$T" | sed 's,$(TEST_DIR),,' );								\
+		TNAME=$$( echo "$$T" | sed 's,^$(TEST_DIR)/,,' );							\
 		echo "$(COLOR_RUN)Running: $$TNAME...$(COLOR_RESET)";						\
 		"./$$T";																	\
 		STATUS=$$?;																	\

@@ -25,7 +25,9 @@ $($(ID)_OBJ_DIR_CURR)/%.o: $($(ID)_SRC_DIR_CURR)/%.cpp $($(ID)_HEADER_FILES)
 
 # Target executable linking
 $($(ID)_TARGET_FILE): ID := $(ID)
-$($(ID)_TARGET_FILE): $($(ID)_HEADER_FILES) $($(ID)_OBJ_FILES) $($(ID)_MAIN_OBJ_FILES) $(call get_lib_files,$($(ID)_MODULE_DEPS))
+$($(ID)_TARGET_FILE): $($(ID)_HEADER_FILES)										\
+					  $($(ID)_OBJ_FILES) $($(ID)_MAIN_OBJ_FILES)				\
+					  $(call get_lib_files,$($(ID)_MODULE_DEPS))
 	echo "$(COLOR_RUN)Linking executable:"										\
 		 ' [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)]:'						\
 		 " $(subst $(BIN_DIR)/,,$@)...$(COLOR_RESET)";							\
@@ -43,7 +45,9 @@ $($(ID)_TARGET_FILE): $($(ID)_HEADER_FILES) $($(ID)_OBJ_FILES) $($(ID)_MAIN_OBJ_
 
 # Target shared library linking
 $($(ID)_TARGET_LIB_FILE): ID := $(ID)
-$($(ID)_TARGET_LIB_FILE): $($(ID)_HEADER_FILES) $($(ID)_OBJ_FILES) $(call get_lib_files,$($(ID)_MODULE_DEPS))
+$($(ID)_TARGET_LIB_FILE): $($(ID)_HEADER_FILES)									\
+						  $($(ID)_OBJ_FILES)									\
+						  $(call get_lib_files,$($(ID)_MODULE_DEPS))
 	echo "$(COLOR_RUN)Linking shared lib:"										\
 		 ' [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)]:'						\
 		 " $(subst $(LIB_DIR)/,,$@)...$(COLOR_RESET)";							\
@@ -60,7 +64,10 @@ $($(ID)_TARGET_LIB_FILE): $($(ID)_HEADER_FILES) $($(ID)_OBJ_FILES) $(call get_li
 
 
 # Tests
-$($(ID)_TEST_DIR_CURR)/%: $($(ID)_OBJ_DIR_CURR)/%.o $($(ID)_HEADER_FILES) $($(ID)_TARGET_FILE)
+$($(ID)_TEST_DIR_CURR)/%: ID := $(ID)
+$($(ID)_TEST_DIR_CURR)/%: $($(ID)_OBJ_DIR_CURR)/%.o $($(ID)_HEADER_FILES)		\
+						  $($(ID)_OBJ_FILES) $($(ID)_TARGET_LIB_FILE)			\
+						  $(call get_lib_files,$($(ID)_MODULE_DEPS))
 	TEST=$(subst $($(ID)_TEST_DIR_CURR)/,,$@);									\
 	echo "$(COLOR_RUN)Linking test:"											\
 		 ' [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)]:'						\

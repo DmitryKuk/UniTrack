@@ -5,10 +5,6 @@
 #include <unordered_map>
 #include <regex>
 
-// #include <mongo/mongoc_handler.h>
-// #include <mongo/client_pool.h>
-// #include <mongo/document.h>
-
 #include <templatizer/page.h>
 
 #include <logger/logger.h>

@@ -12,7 +12,13 @@ TARGET_NAME					:= $(call target_name_from_this,$(THIS_MAKEFILE))
 # Helper functions
 include $(MK_UTILITY)
 
+
 # Module config
+MODULE_DEPS					:= 
+EXTERNAL_LIBS				:= 
+COMPILE_FLAGS				:= 
+SHARED_LIB_FLAGS			:= 
+LINK_FLAGS					:= 
 -include $(dir $(THIS_MAKEFILE))/config.mk
 
 
@@ -24,6 +30,8 @@ $(ID)_TARGET_TYPE			:= Module
 
 $(ID)_MODULE_DEPS			:= $(MODULE_DEPS)
 $(ID)_EXTERNAL_LIBS			:= $(EXTERNAL_LIBS)
+$(ID)_GPP_COMPILE_FLAGS		:= $(COMPILE_FLAGS)
+$(ID)_GPP_SHARED_LIB_FLAGS	:= $(SHARED_LIB_FLAGS)
 
 
 $(ID)_GPP_LIBS				:= $(call get_external_libs,$($(ID)_EXTERNAL_LIBS))	\

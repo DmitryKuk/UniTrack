@@ -14,3 +14,7 @@ else
 	EXTERNAL_LIBS			= boost_system pthread boost_filesystem
 endif
 EXTERNAL_LIBS				+= mongoclient
+
+
+# This need because of mongo legacy driver
+COMPILE_FLAGS				= -Wno-deprecated-declarations

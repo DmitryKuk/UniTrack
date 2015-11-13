@@ -4,8 +4,8 @@
 
 
 # Other modules this module depends on
-export MODULE_DEPS	 		= 
+MODULE_DEPS	 				= 
 
 
 # External libs this module depends on
-export EXTERNAL_LIBS		= 
+EXTERNAL_LIBS				= 

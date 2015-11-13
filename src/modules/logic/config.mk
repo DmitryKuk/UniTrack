@@ -4,8 +4,13 @@
 
 
 # Other modules this module depends on
-export MODULE_DEPS	 		= logger
+MODULE_DEPS		 			= logger
 
 
 # External libs this module depends on
-export EXTERNAL_LIBS		= mongoclient
+ifeq ($(SYSTEM),Darwin)
+	EXTERNAL_LIBS			= boost_system-mt boost_filesystem-mt
+else
+	EXTERNAL_LIBS			= boost_system pthread boost_filesystem
+endif
+EXTERNAL_LIBS				+= mongoclient

@@ -4,7 +4,7 @@
 
 
 # Other modules this module depends on
-export MODULE_DEPS	 		= base logger
+MODULE_DEPS			 		= base logger
 
 
 # External libs this module depends on
@@ -13,4 +13,3 @@ ifeq ($(SYSTEM),Darwin)
 else
 	EXTERNAL_LIBS			= boost_system pthread boost_filesystem
 endif
-export EXTERNAL_LIBS

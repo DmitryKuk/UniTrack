@@ -9,6 +9,7 @@
 
 #include <base/buffer.h>
 #include <templatizer/page.h>
+#include <logic/page_model.h>
 #include <logic/global_instance.h>
 
 
@@ -21,6 +22,8 @@ public:
 		// Data
 		std::shared_ptr<templatizer::page> page_ptr;
 		std::string content_len_str;
+		
+		logic::page_model page_model;
 	};	// class cache
 	
 	

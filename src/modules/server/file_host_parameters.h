@@ -55,10 +55,7 @@ struct file_host_parameters:
 	using file_host_only_parameters::allow_match_mode;
 	
 	
-	explicit file_host_parameters():
-		host_parameters(),
-		file_host_only_parameters()
-	{}
+	explicit file_host_parameters() = default;
 	
 	explicit file_host_parameters(const nlohmann::json &config):
 		host_parameters(config),

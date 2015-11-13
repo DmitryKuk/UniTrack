@@ -14,10 +14,12 @@
 #include <project_data.h>
 
 #include <logic/global_instance.h>
+#include <base/json_utils.h>
 
 
 // #define LOGGER_JSON_FILE "logger.json"
 #define SERVER_JSON_FILE "server.json"
+#define LOGIC_JSON_FILE  "logic.json"
 
 
 int main(int argc, char **argv)
@@ -69,7 +71,16 @@ int main(int argc, char **argv)
 	// interface_manager.stop();
 	
 	
-	logic::global_instance logic(logger);
+	try {
+		logic::global_instance logic(
+			logger,
+			logic::global_instance_parameters(
+				base::json_utils::json_from_file(project_data::config / LOGIC_JSON_FILE)
+			)
+		);
+	} catch (const std::exception &e) {
+		logger.stream(logger::level::critical) << e.what() << '.';
+	}
 	
 	
 	// server::host_cache cache;

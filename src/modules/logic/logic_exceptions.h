@@ -17,17 +17,31 @@ public:
 };
 
 
+class parameters_init_error: public logic_error
+{
+public:
+	explicit parameters_init_error(const std::string &description);
+};
+
+
 class global_instance_init_error: public logic_error
 {
 public:
-	explicit global_instance_init_error();
+	explicit global_instance_init_error(const std::string &description);
+};
+
+
+class mongodb_incorrect_uri: public logic_error
+{
+public:
+	explicit mongodb_incorrect_uri(const std::string &description);
 };
 
 
 class mongodb_connection_error: public logic_error
 {
 public:
-	explicit mongodb_connection_error(const std::string &str);
+	explicit mongodb_connection_error(const std::string &description);
 };
 
 

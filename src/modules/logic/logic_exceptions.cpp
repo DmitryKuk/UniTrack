@@ -4,15 +4,25 @@
 
 
 logic::logic_error::logic_error(const std::string &what_arg):
-	std::logic_error(what_arg)
+	std::logic_error("Logic: " + what_arg)
 {}
 
 
-logic::global_instance_init_error::global_instance_init_error():
-	logic::logic_error("Can\'t initialize logic global instance")
+logic::parameters_init_error::parameters_init_error(const std::string &description):
+	logic::logic_error("Can\'t initialize global instance parameters: " + description)
 {}
 
 
-logic::mongodb_connection_error::mongodb_connection_error(const std::string &str):
-	logic::logic_error("Can\'t connect to MongoDB: \"" + str + "\"")
+logic::global_instance_init_error::global_instance_init_error(const std::string &description):
+	logic::logic_error("Can\'t initialize global instance: " + description)
+{}
+
+
+logic::mongodb_incorrect_uri::mongodb_incorrect_uri(const std::string &description):
+	logic::logic_error("Incorrect MongoDB URI: " + description)
+{}
+
+
+logic::mongodb_connection_error::mongodb_connection_error(const std::string &description):
+	logic::logic_error("Can\'t connect to MongoDB: " + description)
 {}

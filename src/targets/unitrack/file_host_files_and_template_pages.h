@@ -8,7 +8,7 @@
 
 #include <file_host_template_pages_only.h>
 #include <file_host_files_and_template_pages_parameters.h>
-#include <page_model.h>
+#include <logic/global_instance.h>
 
 
 class files_and_template_pages:
@@ -25,7 +25,7 @@ public:
 	};	// class cache
 	
 	
-	inline files_and_template_pages(page_model &page_model,
+	inline files_and_template_pages(logic::global_instance &logic_global_instance,
 									const files_and_template_pages_parameters &parameters);
 	
 	

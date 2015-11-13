@@ -4,7 +4,7 @@
 
 
 # Other modules this module depends on
-MODULE_DEPS		 			= logger
+MODULE_DEPS		 			= logger templatizer
 
 
 # External libs this module depends on

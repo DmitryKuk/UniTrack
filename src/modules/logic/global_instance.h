@@ -12,6 +12,7 @@
 #include <logger/logger.h>
 
 #include <logic/global_instance_parameters.h>
+#include <logic/page_model.h>
 
 
 namespace logic {
@@ -24,6 +25,9 @@ public:
 	explicit global_instance(logger::logger &logger,
 							 const logic::global_instance_parameters &parameters,
 							 const mongo::client::Options &options = mongo::client::Options());
+	
+	
+	logic::page_model generate() const;
 private:
 	mongo::client::GlobalInstance mongo_client_global_instance_;
 	std::unique_ptr<mongo::DBClientBase> connection_ptr_;

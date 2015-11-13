@@ -10,8 +10,8 @@
 
 
 inline
-template_pages_only::template_pages_only(page_model &page_model):
-	page_model_(page_model)
+template_pages_only::template_pages_only(logic::global_instance &logic_global_instance):
+	logic_global_instance_(logic_global_instance)
 {}
 
 
@@ -33,7 +33,9 @@ template_pages_only::operator()(const FileHost &host,
 	std::pair<base::send_buffers_t, base::send_buffers_t> res;
 	
 	try {
-		cache.page_ptr->generate(res.second, cache.strings, this->page_model_);
+		auto page_model = this->logic_global_instance_.generate();
+		
+		cache.page_ptr->generate(res.second, cache.strings, page_model);
 	} catch (const templatizer::model_error &e) {
 		static const std::string model_error = "Model error: ";
 		

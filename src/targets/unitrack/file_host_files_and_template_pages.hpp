@@ -6,10 +6,10 @@
 
 inline
 files_and_template_pages::files_and_template_pages(
-		page_model &page_model,
+		logic::global_instance &logic_global_instance,
 		const files_and_template_pages_parameters &parameters):
 	server::files_only(),
-	template_pages_only(page_model),
+	template_pages_only(logic_global_instance),
 	
 	parameters_(parameters)
 {}

@@ -19,17 +19,17 @@
 
 
 interface_manager::interface_manager(logger::logger &logger,
-									 const boost::filesystem::path &config_file_path,
-									 page_model &model):
+									 logic::global_instance &logic_global_instance,
+									 const boost::filesystem::path &server_config_path):
 	logger::enable_logger(logger),
 	
-	model_(model)
+	logic_global_instance_(logic_global_instance)
 {
 	try {
 		this->logger().stream(logger::level::info)
-			<< "Interface manager: Reading config: " << config_file_path << "...";
+			<< "Interface manager: Reading config: " << server_config_path << "...";
 		
-		nlohmann::json config = std::move(base::json_utils::json_from_file(config_file_path));
+		nlohmann::json config = base::json_utils::json_from_file(server_config_path);
 		
 		
 		// Server parameters
@@ -64,7 +64,7 @@ interface_manager::interface_manager(logger::logger &logger,
 						std::make_shared<server::file_host<template_pages_only>>(
 							this->logger(),
 							params,
-							this->model_
+							this->logic_global_instance_
 						)
 					);
 				} else if (type == "files_and_template_pages") {
@@ -75,7 +75,7 @@ interface_manager::interface_manager(logger::logger &logger,
 							this->logger(),
 							params,
 							files_and_template_pages(
-								this->model_,
+								this->logic_global_instance_,
 								additional_params
 							)
 						)

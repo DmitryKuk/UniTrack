@@ -26,8 +26,7 @@ MK_TARGETS					= $(MK_DIR)/targets.mk
 
 # ---===           Project macros            ===---
 
-GPP_PROJECT_DATA			+= -DPATH_CONFIG="\"$(PREFIX_CONFIG)/$(CONFIG_DIR)\""	\
-							   -DPATH_WWW="\"$(PREFIX_WWW)/$(WWW_DIR)\""
+GPP_PROJECT_DATA			+= -DPATH_CONFIG="\"$(PREFIX_CONFIG)/$(CONFIG_DIR)\""
 
 # ---===        End of project macros        ===---
 

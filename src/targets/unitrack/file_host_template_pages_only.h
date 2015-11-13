@@ -9,8 +9,7 @@
 
 #include <base/buffer.h>
 #include <templatizer/page.h>
-
-#include <page_model.h>
+#include <logic/global_instance.h>
 
 
 class template_pages_only
@@ -25,7 +24,7 @@ public:
 	};	// class cache
 	
 	
-	inline template_pages_only(page_model &page_model);
+	inline template_pages_only(logic::global_instance &logic_global_instance);
 	
 	
 	template<class FileHost>
@@ -35,10 +34,10 @@ public:
 private:
 	std::unordered_map<std::string, std::shared_ptr<templatizer::page>> pages_cache_;
 	
-	page_model &page_model_;
+	logic::global_instance &logic_global_instance_;
 };	// template_pages_only
 
 
 #include <file_host_template_pages_only.hpp>
 
-#endif // FILE_HOST_TEMPLATE_PAGES_ONLY_H
+#endif	// FILE_HOST_TEMPLATE_PAGES_ONLY_H

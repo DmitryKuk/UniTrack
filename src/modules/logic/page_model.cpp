@@ -1,6 +1,6 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#include <page_model.h>
+#include <logic/page_model.h>
 
 #include <stdexcept>
 
@@ -8,7 +8,7 @@
 
 
 const std::string &
-page_model::variable(const std::string &var_name) const
+logic::page_model::variable(const std::string &var_name) const
 {
 	try {
 		return this->std::unordered_map<std::string, std::string>::at(var_name);

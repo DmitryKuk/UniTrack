@@ -25,4 +25,4 @@ public:
 };	// namespace templatizer
 
 
-#endif // TEMPLATIZER_MODEL_H
+#endif	// TEMPLATIZER_MODEL_H

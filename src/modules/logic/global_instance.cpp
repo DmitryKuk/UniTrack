@@ -34,3 +34,17 @@ logic::global_instance::global_instance(logger::logger &logger,
 		}
 	}
 }
+
+
+logic::page_model
+logic::global_instance::generate() const
+{
+	logic::page_model model;
+	
+	model.emplace("USERNAME", "Dmitry Kukovinets");
+	model.emplace("UNIVERSITY", "STANKIN");
+	model.emplace("DEPARTMENT", "Inteh");
+	model.emplace("TAGS", "Student");
+	
+	return model;
+}

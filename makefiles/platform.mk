@@ -4,25 +4,27 @@
 
 
 # Target system name
-export SYSTEM				= $(shell uname -s)
+SYSTEM						= $(shell uname -s)
 
 
 # Use g++-5 because of c++14 features
-export GPP					= g++-5
+GPP							= g++-5
 
 
 # Compiler flags
-export GPP_COMPILE_FLAGS	= -pipe -O2 -Wall -std=c++14 -c $(EXTRA_CPP_FLAGS)
+GPP_COMPILE_FLAGS			= -pipe -O2 -Wall -std=c++14 -c $(EXTRA_CPP_FLAGS)
+
+GPP_LINK_FLAGS				= -pipe -O2 -Wall $(EXTRA_LINK_FLAGS)
+GPP_SHARED_LIB_FLAGS		= -pipe -O2 -Wall --shared $(EXTRA_SHARED_LIB_FLAGS)
+
+# Flags to get headers dependencies
+GPP_HEADER_DEPS_FLAGS		= -MM -MG -w -std=c++14
 
 
-export GPP_LINK_FLAGS		= -pipe -O2 -Wall $(EXTRA_LINK_FLAGS)
-export GPP_SHARED_LIB_FLAGS	= -pipe -O2 -Wall --shared $(EXTRA_SHARED_LIB_FLAGS)
+GPP_HEADER_PATHS			= 
+GPP_LIB_PATHS				= 
 
-
-export GPP_HEADER_PATHS		= 
-export GPP_LIB_PATHS		= 
-
-export GPP_LIBS				= 
+GPP_LIBS					= 
 
 
 

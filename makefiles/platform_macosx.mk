@@ -7,7 +7,7 @@ GPP							= clang++
 
 
 # MacPorts installs boost and others into /opt/local
-GPP_HEADER_PATHS			+= -I/opt/local/include
+GPP_HEADER_PATHS			+= -cxx-isystem/opt/local/include
 GPP_LIB_PATHS				+= -L/opt/local/lib
 
 OSX_VERSION					= $(shell sw_vers -productVersion)

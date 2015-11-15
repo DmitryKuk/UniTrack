@@ -34,17 +34,6 @@ typedef std::unordered_set<port_t>	port_set_t;
 
 
 
-// Protocols
-typedef std::pair<std::string, std::string>				header_pair_t;
-typedef std::unordered_map<std::string, std::string>	headers_t;
-
-
-// URI
-typedef std::unordered_map<std::string, std::string>	uri_arguments_map_t;
-typedef std::unordered_set<std::string>					uri_arguments_set_t;
-
-
-
 // Hosts
 class host_cache
 {

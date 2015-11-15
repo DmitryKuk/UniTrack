@@ -1,13 +1,15 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#ifndef SERVER_PROTOCOL_EXCEPTIONS_H
-#define SERVER_PROTOCOL_EXCEPTIONS_H
+#ifndef SERVER_PROTOCOL_HTTP_EXCEPTIONS_H
+#define SERVER_PROTOCOL_HTTP_EXCEPTIONS_H
 
 #include <string>
 #include <stdexcept>
 
 
 namespace server {
+namespace protocol {
+namespace http {
 
 
 class protocol_error: public std::logic_error
@@ -22,6 +24,13 @@ class incorrect_start_string: public protocol_error
 {
 public:
 	explicit incorrect_start_string(const std::string &str);
+};
+
+
+class uri_parse_error: public protocol_error
+{
+public:
+	explicit uri_parse_error(const std::string &uri);
 };
 
 
@@ -82,7 +91,9 @@ public:
 };
 
 
+};	// namespace http
+};	// namespace protocol
 };	// namespace server
 
 
-#endif // SERVER_PROTOCOL_EXCEPTIONS_H
+#endif	// SERVER_PROTOCOL_HTTP_EXCEPTIONS_H

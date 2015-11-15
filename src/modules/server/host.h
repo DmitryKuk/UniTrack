@@ -16,7 +16,7 @@
 
 #include <logger/logger.h>
 
-#include <server/protocol.h>
+#include <server/protocol/http.h>
 #include <server/types.h>
 #include <server/host_parameters.h>
 
@@ -48,35 +48,18 @@ public:
 	const std::string & server_name() const noexcept;
 	
 	
-	std::pair<const std::string *, bool>
-	server_name(const server::headers_t &response_headers,
-				const server::headers_t &additional_headers) const;
-	
-	
-	// Prepares a correct response to the client. By default -- phony "404 Not Found".
-	// Returns pair<vector<buffer>, shared_ptr<cache>> ready to socket.async_send().
-	// WARNING: first field of result does NOT contain data, only references. Second field
-	// contains data need to be sent, so save the given shared_ptr anywhere during all sending!
+	// Prepares a correct response to the client.
+	// NOTE: By default -- phony "404 Not Found". Redefine this function in child classes.
 	virtual
-	response_data_t
-	response(
-		std::string &&uri,						// Requested URI
-		server::http::method method,			// GET, POST, ...
-		server::http::version version,			// _1_1, ...
-		headers_t &&request_headers,			// All headers given by client. Must NOT be
-												// included in response, need only for host.
-		headers_t &&response_headers = {});		// Headers must be added to response.
+	std::unique_ptr<server::protocol::http::response>
+	response(std::unique_ptr<server::protocol::http::request> &&request);
 	
 	
 	// Prepares a phony response to the client.
-	// Returns vector<buffer> ready to socket.async_send().
-	// WARNING: see notes to the response() method, remember to save anywhere status too
-	// (standard statuses are already saved)! response_headers must NOT contain "Content-Length"!
-	response_data_t
-	phony_response(server::http::version version,
-				   const server::http::status &status,
-				   headers_t &&response_headers = {},
-				   headers_t &&additional_headers = {});
+	// WARNING: Remember to save anywhere status too (standard statuses are already saved)!
+	std::unique_ptr<server::protocol::http::response>
+	phony_response(std::unique_ptr<server::protocol::http::request> &&request,
+				   const server::protocol::http::status &status);
 	
 	
 	// Returns reference to error host object, creating it, if does not exist.
@@ -91,33 +74,7 @@ public:
 	static void create_error_host(logger::logger &logger);
 	
 	
-	// Response forming helpers
-	// For headers
-	static void add_start_string(base::send_buffers_t &buffers,
-								 server::http::version version,
-								 const server::http::status &status);
-	
-	static void add_header(base::send_buffers_t &buffers,
-						   const std::string &header,
-						   const std::string &value);
-	
-	static void add_header(base::send_buffers_t &buffers,
-						   const server::header_pair_t &header);
-	
-	static void add_headers(base::send_buffers_t &buffers,
-							const server::headers_t &headers);
-	
-	static void finish_headers(base::send_buffers_t &buffers);
-	
-	// For body
-	static void add_buffer(base::send_buffers_t &buffers,
-						   const base::send_buffer_t &buffer);
-	
 	static void validate_headers(const headers_t &headers);
-	
-	
-	// URI parsing
-	static bool parse_uri(const std::string &uri, server::host_cache &cache);
 protected:
 	server::host_parameters host_parameters_;
 private:

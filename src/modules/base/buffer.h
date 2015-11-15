@@ -7,6 +7,7 @@
 #include <iterator>
 
 #include <boost/asio/buffer.hpp>
+#include <boost/asio/streambuf.hpp>
 
 
 namespace base {
@@ -21,6 +22,8 @@ typedef std::back_insert_iterator<send_buffers_t>		send_buffers_insert_iterator_
 using boost::asio::buffer;
 using boost::asio::buffer_cast;
 using boost::asio::buffer_size;
+
+using boost::asio::streambuf;
 
 
 };	// namespace base

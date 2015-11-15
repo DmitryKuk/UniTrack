@@ -1,8 +1,8 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
 // Usage: HTTP_STATUS(continue_, 100, "Continue");
-// Effect: you have variable server::http::status::continue_
-// of type server::http::status (static member of class),
+// Effect: you have variable server::protocol::http::status::continue_
+// of type server::protocol::http::status (static member of class),
 // with code = 100 and description = std::string("Continue").
 
 // WARNING: do NOT include this file in any files except protocol_http.h
@@ -10,18 +10,18 @@
 // Include protocol_http.h instead!
 
 // WARNING: don't forget insert
-//	#define SERVER_PROTOCOL_HTTP_CPP
-// in protocol_http.cpp before including this header!
+//	#define SERVER_PROTOCOL_HTTP_PROTOCOL_CLASS_STATUS
+// in server/protocol/http/protocol.h before including this header!
 
-#ifdef SERVER_PROTOCOL_HTTP_CLASS_STATUS
+#ifdef SERVER_PROTOCOL_HTTP_PROTOCOL_CLASS_STATUS
 // Declaration in header
 #	define HTTP_STATUS(status_name_, code_, description_)			\
 		static const status status_name_
 #else
 // Definition in .cpp
 #	define HTTP_STATUS(status_name_, code_, description_)			\
-		const server::http::status server::http::status:: status_name_(code_, description_)
-#endif	// defined SERVER_PROTOCOL_HTTP_CPP
+		const server::protocol::http::status server::protocol::http::status::status_name_(code_, description_)
+#endif	// defined SERVER_PROTOCOL_HTTP_PROTOCOL_CLASS_STATUS
 
 
 // 1xx: Informational

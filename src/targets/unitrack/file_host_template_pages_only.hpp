@@ -33,8 +33,10 @@ template_pages_only::operator()(const FileHost &host,
 	std::pair<base::send_buffers_t, base::send_buffers_t> res;
 	
 	try {
-		cache.page_model = this->logic_global_instance_.generate();
+		// Generating page model using request data
+		cache.page_model = this->logic_global_instance_.generate(cache);
 		
+		// Generating page using page model
 		cache.page_ptr->generate(res.second, cache.strings, cache.page_model);
 	} catch (const templatizer::model_error &e) {
 		static const std::string model_error = "Model error: ";
@@ -42,6 +44,8 @@ template_pages_only::operator()(const FileHost &host,
 		throw server::file_host_handler_error(model_error + e.what());
 	}
 	
+	
+	// Calculating content length
 	size_t content_len = 0;
 	for (const auto &buffer: res.second)
 		content_len += base::buffer_size(buffer);

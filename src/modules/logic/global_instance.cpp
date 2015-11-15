@@ -37,8 +37,12 @@ logic::global_instance::global_instance(logger::logger &logger,
 
 
 logic::page_model
-logic::global_instance::generate() const
+logic::global_instance::generate(const server::host_cache &cache) const
 {
+	auto stream = this->logger().stream(logger::level::info);
+	stream << "Here! " << cache.path;
+	
+	
 	logic::page_model model;
 	
 	model.emplace("USERNAME", "Dmitry Kukovinets");

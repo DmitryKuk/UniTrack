@@ -149,47 +149,6 @@ server::client_manager::send_phony(server::client_manager::request_data_ptr_t re
 // private
 // Helpers
 void
-server::client_manager::parse_headers(server::client_manager::request_data_ptr_t request_data_ptr)
-{
-	std::istream headers_stream(&request_data_ptr->headers_buf);
-	std::string str;
-	
-	
-	// Processing start string
-	std::getline(headers_stream, str);
-	
-	{
-		auto start_data = std::move(server::parse_start_string(str));
-		
-		request_data_ptr->method = start_data.method;
-		request_data_ptr->version = start_data.version;
-		request_data_ptr->uri = std::move(start_data.uri);
-	}
-	
-	
-	// Processing headers
-	while (std::getline(headers_stream, str) && !str.empty()) {
-		try {
-			request_data_ptr->headers.insert(std::move(server::parse_header_string(str)));
-		} catch (const server::empty_header_string &)
-		{}	// It's normal for the last string
-	}
-	
-	
-	// Setting up keep-alive
-	try {
-		static const std::regex keep_alive_regex(".*keep-alive.*", std::regex::optimize);
-		
-		this->keep_alive(false);
-		
-		if (regex_match(request_data_ptr->headers.at(server::http::header_connection),
-						keep_alive_regex))
-			this->keep_alive(true);
-	} catch (...) {}
-}
-
-
-void
 server::client_manager::process_request(request_data_ptr_t request_data_ptr)
 {
 	static const std::regex host_regex("([^:]+)"				// Host name [1]

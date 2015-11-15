@@ -10,6 +10,7 @@
 #include <mongo/client/dbclient.h>
 
 #include <logger/logger.h>
+#include <server/types.h>
 
 #include <logic/global_instance_parameters.h>
 #include <logic/page_model.h>
@@ -27,7 +28,7 @@ public:
 							 const mongo::client::Options &options = mongo::client::Options());
 	
 	
-	logic::page_model generate() const;
+	logic::page_model generate(const server::host_cache &cache) const;
 private:
 	mongo::client::GlobalInstance mongo_client_global_instance_;
 	std::unique_ptr<mongo::DBClientBase> connection_ptr_;

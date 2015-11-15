@@ -158,12 +158,12 @@ server::file_host<HostType, CacheType>::response(
 		
 		auto rec_obj = std::move(this->logger().stream(logger::level::info)
 		<< "File host: Host \"" << this->name()
-		<< "\": URI points to directory: \"" << p << "\"");
+		<< "\": URI points to directory: " << p);
 		
 		// Append "/index.html"
 		p /= "index.html";
 		
-		rec_obj << " => Try \"" << p << "\".";
+		rec_obj << " => Try: " << p << '.';
 		
 		
 		return this->response(

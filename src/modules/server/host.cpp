@@ -6,6 +6,7 @@
 #include <mutex>
 #include <regex>
 #include <algorithm>
+#include <numeric>
 
 #include <server/host_exceptions.h>
 
@@ -80,49 +81,33 @@ server::host::server_name(const server::headers_t &response_headers,
 }
 
 
-// Prepares a correct response to the client. By default -- phony "404 Not Found".
-// Returns pair<vector<buffer>, shared_ptr<cache>> ready to socket.async_send().
-// WARNING: first field of result does NOT contain data, only references. Second field
-// contains data need to be sent, so save the given shared_ptr anywhere during all sending!
+// Prepares a correct response to the client.
+// NOTE: By default -- phony "404 Not Found". Redefine this function in child classes.
 // virtual
-server::response_data_t
-server::host::response(std::string && /*uri*/,							// Unused
-					   server::http::method /*method*/,					// Unused
-					   server::http::version version,
-					   server::headers_t && /*request_headers*/,		// Unused
-					   server::headers_t &&response_headers)
+std::unique_ptr<server::protocol::http::response>
+response(std::unique_ptr<server::protocol::http::request> &&request)
 {
-	return this->phony_response(version,
-								server::http::status::not_found,
-								std::move(response_headers));
+	return this->phony_response(request, server::http::status::not_found);
 }
 
 
 // Prepares a phony response to the client.
-// Returns vector<buffer> ready to socket.async_send().
-// WARNING: see notes to the response() method, remember to save anywhere status too
-// (standard statuses are already saved)! response_headers must NOT contain "Content-Length"!
-server::response_data_t
-server::host::phony_response(server::http::version version,
-							 const server::http::status &status,
-							 server::headers_t &&response_headers,
-							 server::headers_t &&additional_headers)
+// WARNING: Remember to save anywhere status too (standard statuses are already saved)!
+std::unique_ptr<server::protocol::http::response>
+phony_response(std::unique_ptr<server::protocol::http::request> &&request,
+			   const server::protocol::http::status &status)
 {
-	using namespace server::http;
+	using namespace server::protocol::http;
 	using base::buffer;
 	
 	
 	// Headers must NOT contain "Content-Length"!
-	server::host::validate_headers(response_headers);
-	server::host::validate_headers(additional_headers);
+	// server::host::validate_headers(response_headers);
+	// server::host::validate_headers(additional_headers);
 	
+	auto response = std::make_unique<response>(status, request->version);
 	
-	auto cache_ptr = std::make_shared<server::host_cache>();
-	cache_ptr->response_headers = std::move(response_headers);
-	cache_ptr->additional_headers = std::move(additional_headers);
-	
-	
-	auto server_name = this->server_name(cache_ptr->response_headers, cache_ptr->additional_headers);
+	auto server_name = this->server_name();
 	
 	
 	base::send_buffers_t res;
@@ -137,51 +122,74 @@ server::host::phony_response(server::http::version version,
 	
 	// Headers
 	if (server_name.second)
-		server::host::add_header(res, header_server, *server_name.first);
-	server::host::add_headers(res, cache_ptr->response_headers);
-	server::host::add_headers(res, cache_ptr->additional_headers);
+		response->add_header(header_server, *server_name.first);
+	// response->add_headers(cache_ptr->response_headers);
+	// response->add_headers(cache_ptr->additional_headers);
 	
 	
 	// Inserting Content-Length and page content
 	{
-		auto
-			content_prefix_it = cache_ptr->strings.emplace(
-				cache_ptr->strings.end(),
+		static const std::string
+			body_1 =
 				"<html>"
 				"<head>"
 					"<meta charset=\"utf-8\">"
-					"<title>" + status.code_str() + space_str + status.description() + "</title>"
+					"<title>",
+					// status.code_str()
+			&body_2 =
+					str::space,
+					// status.description()
+			body_3 =
+					"</title>"
 				"</head>"
 				"<body>"
-					"<h1>" + status.code_str() + space_str + status.description() + "</h1>"
+					"<h1>",
+					// status.code_str()
+			&body_4 =
+					str::space,
+					// status.description()
+			body_5 =
+					"</h1>"
 					"<hr width=\"100%\">"
-					"<p>"
-			),
-			
-			content_suffix_it = cache_ptr->strings.emplace(
-				cache_ptr->strings.end(),
+					"<p>",
+					// Server name
+			body_6 =
 					"</p>"
 				"</body>"
-				"</html>"
-			),
-			
-			len_it = cache_ptr->strings.emplace(
-				cache_ptr->strings.end(),
-				std::to_string(content_prefix_it->size()
-							   + server_name.first->size()
-							   + content_suffix_it->size())
+				"</html>";
+		
+		
+		const std::string &code_str    = status.code_str(),
+						  $description = status.description();
+		
+		std::vector<const std::string *> body = { &body_1, &code_str, &body_2, &description,
+												  &body_3, &code_str, &body_4, &description,
+												  &body_5, &server_name, &body_6 };
+		
+		// Calculating content length
+		const std::string *content_len_ptr = nullptr;
+		{
+			size_t content_len = std::accumulate(
+				std::begin(body), std::end(body), size_t{0},
+				[](size_t current, const std::string &body_element) -> size_t
+				{
+					return current + body_element.size();
+				}
 			);
+			
+			content_len_ptr = &response.cache(std::to_string(content_len));
+		}
 		
-		server::host::add_header(res, header_content_length, *len_it);
-		server::host::finish_headers(res);
+		// Adding content length header
+		response->add_header(header::content_length, *content_len_ptr);
+		response->finish_headers();
 		
-		// Content
-		server::host::add_buffer(res, buffer(*content_prefix_it));
-		server::host::add_buffer(res, buffer(*server_name.first));
-		server::host::add_buffer(res, buffer(*content_suffix_it));
+		// Adding content
+		for (const auto &body_element: body)
+			response.add_body(body_element);
 	}
 	
-	return { std::move(res), std::move(cache_ptr) };
+	return response;
 }
 
 
@@ -220,105 +228,6 @@ server::host::create_error_host(logger::logger &logger)
 }
 
 
-// Response forming helpers
-// static
-void
-server::host::add_start_string(base::send_buffers_t &buffers,
-							   server::http::version version,
-							   const server::http::status &status)
-{
-	using base::buffer;
-	using namespace server::http;
-	
-	buffers.insert(
-		buffers.end(),
-		{
-			buffer(HTTP_str),
-			buffer(slash_str),
-			buffer(server::http::version_to_str(version)),
-			buffer(space_str),
-			buffer(status.code_str()),
-			buffer(space_str),
-			buffer(status.description()),
-			buffer(newline_str)
-		}
-	);
-}
-
-
-// static
-void
-server::host::add_header(base::send_buffers_t &buffers,
-						 const std::string &header,
-						 const std::string &value)
-{
-	using base::buffer;
-	using namespace server::http;
-	
-	buffers.insert(
-		buffers.end(),
-		{
-			buffer(header),
-			buffer(header_separator_str),
-			buffer(value),
-			buffer(newline_str)
-		}
-	);
-}
-
-
-// static
-void
-server::host::add_header(base::send_buffers_t &buffers,
-						 const server::header_pair_t &header)
-{
-	using base::buffer;
-	using namespace server::http;
-	
-	buffers.insert(
-		buffers.end(),
-		{
-			buffer(header.first),
-			buffer(header_separator_str),
-			buffer(header.second),
-			buffer(newline_str)
-		}
-	);
-}
-
-
-// static
-void
-server::host::add_headers(base::send_buffers_t &buffers,
-						  const server::headers_t &headers)
-{
-	buffers.reserve(buffers.size() + 4 * headers.size());
-	
-	for (const auto &header: headers)
-		server::host::add_header(buffers, header);
-}
-
-
-// static
-void
-server::host::finish_headers(base::send_buffers_t &buffers)
-{
-	using base::buffer;
-	using namespace server::http;
-	
-	buffers.push_back(buffer(newline_str));
-}
-
-
-// static
-void
-server::host::add_buffer(base::send_buffers_t &buffers,
-						 const base::send_buffer_t &buffer)
-{
-	buffers.push_back(buffer);
-}
-
-
 // static
 void
 server::host::validate_headers(const server::headers_t &headers)
@@ -327,55 +236,4 @@ server::host::validate_headers(const server::headers_t &headers)
 	
 	if (headers.find(header_content_length) != headers.end())
 		throw server::headers_has_content_length();
-}
-
-
-// static
-bool
-server::host::parse_uri(const std::string &uri, server::host_cache &cache)
-{
-	static const std::regex
-		base_regex(
-			"([^?]+)(\\?(.*))?",				// [1], [4]: path and args
-			std::regex::optimize
-		),
-		
-		args_regex(
-			"(\\&|\\?)?"						// [1]: '&' or '?'
-			"("
-				"([^\\&\\?]+)\\=([^\\&\\?]*)"	// [3], [4]: key, value
-			"|"
-				"([^\\&\\?]+)"					// [5]: key only
-			")",
-			std::regex::optimize
-		);
-	
-	static const std::regex_iterator<std::string::const_iterator> end;
-	
-	
-	std::smatch m;
-	if (std::regex_match(uri, m, base_regex)) {
-		cache.path = m[1].str();
-		
-		auto args_sm = m[3];
-		if (args_sm.length() != 0) {
-			std::string args = args_sm;
-			
-			auto begin = std::regex_iterator<std::string::const_iterator>(args.begin(), args.end(),
-																		  args_regex);
-			std::for_each(begin, end,
-				[&cache] (const auto &m) {
-					auto key = m[3];
-					if (key.length() == 0) {
-						cache.args_set.emplace(m[5]);		// Key without value
-					} else {
-						cache.args_map.emplace(key, m[4]);	// Key-Value pair
-					}
-				});
-		}
-	} else {
-		return false;
-	}
-	
-	return true;
 }

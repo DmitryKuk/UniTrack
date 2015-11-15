@@ -4,7 +4,7 @@
 
 
 # Other modules this module depends on
-MODULE_DEPS		 			= logger templatizer
+MODULE_DEPS		 			= logger templatizer server
 
 
 # External libs this module depends on
@@ -16,5 +16,5 @@ endif
 EXTERNAL_LIBS				+= mongoclient
 
 
-# This need because of mongo legacy driver
-COMPILE_FLAGS				= -Wno-deprecated-declarations
+# Disable warnings in Boost.Asio for new version of Clang and mongo driver
+COMPILE_FLAGS				= -Wno-unused-local-typedef -Wno-deprecated-declarations

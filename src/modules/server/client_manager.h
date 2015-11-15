@@ -69,21 +69,6 @@ protected:
 	void unlock() noexcept;
 	
 	
-	// Request data
-	struct request_data
-	{
-		boost::asio::streambuf	headers_buf;
-		
-		server::http::method	method;
-		server::http::version	version;
-		std::string				uri;
-		
-		server::headers_t		headers;
-	};	// struct request_data
-	
-	typedef std::shared_ptr<request_data> request_data_ptr_t;
-	
-	
 	void log_error(const char *what, const server::http::status &status);
 	
 	
@@ -111,8 +96,6 @@ protected:
 					server::headers_t &&headers = {});
 private:
 	// Helpers
-	void parse_headers(request_data_ptr_t request_data_ptr);
-	
 	void process_request(request_data_ptr_t request_data_ptr);
 	
 	

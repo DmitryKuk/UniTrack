@@ -1,12 +1,12 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#include <server/server_http.h>
+#include <server/server.h>
 
 #include <functional>
 #include <system_error>
 
 
-server::server_http::server_http(logger::logger &logger,
+server::server::server(logger::logger &logger,
 								 const server_http_parameters &parameters):
 	logger::enable_logger(logger),
 	parameters_(parameters),
@@ -71,10 +71,10 @@ server::server_http::server_http(logger::logger &logger,
 		
 		
 		// Server starting
-		this->server_thread_ = std::move(std::thread(std::bind(&server_http::run, this)));
+		this->server_thread_ = std::move(std::thread(std::bind(&server::run, this)));
 	} catch (const std::exception &e) {
 		this->logger().stream(logger::level::critical)
-			<< "Server: Exception: " << e.what() << '.';
+			<< "Server: Caught exception: " << e.what() << '.';
 		
 		this->logger().stream(logger::level::critical)
 			<< "Server: NOT started.";
@@ -83,7 +83,7 @@ server::server_http::server_http(logger::logger &logger,
 
 
 void
-server::server_http::stop() noexcept
+server::server::stop() noexcept
 {
 	this->logger().stream(logger::level::info)
 		<< "Server: Stopping...";
@@ -121,9 +121,9 @@ server::server_http::stop() noexcept
 // Dispatches client pointed by socket_ptr to one of worker threads
 // Only acceptor calls this!
 void
-server::server_http::dispatch_client(server::socket_ptr_t socket_ptr) noexcept
+server::server::dispatch_client(server::socket_ptr_t socket_ptr) noexcept
 {
-	this->workers_io_service_.dispatch(std::bind(&server_http::dispatch_client_worker_thread,
+	this->workers_io_service_.dispatch(std::bind(&server::dispatch_client_worker_thread,
 												 this, socket_ptr));
 }
 
@@ -133,7 +133,7 @@ server::server_http::dispatch_client(server::socket_ptr_t socket_ptr) noexcept
 // WARNING: this method calls from one of workers' threads, NOT from server thread!
 // Only dispatch_client() calls this!
 void
-server::server_http::dispatch_client_worker_thread(server::socket_ptr_t socket_ptr) noexcept
+server::server::dispatch_client_worker_thread(server::socket_ptr_t socket_ptr) noexcept
 {
 	auto current_thread_id = std::this_thread::get_id();
 	try {
@@ -147,13 +147,13 @@ server::server_http::dispatch_client_worker_thread(server::socket_ptr_t socket_p
 				"server thread.": "unknown thread.");
 	} catch (...) {							// Impossible too
 		this->logger().stream(logger::level::error)
-			<< "Server: Unable to add client to worker. Unknown error.";
+			<< "Server: Unable to add client to worker: Unknown error.";
 	}
 }
 
 
 void
-server::server_http::run() noexcept
+server::server::run() noexcept
 {
 	{
 		auto stream = std::move(this->logger().stream(logger::level::info));

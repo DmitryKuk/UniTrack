@@ -27,7 +27,7 @@ server::client_manager::client_manager(logger::logger &logger,
 	running_operations_(0),
 	
 	socket_ptr_(socket_ptr),
-	client_ip_address_(std::move(socket_ptr_->remote_endpoint().address().to_string())),
+	client_ip_address_(socket_ptr_->remote_endpoint().address().to_string()),
 	server_port_(socket_ptr_->local_endpoint().port()),
 	keep_alive_(false),
 	

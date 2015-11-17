@@ -18,27 +18,27 @@
 namespace server {
 
 
-struct server_http_parameters
+struct server_parameters
 {
 	server::port_set_t	ports					= {};
 	unsigned int		workers					= 1;
 };
 
 
-class server_http:
+class server:
 	protected logger::enable_logger
 {
 public:
-	server_http(logger::logger &logger,
-				const server_http_parameters &parameters);
+	server(logger::logger &logger,
+				const server_parameters &parameters);
 	
 	
 	// Non-copy/-move constructable/assignable. Use ptrs.
-	server_http(const server_http &other) = delete;
-	server_http(server_http &&other) = delete;
+	server(const server &other) = delete;
+	server(server &&other) = delete;
 	
-	server_http & operator=(const server_http &other) = delete;
-	server_http & operator=(server_http &&other) = delete;
+	server & operator=(const server &other) = delete;
+	server & operator=(server &&other) = delete;
 	
 	
 	// Stops the server (waiting for server thread and workers threads)
@@ -68,7 +68,7 @@ private:
 	
 	
 	// Data
-	server_http_parameters parameters_;
+	server_parameters parameters_;
 	
 	server::host_manager host_manager_;
 	
@@ -84,12 +84,12 @@ private:
 	
 	
 	std::thread server_thread_;
-};	// class server_http
+};	// class server
 
 
 };	// namespace server
 
 
-#include <server/server_http.hpp>
+#include <server/server.hpp>
 
 #endif // SERVER_SERVER_HTTP_H

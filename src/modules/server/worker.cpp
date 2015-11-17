@@ -2,8 +2,6 @@
 
 #include <server/worker.h>
 
-#include <functional>
-
 
 server::worker::worker(logger::logger &logger,
 					   const server::worker_parameters &parameters,

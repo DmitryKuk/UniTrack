@@ -3,7 +3,7 @@
 
 // Checks server's thread for joinable
 inline bool
-server::server_http::joinable() const noexcept
+server::server::joinable() const noexcept
 {
 	return this->server_thread_.joinable();
 }
@@ -11,7 +11,7 @@ server::server_http::joinable() const noexcept
 
 // Joins server's thread
 inline void
-server::server_http::join()
+server::server::join()
 {
 	this->server_thread_.join();
 }
@@ -19,7 +19,7 @@ server::server_http::join()
 
 // Detaches server's thread
 inline void
-server::server_http::detach()
+server::server::detach()
 {
 	this->server_thread_.detach();
 }
@@ -28,7 +28,7 @@ server::server_http::detach()
 // Returns the hosts manager of this server
 inline
 server::host_manager &
-server::server_http::host_manager() noexcept
+server::server::host_manager() noexcept
 {
 	return this->host_manager_;
 }

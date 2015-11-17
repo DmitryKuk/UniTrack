@@ -4,9 +4,10 @@
 #define SERVER_PROTOCOL_HTTP_RESPONSE_H
 
 #include <string>
-#include <vector>
 
 #include <base/buffer.h>
+#include <base/strings_cache.h>
+#include <server/protocol/response.h>
 
 
 namespace server {
@@ -14,21 +15,22 @@ namespace protocol {
 namespace http {
 
 
-class response
+class response:
+	public server::protocol::response
 {
 public:
-	base::send_buffers_t buffers;
-	
-	
 	inline response(const server::protocol::http::status &status,
 					server::protocol::http::version version = v_1_1);
 	
 	response() = default;
-	response(const response &other) = default;
-	response(response &&other) = default;
 	
-	response & operator=(const response &other) = default;
-	response & operator=(response &&other) = default;
+	
+	// Non-copy/move constructable/assignable
+	response(const response &other) = delete;
+	response(response &&other) = delete;
+	
+	response & operator=(const response &other) = delete;
+	response & operator=(response &&other) = delete;
 	
 	
 	// Helper functions

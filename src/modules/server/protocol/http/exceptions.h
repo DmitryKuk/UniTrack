@@ -4,7 +4,8 @@
 #define SERVER_PROTOCOL_HTTP_EXCEPTIONS_H
 
 #include <string>
-#include <stdexcept>
+
+#include <server/protocol/exceptions.h>
 
 
 namespace server {
@@ -12,43 +13,43 @@ namespace protocol {
 namespace http {
 
 
-class protocol_error: public std::logic_error
+class error: public server::protocol::error
 {
 public:
-	explicit protocol_error(const std::string &what_arg);
+	explicit error(const std::string &what_arg);
 };
 
 
 // Start string
-class incorrect_start_string: public protocol_error
+class incorrect_start_string: public error
 {
 public:
 	explicit incorrect_start_string(const std::string &str);
 };
 
 
-class uri_parse_error: public protocol_error
+class uri_parse_error: public error
 {
 public:
 	explicit uri_parse_error(const std::string &uri);
 };
 
 
-class unimplemented_method: public protocol_error
+class unimplemented_method: public error
 {
 public:
 	explicit unimplemented_method(const std::string &method_name);
 };
 
 
-class incorrect_protocol: public protocol_error
+class incorrect_protocol: public error
 {
 public:
 	explicit incorrect_protocol(const std::string &protocol_name);
 };
 
 
-class unsupported_protocol_version: public protocol_error
+class unsupported_protocol_version: public error
 {
 public:
 	explicit unsupported_protocol_version(const std::string &version);
@@ -56,35 +57,35 @@ public:
 
 
 // Headers
-class incorrect_header_string: public protocol_error
+class incorrect_header_string: public error
 {
 public:
 	explicit incorrect_header_string(const std::string &str);
 };
 
 
-class empty_header_string: public protocol_error
+class empty_header_string: public error
 {
 public:
 	explicit empty_header_string();
 };
 
 
-class header_required: public protocol_error
+class header_required: public error
 {
 public:
 	explicit header_required(const std::string &header_name);
 };
 
 
-class incorrect_host_header: public protocol_error
+class incorrect_host_header: public error
 {
 public:
 	explicit incorrect_host_header(const std::string &host_str);
 };
 
 
-class incorrect_port: public protocol_error
+class incorrect_port: public error
 {
 public:
 	explicit incorrect_port(const std::string &port_str);

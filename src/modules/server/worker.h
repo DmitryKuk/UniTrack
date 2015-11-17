@@ -4,9 +4,9 @@
 #define SERVER_WORKER_H
 
 #include <thread>
-#include <list>
+#include <memory>
 
-#include <boost/asio.hpp>
+#include <boost/asio/io_service.hpp>
 
 #include <logger/logger.h>
 #include <server/client_manager.h>
@@ -19,8 +19,8 @@ namespace server {
 
 struct worker_parameters
 {
-	worker_id_t		id;
-};
+	worker_id_t id;
+};	// struct worker_parameters
 
 
 class worker:
@@ -89,4 +89,4 @@ private:
 
 #include <server/worker.hpp>
 
-#endif // SERVER_WORKER_H
+#endif	// SERVER_WORKER_H

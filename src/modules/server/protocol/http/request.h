@@ -6,7 +6,10 @@
 #include <string>
 #include <unordered_map>
 
+#include <boost/asio/ip/address.hpp>
+
 #include <base/buffer.h>
+#include <server/protocol/request.h>
 #include <server/protocol/http/protocol.h>
 
 
@@ -16,13 +19,13 @@ namespace http {
 
 
 // Request data
-class request
+class request:
+	public server::protocol::request
 {
 public:
 	// Protocol info
-	server::protocol::http::method				method     = unknown;
-	server::protocol::http::version				version    = unknown;
-	bool										keep_alive = false;
+	server::protocol::http::method				method  = unknown;
+	server::protocol::http::version				version = unknown;
 	
 	// Non-parsed URI
 	std::string									uri;
@@ -36,7 +39,8 @@ public:
 	server::protocol::http::headers_map_t		headers;
 	
 	
-	request(base::streambuf &&headers_buf);
+	request(const boost::asio::ip::address &client_address,
+			base::streambuf &&headers_buf);
 	
 	request() = default;
 	request(const request &other) = default;

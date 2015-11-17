@@ -1,11 +1,13 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#ifndef SERVER_PROTOCOL_HTTP_PROTOCOL_H
-#define SERVER_PROTOCOL_HTTP_PROTOCOL_H
+#ifndef SERVER_PROTOCOL_HTTP_HTTP_H
+#define SERVER_PROTOCOL_HTTP_HTTP_H
 
 #include <string>
 #include <unordered_set>
 #include <unordered_map>
+
+#include <server/protocol.h>
 
 
 namespace server {
@@ -106,6 +108,6 @@ public:
 };	// namespace server
 
 
-#include <server/protocol/http/protocol.hpp>
+#include <server/protocol/http/http.hpp>
 
-#endif	// SERVER_PROTOCOL_HTTP_PROTOCOL_H
+#endif	// SERVER_PROTOCOL_HTTP_HTTP_H

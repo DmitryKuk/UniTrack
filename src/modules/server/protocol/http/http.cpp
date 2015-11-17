@@ -1,6 +1,6 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#include <server/protocol/http/protocol.h>
+#include <server/protocol/http/http.h>
 
 #include <unordered_map>
 #include <regex>
@@ -69,7 +69,7 @@ server::protocol::http::method_to_str(server::protocol::http::method method) noe
 
 
 server::protocol::http::method
-str_to_method(const std::string &str) noexcept
+server::protocol::http::str_to_method(const std::string &str) noexcept
 {
 	static const std::unordered_map<std::string, server::protocol::http::method> str_to_method_map{
 		{ method_GET,		server::protocol::http::method::GET     },

@@ -8,7 +8,9 @@
 #include <cctype>
 
 
-server::protocol::http::request::request(base::streambuf &&headers_buf)
+server::protocol::http::request::request(const boost::asio::ip::address &client_address,
+										 base::streambuf &&headers_buf):
+	server::protocol::request(client_address)
 {
 	std::istream headers_stream(headers_buf);
 	std::string str;

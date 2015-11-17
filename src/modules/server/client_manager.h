@@ -143,4 +143,4 @@ typedef client_manager::const_iterator_t client_manager_list_const_iterator_t;
 
 #include <server/client_manager.hpp>
 
-#endif // SERVER_CLIENT_MANAGER_H
+#endif	// SERVER_CLIENT_MANAGER_H

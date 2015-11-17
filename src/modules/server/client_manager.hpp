@@ -2,10 +2,10 @@
 
 
 inline
-const std::string &
-server::client_manager::client_ip_address() const noexcept
+const boost::asio::ip::address &
+server::client_manager::client_address() const noexcept
 {
-	return this->client_ip_address_;
+	return this->client_address_;
 }
 
 
@@ -34,11 +34,10 @@ server::client_manager::keep_alive(bool status) noexcept
 
 
 // protected
-template<class Exception>
 inline
 void
 server::client_manager::handle_error(server::client_manager::request_data_ptr_t request_data_ptr,
-									 const Exception &e,
+									 const std::exception &e,
 									 const server::http::status &status,
 									 bool exit,
 									 bool send_phony,

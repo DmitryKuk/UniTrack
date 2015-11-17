@@ -1,7 +1,7 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#ifndef SERVER_FILE_HOST_H
-#define SERVER_FILE_HOST_H
+#ifndef SERVER_HOST_FILE_H
+#define SERVER_HOST_FILE_H
 
 #include <boost/filesystem/path.hpp>
 
@@ -9,13 +9,13 @@
 
 #include <logger/logger.h>
 
-#include <server/host.h>
-#include <server/protocol.h>
 #include <server/types.h>
-#include <server/file_host_parameters.h>
+#include <server/host/base.h>
+#include <server/protocol/http.h>
 
 
 namespace server {
+namespace host {
 
 
 // Requirements to the class HostType:
@@ -49,28 +49,72 @@ namespace server {
 
 
 // NOTE: If you don't know what is these, and what should you do, simple files-only host example:
-// 		server::file_host_parameters params;
+// 		server::parameters params;
 // 		// Set parameters with: params.smth = smth_val;
 // 		server::file_host<server::files_only> host(logger, params);
 
 
-template<class HostType,
-		 class CacheType = server::file_host_cache<HostType>>
+template<class HostType>
 class file_host:
-	public server::host
+	public server::host::base
 {
 public:
-	typedef CacheType cache_t;
-	typedef typename cache_t::shared_ptr_t cache_shared_ptr_t;
+	struct only_parameters
+	{
+		// May be useful, if several allow_regexes specified.
+		enum class allow_match_mode
+		{
+			any,	// Uri matches any of allow_regexes (and doesn't match any of deny_regexes).
+			all		// Uri matches all of allow_regexes (and doesn't match any of deny_regexes).
+		};
+		
+		
+		boost::filesystem::path root;			// Required
+		
+		std::vector<std::regex>
+			deny_regexes =						// Optional
+				{
+					std::regex(".*\\.\\./.*"),	// Don't allow "../" sequences!
+					std::regex(".*/\\..*")		// Don't allow hidden directories and files
+				},
+			allow_regexes =						// Optional
+				{
+					// Don't allow anything by default
+				};
+		
+		allow_match_mode mode					// Optional
+			= allow_match_mode::all;
+		
+		
+		explicit only_parameters() = default;
+		explicit only_parameters(const nlohmann::json &config);
+	};	// struct only_parameters
+	
+	
+	struct parameters:
+		public server::host::base::parameters,
+		public only_parameters
+	{
+		using only_parameters::allow_match_mode;
+		
+		
+		explicit parameters() = default;
+		
+		explicit parameters(const nlohmann::json &config):
+			server::host::base::parameters(config),
+			only_parameters(config)
+		{}
+	};	// struct parameters
+	
 	
 	
 	file_host(logger::logger &logger,
-			  const file_host_parameters &parameters,
-			  HostType &&file_handler = std::move(HostType()));
+			  const parameters &parameters,
+			  HostType &&handler = std::move(HostType()));
 	
 	file_host(logger::logger &logger,
-			  const file_host_parameters &parameters,
-			  const HostType &file_handler);
+			  const parameters &parameters,
+			  const HostType &handler);
 	
 	
 	// Non-copy/-move constructable/assignable. Use ptrs.
@@ -94,12 +138,8 @@ public:
 	// WARNING: first field of result does NOT contain data, only references. Second field
 	// contains data need to be sent, so save the given shared_ptr anywhere during all sending!
 	virtual
-	server::response_data_t
-	response(std::string &&uri,
-			 server::http::method method,
-			 server::http::version version,
-			 server::headers_t &&request_headers,
-			 server::headers_t &&response_headers = {}) override;
+	server::protocol::http::response::ptr_type
+	response(server::protocol::http::request::ptr_type request_ptr) override;
 	
 	
 	// URI parsing
@@ -132,15 +172,16 @@ private:
 	
 	
 	// Data
-	file_host_only_parameters file_host_parameters_;
+	only_parameters parameters_;
 	
-	HostType file_handler_;
+	HostType handler_;
 };	// class file_host
 
 
+};	// namespace host
 };	// namespace server
 
 
 #include <server/file_host.hpp>
 
-#endif // SERVER_FILE_HOST_H
+#endif	// SERVER_HOST_FILE_H

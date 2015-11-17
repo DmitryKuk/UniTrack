@@ -6,47 +6,37 @@
 
 #include <base/mapped_file_exceptions.h>
 
-#include <server/host_exceptions.h>
-#include <server/file_host_handler_exceptions.h>
+#include <server/host/exceptions.h>
+#include <server/host/file_handler_exceptions.h>
 
 
-template<class HostType, class CacheType>
-server::file_host<HostType, CacheType>::file_host(logger::logger &logger,
-							 const server::file_host_parameters &parameters,
-							 HostType &&file_handler):
-	server::host(logger, static_cast<const server::host_parameters &>(parameters)),
+template<class HostType>
+server::host::file<HostType>::file(logger::logger &logger,
+								   const server::file_host_parameters &parameters,
+								   HostType &&handler):
+	server::host(logger, parameters),
 	
-	file_host_parameters_(static_cast<const server::file_host_only_parameters &>(parameters)),
-	
-	file_handler_(std::move(file_handler))
+	file_host_parameters_(parameters),
+	handler_(std::move(handler))
 {}
 
 
-template<class HostType, class CacheType>
-server::file_host<HostType, CacheType>::file_host(logger::logger &logger,
-							 const server::file_host_parameters &parameters,
-							 const HostType &file_handler):
-	server::host(logger, static_cast<const server::host_parameters &>(parameters)),
+template<class HostType>
+server::host::file<HostType>::file(logger::logger &logger,
+								   const server::file_host_parameters &parameters,
+								   const HostType &handler):
+	server::host(logger, parameters),
 	
-	file_host_parameters_(static_cast<const server::file_host_only_parameters &>(parameters)),
-	
-	file_handler_(file_handler)
+	parameters_(parameters),
+	handler_(handler)
 {}
 
 
-template<class HostType, class CacheType>
+template<class HostType>
 // virtual
-server::response_data_t
-server::file_host<HostType, CacheType>::response(std::string &&uri,
-												 server::http::method method,
-												 server::http::version version,
-												 server::headers_t &&request_headers,
-												 server::headers_t &&response_headers)
+server::protocol::http::response::ptr_type
+server::host::file<HostType>::response(server::protocol::http::request::ptr_type request_ptr)
 {
-	// Headers must NOT contain "Content-Length"! (Let it throw! :) )
-	server::host::validate_headers(response_headers);
-	
-	
 	if (!this->validate_method(method)) {
 		this->logger().stream(logger::level::sec_warning)
 			<< "File host: Host \"" << this->name()
@@ -67,8 +57,8 @@ server::file_host<HostType, CacheType>::response(std::string &&uri,
 	
 	
 	// Filling cache
-	server::file_host<HostType, CacheType>::cache_shared_ptr_t cache_ptr
-		= std::make_shared<server::file_host<HostType, CacheType>::cache_t>();
+	server::host::file<HostType>::cache_shared_ptr_t cache_ptr
+		= std::make_shared<server::host::file<HostType>::cache_t>();
 	
 	
 	// Parsing URI
@@ -121,11 +111,11 @@ server::file_host<HostType, CacheType>::response(std::string &&uri,
 
 
 // private:
-template<class HostType, class CacheType>
+template<class HostType>
 // virtual
 server::response_data_t
-server::file_host<HostType, CacheType>::response(
-	server::file_host<HostType, CacheType>::cache_shared_ptr_t &&cache_ptr,
+server::host::file<HostType>::response(
+	server::host::file<HostType>::cache_shared_ptr_t &&cache_ptr,
 	server::http::method method,
 	server::http::version version,
 	server::headers_t &&request_headers)
@@ -152,7 +142,7 @@ server::file_host<HostType, CacheType>::response(
 		// Or absolute: "/var/unitrack/www/index.html"
 		cache_ptr->path = canonical(cache_ptr->path, this->file_host_parameters_.root);
 		
-		file_data = std::move(this->file_handler_(*this, *cache_ptr));
+		file_data = std::move(this->handler_(*this, *cache_ptr));
 	} catch (const base::path_is_directory &) {
 		auto &p = cache_ptr->path;
 		
@@ -223,9 +213,9 @@ server::file_host<HostType, CacheType>::response(
 }
 
 
-template<class HostType, class CacheType>
+template<class HostType>
 bool
-server::file_host<HostType, CacheType>::validate_path(const std::string &path) const noexcept
+server::host::file<HostType>::validate_path(const std::string &path) const noexcept
 {
 	// Checks for denied regexes
 	for (const auto &deny_regex: this->file_host_parameters_.deny_regexes)
@@ -274,9 +264,9 @@ server::file_host<HostType, CacheType>::validate_path(const std::string &path) c
 }
 
 
-template<class HostType, class CacheType>
+template<class HostType>
 bool
-server::file_host<HostType, CacheType>::validate_args(
+server::host::file<HostType>::validate_args(
 	const server::uri_arguments_map_t &args_map,
 	const server::uri_arguments_set_t &args_set) const noexcept
 {
@@ -284,9 +274,9 @@ server::file_host<HostType, CacheType>::validate_args(
 }
 
 
-template<class HostType, class CacheType>
+template<class HostType>
 bool
-server::file_host<HostType, CacheType>::validate_method(server::http::method method) const noexcept
+server::host::file<HostType>::validate_method(server::http::method method) const noexcept
 {
 	// This host only supports GET method.
 	if (method == server::http::method::GET)
@@ -295,12 +285,12 @@ server::file_host<HostType, CacheType>::validate_method(server::http::method met
 }
 
 
-template<class HostType, class CacheType>
+template<class HostType>
 server::response_data_t
-server::file_host<HostType, CacheType>::log_and_phony_response(
+server::host::file<HostType>::log_and_phony_response(
 	const std::string &message,
 	server::http::version version,
-	server::file_host<HostType, CacheType>::cache_shared_ptr_t cache_ptr,
+	server::host::file<HostType>::cache_shared_ptr_t cache_ptr,
 	const server::http::status &status)
 {
 	this->logger().stream(logger::level::error)
@@ -314,12 +304,12 @@ server::file_host<HostType, CacheType>::log_and_phony_response(
 }
 
 
-template<class HostType, class CacheType>
+template<class HostType>
 server::response_data_t
-server::file_host<HostType, CacheType>::handle_filesystem_error(
+server::host::file<HostType>::handle_filesystem_error(
 	const boost::filesystem::filesystem_error &e,
 	server::http::version version,
-	server::file_host<HostType, CacheType>::cache_shared_ptr_t cache_ptr,
+	server::host::file<HostType>::cache_shared_ptr_t cache_ptr,
 	const server::http::status &status)
 {
 	switch (e.code().value()) {
@@ -342,9 +332,9 @@ server::file_host<HostType, CacheType>::handle_filesystem_error(
 }
 
 
-template<class HostType, class CacheType>
+template<class HostType>
 bool
-server::file_host<HostType, CacheType>::parse_uri(const std::string &uri,
+server::host::file<HostType>::parse_uri(const std::string &uri,
 												  server::host_cache &cache)
 {
 	if (!server::host::parse_uri(uri, cache))

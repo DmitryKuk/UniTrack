@@ -7,22 +7,26 @@
 #include <stdexcept>
 #include <cctype>
 
+#include <boost/lexical_cast.hpp>
 
-server::protocol::http::request::request(const boost::asio::ip::address &client_address,
-										 base::streambuf &&headers_buf):
-	server::protocol::request(client_address)
+#include <server/protocol/http/exceptions.h>
+
+
+// Call this method, when all client response saved in this->buffer
+void
+server::protocol::http::request::process_buffer()
 {
-	std::istream headers_stream(headers_buf);
+	std::istream stream(this->buffer);
 	std::string str;
 	
 	
 	// Processing start string
-	std::getline(headers_stream, str);
+	std::getline(stream, str);
 	server::parse_start_string(str);
 	
 	
 	// Processing headers
-	while (std::getline(headers_stream, str) && !str.empty())
+	while (std::getline(stream, str) && !str.empty())
 		this->add_header(server::parse_header_string(str));
 	
 	
@@ -36,6 +40,43 @@ server::protocol::http::request::request(const boost::asio::ip::address &client_
 }
 
 
+std::pair<std::string, server::port_type>
+server::protocol::http::request::host_and_port()
+{
+	static const std::regex host_regex("([^:]+)"				// Host name [1]
+									   "(:([[:digit:]]+))?",	// Port number, if specified [3]
+									   std::regex::optimize);
+	
+	
+	auto header_host_it = this->headers.find(server::protocol::http::str::header_host);
+	if (header_host_it == this->headers.end())
+		throw server::protocol::http::header_required(server::protocol::http::str::header_host);
+	
+	
+	// Host checking
+	const std::string &host_str = header_host_it->second;
+	
+	std::smatch match;
+	if (!std::regex_match(host_str, match, host_regex) || match.size() != 4)
+		throw server::protocol::http::incorrect_host_header(host_str);
+	
+	
+	// Port checking
+	server::port_type port = server::protocol::http::default_port;
+	if (if match.length(3) > 0) {
+		std::string port_str = match[3];
+		try {
+			port = boost::lexical_cast<server::port_type>(port_str);
+		} catch (const boost::bad_lexical_cast &) {
+			throw server::protocol::http::incorrect_port(port_str);
+		}
+	}
+	
+	return { match[1], port };
+}
+
+
+// private
 void
 server::protocol::http::request::process_start_string(const std::string &str)
 {

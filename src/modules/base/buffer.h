@@ -14,9 +14,9 @@ namespace base {
 
 
 // Send buffers
-typedef boost::asio::const_buffer						send_buffer_t;
-typedef std::vector<send_buffer_t>						send_buffers_t;
-typedef std::back_insert_iterator<send_buffers_t>		send_buffers_insert_iterator_t;
+typedef boost::asio::const_buffer						send_buffer_type;
+typedef std::vector<send_buffer_type>					send_buffers_type;
+typedef std::back_insert_iterator<send_buffers_type>	send_buffers_insert_iterator_type;
 
 
 using boost::asio::buffer;
@@ -29,4 +29,4 @@ using boost::asio::streambuf;
 };	// namespace base
 
 
-#endif // BASE_BUFFER_H
+#endif	// BASE_BUFFER_H

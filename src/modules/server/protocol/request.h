@@ -3,7 +3,11 @@
 #ifndef SERVER_PROTOCOL_REQUEST_H
 #define SERVER_PROTOCOL_REQUEST_H
 
+#include <memory>
+
 #include <boost/asio/ip/address.hpp>
+
+#include <base/buffer.h>
 
 
 namespace server {
@@ -14,11 +18,17 @@ namespace protocol {
 class request
 {
 public:
+	typedef std::shared_ptr<request> ptr_type;
+	
+	
 	// Client info
 	boost::asio::ip::address	client_address;
 	
 	// Connection info
 	bool						keep_alive = false;
+	
+	// Request buffer
+	base::streambuf				buffer;
 	
 	
 	inline request(const boost::asio::ip::address &client_address);

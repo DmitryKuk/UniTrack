@@ -7,15 +7,13 @@
 #include <unordered_set>
 #include <unordered_map>
 
-#include <server/protocol.h>
-
 
 namespace server {
 namespace protocol {
 namespace http {
 
 
-extern const server::port_t
+extern const server::port_type
 	default_port;
 
 
@@ -73,13 +71,13 @@ version version_to_str(const std::string &str) noexcept;
 
 
 // Headers
-typedef std::pair<std::string, std::string>				header_pair_t;
-typedef std::unordered_map<std::string, std::string>	headers_map_t;
+typedef std::pair<std::string, std::string>				header_pair_type;
+typedef std::unordered_map<std::string, std::string>	headers_map_type;
 
 
 // URI
-typedef std::unordered_map<std::string, std::string>	uri_arguments_map_t;
-typedef std::unordered_set<std::string>					uri_arguments_set_t;
+typedef std::unordered_map<std::string, std::string>	uri_arguments_map_type;
+typedef std::unordered_set<std::string>					uri_arguments_set_type;
 
 
 

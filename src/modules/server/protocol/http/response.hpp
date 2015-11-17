@@ -45,7 +45,7 @@ server::protocol::http::response::add_body(const T &data)
 template<>
 inline
 void
-server::protocol::http::response::add_body(const base::send_buffer_t &buffer)
+server::protocol::http::response::add_body(const base::send_buffer_type &buffer)
 {
 	this->buffers.push_back(buffer);
 }

@@ -4,7 +4,7 @@
 
 
 server::worker::worker(logger::logger &logger,
-					   const server::worker_parameters &parameters,
+					   const server::worker::parameters &parameters,
 					   boost::asio::io_service &io_service,
 					   server::host_manager &host_manager):
 	logger::enable_logger(logger),

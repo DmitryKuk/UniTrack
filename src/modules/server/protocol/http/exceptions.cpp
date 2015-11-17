@@ -3,8 +3,8 @@
 #include <server/protocol/http/exceptions.h>
 
 
-server::protocol::http::error::error(const std::string &description):
-	server::protocol::error(description)
+server::protocol::http::error::error(const std::string &what_arg):
+	server::protocol::error(what_arg)
 {}
 
 

@@ -10,13 +10,13 @@
 #include <unordered_map>
 #include <mutex>
 
-#include <boost/asio.hpp>
+#include <boost/asio/ip/address.hpp>
 
 #include <logger/logger.h>
-#include <server/protocol.h>
-#include <server/host.h>
-#include <server/host_manager.h>
 #include <server/types.h>
+#include <server/protocol/http.h>
+#include <server/host/base.h>
+#include <server/host/manager.h>
 
 
 namespace server {
@@ -29,16 +29,16 @@ class client_manager:
 	protected logger::enable_logger
 {
 public:
-	typedef std::shared_ptr<client_manager> ptr_t;
-	typedef std::list<ptr_t> list_t;
-	typedef list_t::const_iterator const_iterator_t;
+	typedef std::shared_ptr<client_manager> ptr_type;
+	typedef std::list<ptr_type> list_type;
+	typedef list_type::const_iterator const_iterator_type;
 	
 	
 	client_manager(logger::logger &logger,
 				   worker &w,
-				   const_iterator_t iterator,
-				   server::socket_ptr_t socket_ptr,
-				   server::host_manager &host_manager);
+				   const_iterator_type iterator,
+				   server::socket_ptr_type socket_ptr,
+				   server::host::manager &host_manager);
 	~client_manager();
 	
 	
@@ -50,8 +50,8 @@ public:
 	client_manager & operator=(client_manager &&other) = delete;
 	
 	
-	inline const std::string &client_ip_address() const noexcept;
-	inline port_t server_port() const noexcept;
+	inline const boost::asio::ip::address &client_address() const noexcept;
+	inline server::port_type server_port() const noexcept;
 	
 	inline bool keep_alive() const noexcept;
 protected:
@@ -72,35 +72,36 @@ protected:
 	void log_error(const char *what, const server::http::status &status);
 	
 	
-	void handle_error(request_data_ptr_t request_data_ptr,
+	void handle_error(server::protocol::http::request::ptr_type request_ptr,
 					  const char *what,
 					  const server::http::status &status,
-					  bool exit,
-					  bool send_phony,
-					  server::headers_t &&headers = {});
+					  bool exit = true,
+					  bool send_phony = true);
 	
-	template<class Exception>
-	inline void handle_error(request_data_ptr_t request_data_ptr,
-							 const Exception &e,
-							 const server::http::status &status,
-							 bool exit,
-							 bool send_phony,
-							 server::headers_t &&headers = {});
+	inline
+	void handle_error(server::protocol::http::request::ptr_type request_ptr,
+					  const std::exception &e,
+					  const server::http::status &status,
+					  bool exit = true,
+					  bool send_phony = true);
 	
 	
 	void add_request_handler();
 	
-	void send_response(server::response_data_t &&data);
-	void send_phony(request_data_ptr_t request_data_ptr,
-					const server::http::status &status,
-					server::headers_t &&headers = {});
+	void send_response(server::protocol::response::ptr_type response_ptr);
+	
+	void send_phony(server::protocol::http::request::ptr_type request_ptr,
+					const server::http::status &status);
+	
+	
+	void log_request(const server::protocol::http::request &request);
 private:
 	// Helpers
-	void process_request(request_data_ptr_t request_data_ptr);
+	void process_request(server::protocol::http::request::ptr_type request_ptr) noexcept;
 	
 	
 	// Handlers
-	void request_handler(request_data_ptr_t request_data_ptr,
+	void request_handler(server::protocol::http::request::ptr_type request_ptr,
 						 const boost::system::error_code &err,
 						 size_t bytes_transferred);
 	
@@ -113,29 +114,24 @@ private:
 	
 	
 	// Data
-	server::host_manager &host_manager_;
+	server::host::manager &host_manager_;
 	
 	worker &worker_;
-	const_iterator_t iterator_;
+	const_iterator_type iterator_;
 	
 	unsigned int running_operations_;
 	
 	
 	// Connection data
-	server::socket_ptr_t	socket_ptr_;
-	std::string				client_ip_address_;
-	port_t					server_port_;
-	bool					keep_alive_;
+	server::socket_ptr_type		socket_ptr_;
+	boost::asio::ip::address	client_address_;
+	server::port_type			server_port_;
+	bool						keep_alive_ = false;
 	
 	
-	std::queue<server::response_data_t> data_to_send_;
+	std::queue<server::protocol::response::ptr_type> responses_queue_;
 	bool sending_;
 };	// class client_manager
-
-
-typedef client_manager::ptr_t client_manager_ptr_t;
-typedef client_manager::list_t client_manager_list_t;
-typedef client_manager::const_iterator_t client_manager_list_const_iterator_t;
 
 
 };	// namespace server

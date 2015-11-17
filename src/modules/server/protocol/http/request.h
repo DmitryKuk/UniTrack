@@ -4,13 +4,14 @@
 #define SERVER_PROTOCOL_HTTP_REQUEST_H
 
 #include <string>
+#include <memory>
 #include <unordered_map>
 
 #include <boost/asio/ip/address.hpp>
 
 #include <base/buffer.h>
 #include <server/protocol/request.h>
-#include <server/protocol/http/protocol.h>
+#include <server/protocol/http/http.h>
 
 
 namespace server {
@@ -23,24 +24,28 @@ class request:
 	public server::protocol::request
 {
 public:
+	typedef std::shared_ptr<request> ptr_type;
+	
+	
+	// Data
 	// Protocol info
-	server::protocol::http::method				method  = unknown;
-	server::protocol::http::version				version = unknown;
+	server::protocol::http::method					method  = unknown;
+	server::protocol::http::version					version = unknown;
 	
 	// Non-parsed URI
-	std::string									uri;
+	std::string										uri;
 	
 	// Parsed URI info
-	std::string									path;
-	server::protocol::http::uri_arguments_map_t	args_map;
-	server::protocol::http::uri_arguments_set_t	args_set;
+	std::string										path;
+	server::protocol::http::uri_arguments_map_type	args_map;
+	server::protocol::http::uri_arguments_set_type	args_set;
 	
 	// Headers
-	server::protocol::http::headers_map_t		headers;
+	server::protocol::http::headers_map_type		headers;
 	
 	
-	request(const boost::asio::ip::address &client_address,
-			base::streambuf &&headers_buf);
+	// Constructor with client address
+	using server::protocol::request(const boost::asio::ip::address &client_address);
 	
 	request() = default;
 	request(const request &other) = default;
@@ -48,6 +53,13 @@ public:
 	
 	request & operator=(const request &other) = default;
 	request & operator=(request &&other) = default;
+	
+	
+	// Call this method, when all client response saved in this->buffer
+	void process_buffer();
+	
+	// Returns requested host and port pair. Used default port (80), if it was omitted
+	std::pair<std::string, server::port_type> host_and_port();
 private:
 	// Helper functions
 	void process_start_string(const std::string &str);

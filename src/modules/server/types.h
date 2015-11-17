@@ -12,18 +12,13 @@
 namespace server {
 
 
-// Workers
-typedef unsigned int worker_id_t;
-
-
-
 // Sockets
-typedef std::shared_ptr<boost::asio::ip::tcp::socket> socket_ptr_t;
+typedef std::shared_ptr<boost::asio::ip::tcp::socket> socket_ptr_type;
 
 
 // Ports
-typedef unsigned short				port_t;
-typedef std::unordered_set<port_t>	port_set_t;
+typedef unsigned short					port_type;
+typedef std::unordered_set<port_type>	port_set_type;
 
 
 };	// namespace server

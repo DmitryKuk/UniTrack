@@ -1,12 +1,13 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#include <server/host_http.h>
+#include <server/host/base/host.h>
 
 #include <chrono>
 #include <mutex>
 #include <numeric>
 
-#include <server/host_exceptions.h>
+#include <base/json_utils.h>
+#include <server/host/exceptions.h>
 
 
 namespace {
@@ -18,15 +19,25 @@ const std::string host_without_name = "";
 };	// namespace
 
 
+// class server::host::base::parameters
+server::host::base::parameters::parameters(const nlohmann::json &config):
+	name(base::json_utils::get<decltype(this->name)>(config, "name")),
+	ports(base::json_utils::get<decltype(this->ports)>(config, "ports"))
+{
+	base::json_utils::extract(config, this->server_names, "server_names");
+}
+
+
+// class server::host::base
 // static
-std::unique_ptr<server::host> server::host_http::error_host_;
+std::unique_ptr<server::host::base> server::host::base::error_host_ptr_;
 
 
-server::host_http::host(logger::logger &logger,
-				   const server::host_http_parameters &parameters):
+server::host::base::base(logger::logger &logger,
+						 const server::host::base::parameters &parameters):
 	logger::enable_logger(logger),
 	
-	host_http_parameters_(parameters),
+	parameters_(parameters),
 	
 	server_name_generator_(std::chrono::system_clock::now().time_since_epoch().count())
 {}
@@ -34,9 +45,9 @@ server::host_http::host(logger::logger &logger,
 
 // Returns true, if host can process requests on specified port, or false otherwise.
 bool
-server::host_http::port_allowed(server::port_t port) const noexcept
+server::host::base::port_allowed(server::port_type port) const noexcept
 {
-	if (this->host_http_parameters_.ports.find(port) == this->host_http_parameters_.ports.end())
+	if (this->parameters_.ports.find(port) == this->parameters_.ports.end())
 		return false;
 	return true;
 }
@@ -44,43 +55,43 @@ server::host_http::port_allowed(server::port_t port) const noexcept
 
 // Returns host name as string (random!)
 const std::string &
-server::host_http::server_name() const noexcept
+server::host::base::server_name() const noexcept
 {
-	if (this->host_http_parameters_.server_names.empty())
+	if (this->parameters_.server_names.empty())
 		return ::host_without_name;
 	
-	size_t index = this->server_name_generator_() % this->host_http_parameters_.server_names.size();
-	return this->host_http_parameters_.server_names[index];
+	size_t index = this->server_name_generator_() % this->parameters_.server_names.size();
+	return this->parameters_.server_names[index];
 }
 
 
 // Prepares a correct response to the client.
 // NOTE: By default -- phony "404 Not Found". Redefine this function in child classes.
 // virtual
-std::unique_ptr<server::protocol::http::response>
-response(std::unique_ptr<server::protocol::http::request> &&request)
+server::protocol::http::response::ptr_type
+server::host::base::response(server::protocol::http::request::ptr_type request_ptr)
 {
-	return this->phony_response(request, server::http::status::not_found);
+	return this->phony_response(request_ptr, server::http::status::not_found);
 }
 
 
 // Prepares a phony response to the client.
 // WARNING: Remember to save anywhere status too (standard statuses are already saved)!
 template<class Headers>
-std::unique_ptr<server::protocol::http::response>
-phony_response(std::unique_ptr<server::protocol::http::request> &&request,
+server::protocol::http::response::ptr_type
+phony_response(server::protocol::http::request::ptr_type request_ptr,
 			   const server::protocol::http::status &status)
 {
 	using namespace server::protocol::http;
 	using base::buffer;
 	
 	
-	auto response = std::make_unique<server::protocol::http::response>(status, request->version);
+	auto response_ptr = std::make_shared<server::protocol::http::response>(status, request->version);
 	
 	
 	// Server name
 	auto server_name = this->server_name();
-	response->add_header(header_server, server_name);
+	response_ptr->add_header(header_server, server_name);
 	
 	
 	// Body elements
@@ -133,50 +144,50 @@ phony_response(std::unique_ptr<server::protocol::http::request> &&request,
 			}
 		);
 		
-		content_len_ptr = &response.cache(std::to_string(content_len));
+		content_len_ptr = &response_ptr->cache(std::to_string(content_len));
 	}
 	
 	// Adding content length header
-	response->add_header(header::content_length, *content_len_ptr);
-	response->finish_headers();
+	response_ptr->add_header(header::content_length, *content_len_ptr);
+	response_ptr->finish_headers();
 	
 	// Adding body
 	for (const auto body_element: body)
-		response.add_body(*body_element);
+		response_ptr->add_body(*body_element);
 	
-	return response;
+	return response_ptr;
 }
 
 
 // Returns reference to error host object, creating it, if does not exist.
 // If it didn't exist, it will be binded to logger of object's, whoose method was called.
-server::host_http &
-server::host_http::error_host() const
+server::host::base &
+server::host::base::error_host() const
 {
-	return server::host_http::error_host(this->logger());
+	return server::host::base::error_host(this->logger());
 }
 
 
 // Returns reference to error host object, creating it, if does not exist.
 // If it didn't exist, it will be binded to logger.
 // static
-server::host_http &
-server::host_http::error_host(logger::logger &logger)
+server::host::base &
+server::host::base::error_host(logger::logger &logger)
 {
-	if (server::host_http::error_host_ == nullptr)
-		server::host_http::create_error_host(logger);
-	return *server::host_http::error_host_;
+	if (server::host::base::error_host_ptr_ == nullptr)
+		server::host::base::create_error_host(logger);
+	return *server::host::base::error_host_ptr_;
 }
 
 
 // Creates error_host if it does not exist. You may call it once from server, if you want.
 // static
 void
-server::host_http::create_error_host(logger::logger &logger)
+server::host::base::create_error_host(logger::logger &logger)
 {
 	static std::mutex m;
 	
 	std::unique_lock<std::mutex> lock(m);
-	if (server::host_http::error_host_ == nullptr)
-		server::host_http::error_host_ = std::make_unique<server::host>(logger, server::host_http_parameters());
+	if (server::host::base::error_host_ptr_ == nullptr)
+		server::host::base::error_host_ptr_ = std::make_unique<server::host>(logger, server::host_http_parameters());
 }

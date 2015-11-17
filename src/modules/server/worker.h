@@ -17,18 +17,21 @@
 namespace server {
 
 
-struct worker_parameters
-{
-	worker_id_t id;
-};	// struct worker_parameters
-
-
 class worker:
 	protected logger::enable_logger
 {
 public:
+	typedef unsigned int id;
+	
+	struct parameters
+	{
+		worker::id id;
+	};	// struct worker_parameters
+	
+	
+	
 	worker(logger::logger &logger,
-		   const worker_parameters &parameters,
+		   const parameters &parameters,
 		   boost::asio::io_service &io_service,
 		   server::host_manager &host_manager);
 	
@@ -42,7 +45,7 @@ public:
 	
 	
 	// Returns worker id
-	inline worker_id_t id() const noexcept;
+	inline server::worker_id_type id() const noexcept;
 	
 	// Returns worker thread id (need for server's dispatcher)
 	inline std::thread::id thread_id() const noexcept;
@@ -50,7 +53,7 @@ public:
 	
 	// Adds new client to the worker
 	// Returns true, if added successfully
-	bool add_client(server::socket_ptr_t socket_ptr) noexcept;
+	bool add_client(server::socket_ptr_type socket_ptr) noexcept;
 	
 	
 	inline bool joinable() const noexcept;	// Checks worker's thread for joinable
@@ -71,14 +74,14 @@ private:
 	
 	
 	// Data
-	worker_parameters parameters_;
+	parameters parameters_;
 	
 	server::host_manager &host_manager_;
 	
 	boost::asio::io_service &io_service_;
 	boost::asio::io_service::work work_;
 	
-	server::client_manager_list_t client_managers_;	// Clients, worker are working with
+	server::client_manager_list_type client_managers_;	// Clients, worker are working with
 	
 	std::thread worker_thread_;
 };	// class worker

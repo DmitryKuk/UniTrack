@@ -1,11 +1,11 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#include <server/host_http_manager.h>
+#include <server/host/manager.h>
 
 #include <server/host_exceptions.h>
 
 
-server::host_http_manager::host_http_manager(logger::logger &logger):
+server::host::manager::manager(logger::logger &logger):
 	logger::enable_logger(logger)
 {}
 
@@ -15,7 +15,7 @@ server::host_http_manager::host_http_manager(logger::logger &logger):
 // same name is already managed by this manager.
 // Thread-safety: no (it's write function).
 bool
-server::host_http_manager::add_host(server::host_http::ptr_t host_ptr) noexcept
+server::host::manager::add_host(server::host::base::ptr_type host_ptr) noexcept
 {
 	if (host_ptr == nullptr) {
 		this->logger().stream(logger::level::error)
@@ -39,8 +39,8 @@ server::host_http_manager::add_host(server::host_http::ptr_t host_ptr) noexcept
 // Finds the host with specified name.
 // Returns std::shared_ptr to it or throws server::host_not_found exception.
 // Thread-sefety: yes (it's read function).
-server::host_http::ptr_t
-server::host_http_manager::host(const std::string &name, server::port_t port)
+server::host::base::ptr_type
+server::host::manager::host(const std::string &name, server::port_type port)
 {
 	auto it = this->hosts_.find(&name);
 	if (it == this->hosts_.end()) {
@@ -59,4 +59,12 @@ server::host_http_manager::host(const std::string &name, server::port_t port)
 	}
 	
 	return host_ptr;
+}
+
+
+// Returns reference to error host object, creating it, if does not exist.
+// If it didn't exist, it will be binded to logger of host_manager object, whoose method was called.
+server::host::base & error_host() const
+{
+	server::host::base::error_host(this->logger());
 }

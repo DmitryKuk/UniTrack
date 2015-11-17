@@ -4,18 +4,19 @@
 
 #include <iostream>
 #include <functional>
+#include <tuple>
 #include <regex>
 #include <stdexcept>
 
 #include <server/worker.h>
-#include <server/protocol_exceptions.h>
-#include <server/host_exceptions.h>
+#include <server/protocol/http/exceptions.h>
+#include <server/host/exceptions.h>
 
 
 server::client_manager::client_manager(logger::logger &logger,
 									   worker &w,
 									   const_iterator_t iterator,
-									   server::socket_ptr_t socket_ptr,
+									   server::socket_ptr_type socket_ptr,
 									   server::host_manager &host_manager):
 	logger::enable_logger(logger),
 	
@@ -38,7 +39,7 @@ server::client_manager::client_manager(logger::logger &logger,
 	
 	this->logger().stream(logger::level::info)
 		<< "Client manager (worker " << this->worker_.id()
-		<< "): Client connected: " << this->client_ip_address() << '.';
+		<< "): Client connected: " << this->client_address() << '.';
 	
 	
 	// Starting http-headers reading
@@ -81,23 +82,22 @@ server::client_manager::log_error(const char *what, const server::http::status &
 {
 	this->logger().stream(logger::level::error)
 		<< "Client manager (worker " << this->worker_.id()
-		<< "): " << this->client_ip_address() << ": " << what
+		<< "): " << this->client_address() << ": " << what
 		<< " => " << status.code() << '.';
 }
 
 
 void
-server::client_manager::handle_error(server::client_manager::request_data_ptr_t request_data_ptr,
+server::client_manager::handle_error(server::protocol::http::request request_ptr,
 									 const char *what,
 									 const server::http::status &status,
 									 bool exit,
-									 bool send_phony,
-									 server::headers_t &&headers)
+									 bool send_phony)
 {
 	this->log_error(what, status);
 	
 	if (exit) this->keep_alive(false);
-	if (send_phony) this->send_phony(request_data_ptr, status, std::move(headers));
+	if (send_phony) this->send_phony(request_ptr, status);
 }
 
 
@@ -106,175 +106,151 @@ server::client_manager::add_request_handler()
 {
 	this->lock();
 	
-	auto request_data_ptr = std::make_shared<server::client_manager::request_data>();
+	auto request_ptr = std::make_shared<server::protocol::http::request>(this->client_address());
 	
 	using namespace std::placeholders;
 	boost::asio::async_read_until(*this->socket_ptr_,
-								  request_data_ptr->headers_buf,
+								  &request_ptr->buffer,
 								  "\r\n\r\n",
-								  std::bind(&client_manager::request_handler, this,
-											request_data_ptr, _1, _2));
+								  std::bind(&client_manager::request_handler, this, request_ptr, _1, _2));
 	
 	this->logger().stream(logger::level::info)
 		<< "Client manager (worker " << this->worker_.id()
-		<< "): " << this->client_ip_address()
+		<< "): " << this->client_address()
 		<< ": Waiting for headers...";
 }
 
 
 void
-server::client_manager::send_response(server::response_data_t &&data)
+server::client_manager::send_response(server::protocol::response::ptr_type response_ptr)
 {
-	this->data_to_send_.push(std::move(data));
+	this->responses_queue_.push(std::move(response_ptr));
 	this->add_response_handler();
 }
 
 
 void
-server::client_manager::send_phony(server::client_manager::request_data_ptr_t request_data_ptr,
-								   const server::http::status &status,
-								   server::headers_t &&headers)
+server::client_manager::send_phony(server::protocol::http::request::ptr_type request_ptr,
+								   const server::http::status &status)
 {
 	// Getting data for the phony...
-	auto data = std::move(server::host::error_host(this->logger()).phony_response(
-		request_data_ptr->version,
-		status,
-		std::move(headers)));
+	auto data = server::host::error_host().phony_response(request_ptr, status);
 	
 	// ...and sending it
 	this->send_response(std::move(data));
 }
 
 
-// private
-// Helpers
 void
-server::client_manager::process_request(request_data_ptr_t request_data_ptr)
+log_request(const server::protocol::http::request &request)
 {
-	static const std::regex host_regex("([^:]+)"				// Host name [1]
-									   "(:([[:digit:]]+))?",	// Port number, if specified [3]
-									   std::regex::optimize);
+	auto stream = this->logger().stream(logger::level::info);
+	stream
+		<< "Client manager (worker " << this->worker_.id()
+		<< "): " << request.client_address
+		<< ": HTTP/" << server::protocol::http::version_to_str(request.version)
+		<< ", " << server::protocol::http::method_to_str(request.method)
+		<< ", Requested URI: \"" << request.uri << "\". Headers:";
 	
-	auto it = request_data_ptr->headers.find(server::http::header_host);
-	if (it == request_data_ptr->headers.end())
-		throw server::header_required(server::http::header_host);
-	
-	
-	// Host checking
-	const std::string &host_str = it->second;
-	
-	std::smatch match_result;
-	if (!std::regex_match(host_str, match_result, host_regex) || match_result.size() != 4)
-		throw server::incorrect_host_header(host_str);
-	
-	
-	// Port checking
-	auto port = this->server_port();
-	{
-		std::string requested_port;
-		if (match_result.length(3) == 0) requested_port = server::http::default_port_str;	// 80 port
-		else requested_port = match_result[3];
-		
-		if (std::to_string(port) != requested_port) {
-			this->logger().stream(logger::level::sec_warning)
-				<< "Client manager (worker " << this->worker_.id()
-				<< "): " << this->client_ip_address()
-				<< ": Incorrect port in Host header: \"" << host_str << "\".";
-			throw server::incorrect_port(requested_port);
-		}
-	}
-	
-	
-	auto host_ptr = this->host_manager_.host(match_result[1], port);
-	
-	this->send_response(std::move(host_ptr->response(std::move(request_data_ptr->uri),
-													 request_data_ptr->method,
-													 request_data_ptr->version,
-													 std::move(request_data_ptr->headers))));
+	for (const auto &p: request.headers)
+		stream << " [" << p.first << ": " << p.second << ']';
+	stream << '.';
 }
 
 
+// private
+// Helpers
 void
-server::client_manager::request_handler(server::client_manager::request_data_ptr_t request_data_ptr,
+server::client_manager::process_request(server::protocol::http::request::ptr_type request_ptr) noexcept
+{
+	using server::protocol::http::status;
+	
+	
+	try {
+		request_ptr->process_buffer();
+		this->log_request(*request_ptr);
+		
+		std::string host;
+		server::port_type port;
+		
+		try {
+			std::tie(host, port) = request_ptr->host_and_port();
+			
+			if (port != this->server_port())
+				throw server::protocol::http::incorrect_port(std::to_string(port));
+		} catch (const std::exception &e) {
+			this->logger().stream(logger::level::sec_warning)
+				<< "Client manager (worker " << this->worker_.id()
+				<< "): " << this->client_address()
+				<< ": " << e.what() << '.';
+			throw;
+		}
+		
+		auto host_ptr = this->host_manager_.host(host, port);
+		this->send_response(host_ptr->response(request_ptr));
+		
+		if (request_ptr->keep_alive)
+			this->add_request_handler();
+	}
+	
+	// Protocol errors
+	catch (const server::protocol::http::unimplemented_method &e) {
+		this->handle_error(request_ptr, e,				 not_implemented);
+	}
+	catch (const server::protocol::http::unsupported_protocol_version &e) {
+		this->handle_error(request_ptr, e,				 http_version_not_supported);
+	}
+	catch (const server::protocol::http::error &e) {
+		// Also catches incorrect_protocol, incorrect_start_string, incorrect_header_string,
+		// header_required, incorrect_host_header, incorrect_port
+		this->handle_error(request_ptr, e,				 bad_request);
+	}
+	
+	// Host errors
+	catch (const server::host::host_not_found &e) {
+		this->handle_error(request_ptr, e,				 not_found);
+	}
+	catch (const server::host::error &e) {
+		// Also catches headers_has_content_length, duplicate_header
+		this->handle_error(request_ptr, e,				 internal_server_error);
+	}
+	
+	// Other errors
+	catch (const std::exception &e) {
+		this->handle_error(request_ptr, e,				 internal_server_error);
+	}
+	catch (...) {
+		// Impossible (maybe, logger?..)
+		this->handle_error(request_ptr, "Unknown error", internal_server_error);
+	}
+}
+
+
+// Handlers
+void
+server::client_manager::request_handler(server::protocol::http::request::ptr_type request_ptr,
 										const boost::system::error_code &err,
 										size_t bytes_transferred)
 {
 	unique_lock_t lock(*this);
 	this->unlock();
 	
-	if (err) {
-		if (err == boost::asio::error::misc_errors::eof) {
-			this->logger().stream(logger::level::info)
-				<< "Client manager (worker " << this->worker_.id()
-				<< "): Client disconnected: " << this->client_ip_address() << '.';
-		} else {
-			this->logger().stream(logger::level::error)
-				<< "Client manager (worker " << this->worker_.id()
-				<< "): " << this->client_ip_address()
-				<< ": " << err.value() << " " << err.message() << '.';
-		}
+	// Normal
+	if (!err) {
+		this->process_request(std::move(request_ptr));
 		return;
 	}
 	
-	
-	try {
-		this->parse_headers(request_data_ptr);
-		
-		
-		{
-			auto stream = this->logger().stream(logger::level::info);
-			stream
-				<< "Client manager (worker " << this->worker_.id()
-				<< "): " << this->client_ip_address()
-				<< ": HTTP/" << server::http::version_to_str(request_data_ptr->version)
-				<< ", " << server::http::method_to_str(request_data_ptr->method)
-				<< ", Requested URI: \"" << request_data_ptr->uri << "\". Headers:";
-			
-			for (const auto &p: request_data_ptr->headers)
-				stream << " [" << p.first << ": " << p.second << ']';
-			stream << '.';
-		}
-		
-		
-		if (this->keep_alive())
-			this->add_request_handler();
-		
-		
-		// ok
-		this->process_request(request_data_ptr);
-	} catch (const server::unimplemented_method &e) {					// Protocol errors
-		this->handle_error(request_data_ptr, e,
-						   server::http::status::not_implemented,
-						   true, true);
-	} catch (const server::unsupported_protocol_version &e) {
-		this->handle_error(request_data_ptr, e,
-						   server::http::status::http_version_not_supported,
-						   true, true);
-	} catch (const server::protocol_error &e) {
-		// Also catches incorrect_protocol, incorrect_start_string, incorrect_header_string,
-		// header_required, incorrect_host_header, incorrect_port
-		
-		this->handle_error(request_data_ptr, e,
-						   server::http::status::bad_request,
-						   true, true);
-	} catch (const server::host_not_found &e) {							// Host errors
-		this->handle_error(request_data_ptr, e,
-						   server::http::status::not_found,
-						   true, true);
-	} catch (const server::host_error &e) {
-		// Also catches headers_has_content_length, duplicate_header
-		
-		this->handle_error(request_data_ptr, e,
-						   server::http::status::internal_server_error,
-						   true, true);
-	} catch (const std::exception &e) {									// Other errors
-		this->handle_error(request_data_ptr, e.what(),
-						   server::http::status::internal_server_error,
-						   true, true);
-	} catch (...) {														// Other errors
-		this->handle_error(request_data_ptr, "Unknown error",
-						   server::http::status::internal_server_error,
-						   true, true);
+	// Error
+	if (err == boost::asio::error::misc_errors::eof) {
+		this->logger().stream(logger::level::info)
+			<< "Client manager (worker " << this->worker_.id()
+			<< "): Client disconnected: " << request_ptr->client_address() << '.';
+	} else {
+		this->logger().stream(logger::level::error)
+			<< "Client manager (worker " << this->worker_.id()
+			<< "): " << request_ptr->client_address()
+			<< ": " << err.value() << " " << err.message() << '.';
 	}
 }
 
@@ -282,19 +258,18 @@ server::client_manager::request_handler(server::client_manager::request_data_ptr
 void
 server::client_manager::add_response_handler()
 {
-	if (this->data_to_send_.empty()) return;
+	if (this->responses_queue_.empty()) return;
 	
 	if (!this->sending_) {
 		this->sending_ = true;
 		this->lock();
 		
-		auto data = std::move(this->data_to_send_.front());
-		this->data_to_send_.pop();
+		auto response_ptr = std::move(this->responses_queue_.front());
+		this->responses_queue_.pop();
 		
 		using namespace std::placeholders;
-		this->socket_ptr_->async_send(std::move(data.first),
-									  std::bind(&client_manager::response_handler, this,
-												data.second, _1, _2));
+		this->socket_ptr_->async_send(response_ptr->buffers,
+									  std::bind(&client_manager::response_handler, this, response_ptr, _1, _2));
 	}
 }
 
@@ -314,12 +289,12 @@ server::client_manager::response_handler(server::host_cache::shared_ptr_t cache_
 	if (err) {
 		this->logger().stream(logger::level::error)
 			<< "Client manager (worker " << this->worker_.id()
-			<< "): " << this->client_ip_address()
+			<< "): " << this->client_address()
 			<< ": Error sending response: " << err.message() << '.';
 	} else {
 		this->logger().stream(logger::level::info)
 			<< "Client manager (worker " << this->worker_.id()
-			<< "): " << this->client_ip_address()
+			<< "): " << this->client_address()
 			<< ": Response sent.";
 	}
 }

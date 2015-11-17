@@ -11,7 +11,7 @@
 #include <server/protocol/http/statuses.hpp>
 
 
-const server::port_t
+const server::port_type
 	server::protocol::http::default_port			= 80;
 
 

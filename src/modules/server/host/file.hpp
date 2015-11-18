@@ -150,8 +150,10 @@ inline
 void
 server::host::file<HostType>::validate_method(server::http::method method) const
 {
-	// This host only supports GET method
-	if (method != server::protocol::http::method::GET)
+	using namespace server::protocol::http::method;
+	
+	// This host only supports GET and HEAD methods
+	if (method != GET && method != HEAD)
 		throw server::host::method_not_allowed(server::protocol::http::method_to_str(method));
 }
 

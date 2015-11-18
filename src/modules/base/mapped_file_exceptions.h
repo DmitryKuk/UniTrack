@@ -41,4 +41,4 @@ public:
 };	// namespace base
 
 
-#endif // BASE_MAPPED_FILE_EXCEPTIONS_H
+#endif	// BASE_MAPPED_FILE_EXCEPTIONS_H

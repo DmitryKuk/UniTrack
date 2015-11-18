@@ -82,18 +82,6 @@ server::protocol::http::response::ptr_type
 phony_response(server::protocol::http::request::ptr_type request_ptr,
 			   const server::protocol::http::status &status)
 {
-	using namespace server::protocol::http;
-	using base::buffer;
-	
-	
-	auto response_ptr = std::make_shared<server::protocol::http::response>(status, request->version);
-	
-	
-	// Server name
-	auto server_name = this->server_name();
-	response_ptr->add_header(header_server, server_name);
-	
-	
 	// Body elements
 	static const std::string
 		body_1  =
@@ -125,9 +113,18 @@ phony_response(server::protocol::http::request::ptr_type request_ptr,
 			"</html>";
 	
 	
+	// Response
+	auto response_ptr = std::make_shared<server::protocol::http::response>(status, request_ptr->version);
+	
+	
+	// Server name
+	auto server_name = this->server_name();
+	response_ptr->add_header(server::protocol::http::header::server, server_name);
+	
+	
 	// Status strings
 	const std::string &code_str    = status.code_str(),
-					  $description = status.description();
+					  &description = status.description();
 	
 	std::vector<const std::string *> body = { &body_1, &code_str, &body_2, &description,
 											  &body_3, &code_str, &body_4, &description,
@@ -148,7 +145,7 @@ phony_response(server::protocol::http::request::ptr_type request_ptr,
 	}
 	
 	// Adding content length header
-	response_ptr->add_header(header::content_length, *content_len_ptr);
+	response_ptr->add_header(server::protocol::http::header::content_length, *content_len_ptr);
 	response_ptr->finish_headers();
 	
 	// Adding body

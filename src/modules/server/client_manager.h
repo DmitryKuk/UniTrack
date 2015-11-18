@@ -69,21 +69,14 @@ protected:
 	void unlock() noexcept;
 	
 	
-	void log_error(const char *what, const server::http::status &status);
-	
-	
 	void handle_error(server::protocol::http::request::ptr_type request_ptr,
 					  const char *what,
-					  const server::http::status &status,
-					  bool exit = true,
-					  bool send_phony = true);
+					  const server::http::status &status);
 	
 	inline
 	void handle_error(server::protocol::http::request::ptr_type request_ptr,
 					  const std::exception &e,
-					  const server::http::status &status,
-					  bool exit = true,
-					  bool send_phony = true);
+					  const server::http::status &status);
 	
 	
 	void add_request_handler();

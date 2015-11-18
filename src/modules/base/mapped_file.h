@@ -55,4 +55,4 @@ private:
 
 #include <base/mapped_file.hpp>
 
-#endif // BASE_MAPPED_FILE_H
+#endif	// BASE_MAPPED_FILE_H

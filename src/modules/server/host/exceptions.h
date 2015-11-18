@@ -18,13 +18,6 @@ public:
 };
 
 
-class headers_has_content_length: public error
-{
-public:
-	explicit headers_has_content_length();
-};
-
-
 class duplicate_header: public error
 {
 public:
@@ -36,13 +29,6 @@ class host_not_found: public error
 {
 public:
 	explicit host_not_found(const std::string &name);
-};
-
-
-class denied_uri: public error
-{
-public:
-	explicit denied_uri(const std::string &uri);
 };
 
 
@@ -64,6 +50,13 @@ class path_not_found: public error
 {
 public:
 	explicit path_not_found(const std::string &path);
+};
+
+
+class path_is_directory: public error
+{
+public:
+	explicit path_is_directory(const std::string &path);
 };
 
 

@@ -4,19 +4,64 @@
 
 #include <boost/filesystem.hpp>
 
-#include <base/mapped_file_exceptions.h>
-
+#include <base/json_utils.h>
 #include <server/host/exceptions.h>
 #include <server/host/file_handler_exceptions.h>
 
 
+// struct server::host::file<HostType>::current_parameters
+template<class HostType>
+server::host::file<HostType>::current_parameters::current_parameters(const nlohmann::json &config):
+	root(base::json_utils::get<decltype(this->root)>(config, "root"))
+{
+	if (!boost::filesystem::exists(this->root))
+		throw server::path_not_found(this->root.string());
+	this->root = std::move(boost::filesystem::canonical(this->root, "/"));
+	
+	
+	// Allow mode
+	{
+		const auto mode = base::json_utils::get<std::string>(config, "allow_match_mode");
+		if (mode == "any") {
+			this->mode = server::host::file::parameters::allow_match_mode::any;
+		} else if (mode == "all") {
+			this->mode = server::host::file::parameters::allow_match_mode::all;
+		} else {
+			throw std::logic_error("Incorrect config");
+		}
+	}
+	
+	
+	// Optional parameters
+	{
+		static const auto fill_regexes = [](auto &regex_vector, const auto &regexes)
+		{
+			regex_vector.clear();
+			for (const std::string &regex: regexes)
+				regex_vector.emplace_back(regex);
+		};
+		
+		
+		try {
+			fill_regexes(this->allow_regexes, base::json_utils::at(config, "allow_regexes"));
+		} catch (const std::out_of_range &) {}
+		
+		try {
+			fill_regexes(this->deny_regexes, base::json_utils::at(config, "deny_regexes"));
+		} catch (const std::out_of_range &) {}
+	}
+}
+
+
+
+// class server::host::file<HostType>
 template<class HostType>
 server::host::file<HostType>::file(logger::logger &logger,
 								   const server::file_host_parameters &parameters,
 								   HostType &&handler):
 	server::host(logger, parameters),
 	
-	file_host_parameters_(parameters),
+	parameters_(parameters),
 	handler_(std::move(handler))
 {}
 
@@ -37,311 +82,138 @@ template<class HostType>
 server::protocol::http::response::ptr_type
 server::host::file<HostType>::response(server::protocol::http::request::ptr_type request_ptr)
 {
-	if (!this->validate_method(method)) {
-		this->logger().stream(logger::level::sec_warning)
-			<< "File host: Host \"" << this->name()
-			<< "\": Requested unallowed method: \"" << server::http::method_to_str(method)
-			<< "\" => " << server::http::status::method_not_allowed.code_str() << '.';
-		
-		return this->phony_response(
-			version,
-			server::http::status::method_not_allowed,
-			std::move(response_headers),
-			{
-				{
-					server::http::header_allow,
-					server::http::method_to_str(server::http::method::GET)
-				}
-			});
-	}
+	using namespace server::protocol::http::status;
 	
 	
-	// Filling cache
-	server::host::file<HostType>::cache_shared_ptr_t cache_ptr
-		= std::make_shared<server::host::file<HostType>::cache_t>();
-	
-	
-	// Parsing URI
 	try {
-		if (!this->parse_uri(uri, *cache_ptr)) {
-			this->logger().stream(logger::level::sec_warning)
-				<< "File host: Host \"" << this->name()
-				<< "\": Incorrect URI: \"" << uri
-				<< "\" => " << server::http::status::bad_request.code_str() << '.';
+		// Validating request
+		this->validate_method(request_ptr->method);
+		this->validate_path(request_ptr->path);
+		
+		
+		static const boost::filesystem::path path_current = ".";
+		
+		// boost::filesystem::canonical throws, if path not found
+		auto path = boost::filesystem::canonical(path_current / request_ptr->path, this->parameters_.root);
+		if (boost::filesystem::is_directory(path)) {
+			if (this->parameters_.default_index_file == "")
+				throw server::host::path_is_directory(path.string());
 			
-			return this->phony_response(version,
-										server::http::status::bad_request,
-										std::move(response_headers));
+			path = boost::filesystem::canonical(this->parameters_.default_index_file, path);
+			
+			if (boost::filesystem::is_directory(path))	// Path is still directory, WTF?..
+				throw server::host::path_is_directory(path.string());
 		}
-	} catch (const boost::filesystem::filesystem_error &e) {
-		return this->handle_filesystem_error(
-			e, version, std::move(cache_ptr),
-			server::http::status::forbidden
-		);
+		
+		
+		return this->handler_(*this, request_ptr, path);
 	}
 	
-	
-	if (!this->validate_args(cache_ptr->args_map, cache_ptr->args_set)) {
-		auto rec_obj = std::move(this->logger().stream(logger::level::sec_warning)
-			<< "File host: Host \"" << this->name()
-			<< "\": Requested unallowed args: ");
-		
-		for (const auto &p: cache_ptr->args_map)
-			rec_obj << " [" << p.first << "=" << p.second << ']';
-		
-		for (const auto &arg: cache_ptr->args_set)
-			rec_obj << " [" << arg << ']';
-		
-		rec_obj << " => " << server::http::status::forbidden.code_str() << '.';
-		
-		
-		return this->phony_response(version,
-									server::http::status::forbidden,
-									std::move(response_headers));
+	// Filesystem errors
+	catch (const boost::filesystem::filesystem_error &e) {
+		switch (e.code().value()) {
+			case boost::system::errc::no_such_file_or_directory:
+				return this->handle_error(std::move(request_ptr), e,	not_found);
+			case boost::system::errc::permission_denied:
+				return this->handle_error(std::move(request_ptr), e,	forbidden);
+			default:
+				return this->handle_error(std::move(request_ptr), e,	internal_server_error);
+		}
 	}
 	
+	// Incorrect path
+	catch (const server::host::path_is_directory &e) {
+		return this->handle_error(std::move(request_ptr), e,			forbidden);
+	}
+	catch (const server::path_forbidden &e) {
+		return this->handle_error(std::move(request_ptr), e,			forbidden);
+	}
+	catch (const server::path_not_found &e) {
+		return this->handle_error(std::move(request_ptr), e,			not_found);
+	}
 	
-	cache_ptr->response_headers = std::move(response_headers);
+	// Handler errors
+	catch (const server::file_host_handler_error &e) {
+		return this->handle_error(std::move(request_ptr), e,			internal_server_error);
+	}
 	
-	
-	return this->response(std::move(cache_ptr),
-						  method, version,
-						  std::move(request_headers));
+	// Other errors (impossible)
+	catch (...) {
+		static const char e[] = "Unknown error";
+		return this->handle_error(std::move(request_ptr), e,			internal_server_error);
+	}
 }
 
 
-// private:
 template<class HostType>
-// virtual
-server::response_data_t
-server::host::file<HostType>::response(
-	server::host::file<HostType>::cache_shared_ptr_t &&cache_ptr,
-	server::http::method method,
-	server::http::version version,
-	server::headers_t &&request_headers)
+inline
+void
+server::host::file<HostType>::validate_method(server::http::method method) const
 {
-	using namespace boost::filesystem;
-	
-	
-	if (!this->validate_path(cache_ptr->path.string())) {
-		this->logger().stream(logger::level::sec_warning)
-			<< "File host: Host \"" << this->name()
-			<< "\": Requested unallowed path: " << cache_ptr->path
-			<< " => " << server::http::status::forbidden.code_str() << '.';
-		
-		return this->phony_response(version,
-									server::http::status::forbidden,
-									std::move(cache_ptr->response_headers));
-	}
-	
-	
-	std::pair<base::send_buffers_t, base::send_buffers_t> file_data;
-	
-	try {
-		// The path is relative, see parse_uri(): "./index.html"
-		// Or absolute: "/var/unitrack/www/index.html"
-		cache_ptr->path = canonical(cache_ptr->path, this->file_host_parameters_.root);
-		
-		file_data = std::move(this->handler_(*this, *cache_ptr));
-	} catch (const base::path_is_directory &) {
-		auto &p = cache_ptr->path;
-		
-		auto rec_obj = std::move(this->logger().stream(logger::level::info)
-		<< "File host: Host \"" << this->name()
-		<< "\": URI points to directory: " << p);
-		
-		// Append "/index.html"
-		p /= "index.html";
-		
-		rec_obj << " => Try: " << p << '.';
-		
-		
-		return this->response(
-			std::move(cache_ptr),
-			method, version,
-			std::move(request_headers)
-		);
-	} catch (const boost::filesystem::filesystem_error &e) {
-		return this->handle_filesystem_error(
-			e, version, std::move(cache_ptr),
-			server::http::status::forbidden
-		);
-	} catch (const server::path_forbidden &e) {
-		return this->log_and_phony_response(
-			e.what(), version, std::move(cache_ptr),
-			server::http::status::forbidden
-		);
-	} catch (const server::path_not_found &e) {
-		return this->log_and_phony_response(
-			e.what(), version, std::move(cache_ptr),
-			server::http::status::not_found
-		);
-	} catch (const server::file_host_handler_error &e) {
-		return this->log_and_phony_response(
-			e.what(), version, std::move(cache_ptr),
-			server::http::status::internal_server_error
-		);
-	} catch (...) {
-		return this->log_and_phony_response(
-			"Unknown error", version, std::move(cache_ptr),
-			server::http::status::internal_server_error
-		);
-	}
-	
-	
-	auto server_name = this->server_name(cache_ptr->response_headers, {});
-	
-	
-	base::send_buffers_t res;
-	res.reserve(4 + 4 * (cache_ptr->response_headers.size()
-						 + file_data.first.size() + file_data.second.size()
-						 + ((server_name.second)? 1: 0)));
-	
-	server::host::add_start_string(res, version, server::http::status::ok);
-	
-	if (server_name.second)
-		server::host::add_header(res, server::http::header_server, *server_name.first);
-	server::host::add_headers(res, cache_ptr->response_headers);
-	
-	
-	res.insert(res.end(), file_data.first.begin(), file_data.first.end());
-	server::host::finish_headers(res);
-	
-	res.insert(res.end(), file_data.second.begin(), file_data.second.end());
-	
-	return { std::move(res), std::move(cache_ptr) };
+	// This host only supports GET method
+	if (method != server::protocol::http::method::GET)
+		throw server::host::method_not_allowed(server::protocol::http::method_to_str(method));
 }
 
 
 template<class HostType>
-bool
-server::host::file<HostType>::validate_path(const std::string &path) const noexcept
+void
+server::host::file<HostType>::validate_path(const std::string &path) const
 {
 	// Checks for denied regexes
-	for (const auto &deny_regex: this->file_host_parameters_.deny_regexes)
-		if (std::regex_match(path, deny_regex)) {
-			this->logger().stream(logger::level::sec_warning)
-				<< "File host: Host \"" << this->name()
-				<< "\": Requested denied path: \"" << path << "\".";
-			return false;
-		}
+	for (const auto &deny_regex: this->parameters_.deny_regexes)
+		if (std::regex_match(path, deny_regex))
+			throw server::host::path_forbidden(path);
 	
 	
 	// Checks for allowed regexes
 	bool verification_status = false;
 	
-	if (this->file_host_parameters_.allow_regexes.empty()) {
+	if (this->parameters_.allow_regexes.empty()) {
 		verification_status = false;
-	} else if (this->file_host_parameters_.mode
-		== file_host_only_parameters::allow_match_mode::any) {	// Any
+	} else if (this->parameters_.mode == server::host::file::parameters::allow_match_mode::any) {	// Any
 		verification_status = false;
-		for (const auto &allow_regex: this->file_host_parameters_.allow_regexes)
+		for (const auto &allow_regex: this->parameters_.allow_regexes)
 			if (std::regex_match(path, allow_regex)) {
 				verification_status = true;
 				break;
 			}
-	} else {													// All
+	} else {																						// All
 		verification_status = true;
-		for (const auto &allow_regex: this->file_host_parameters_.allow_regexes)
+		for (const auto &allow_regex: this->parameters_.allow_regexes)
 			if (!std::regex_match(path, allow_regex)) {
 				verification_status = false;
 				break;
 			}
 	}
 	
-	
-	if (verification_status == true) {
-		this->logger().stream(logger::level::sec_info)
-			<< "File host: Host \"" << this->name()
-			<< "\": Requested allowed path: \"" << path << "\".";
-	} else {
-		this->logger().stream(logger::level::sec_warning)
-			<< "File host: Host \"" << this->name()
-			<< "\": Requested unallowed path: \"" << path << "\".";
-	}
-	
-	return verification_status;
+	if (!verification_status)
+		throw server::host::path_forbidden(path);
 }
 
 
 template<class HostType>
-bool
-server::host::file<HostType>::validate_args(
-	const server::uri_arguments_map_t &args_map,
-	const server::uri_arguments_set_t &args_set) const noexcept
-{
-	return true;
-}
-
-
-template<class HostType>
-bool
-server::host::file<HostType>::validate_method(server::http::method method) const noexcept
-{
-	// This host only supports GET method.
-	if (method == server::http::method::GET)
-		return true;
-	return false;
-}
-
-
-template<class HostType>
-server::response_data_t
-server::host::file<HostType>::log_and_phony_response(
-	const std::string &message,
-	server::http::version version,
-	server::host::file<HostType>::cache_shared_ptr_t cache_ptr,
-	const server::http::status &status)
+server::protocol::http::response::ptr_type
+server::host::file<HostType>::handle_error(server::protocol::http::request::ptr_type request_ptr,
+										   const char *what,
+										   const server::http::status &status)
 {
 	this->logger().stream(logger::level::error)
-		<< "File host: Host \"" << this->name()
-		<< "\": Can't send path: " << cache_ptr->path << ": " << message
-		<< " => " << status.code_str() << '.';
+		<< "File host: \"" << this->name()
+		<< "\" (client: " << request_ptr->client_address
+		<< "): " << what
+		<< " => " << status.code() << '.';
 	
-	return this->phony_response(version,
-								status,
-								std::move(cache_ptr->response_headers));
+	return this->phony_response(std::move(request_ptr), status);
 }
 
 
 template<class HostType>
-server::response_data_t
-server::host::file<HostType>::handle_filesystem_error(
-	const boost::filesystem::filesystem_error &e,
-	server::http::version version,
-	server::host::file<HostType>::cache_shared_ptr_t cache_ptr,
-	const server::http::status &status)
+inline
+server::protocol::http::response::ptr_type
+server::host::file<HostType>::handle_error(server::protocol::http::request::ptr_type request_ptr,
+										   const std::exception &e,
+										   const server::http::status &status)
 {
-	switch (e.code().value()) {
-		case boost::system::errc::no_such_file_or_directory:
-			return this->log_and_phony_response(
-				e.code().message(), version, std::move(cache_ptr),
-				server::http::status::not_found
-			);
-		case boost::system::errc::permission_denied:
-			return this->log_and_phony_response(
-				e.code().message(), version, std::move(cache_ptr),
-				server::http::status::forbidden
-			);
-		default:
-			return this->log_and_phony_response(
-				e.code().message(), version, std::move(cache_ptr),
-				server::http::status::internal_server_error
-			);
-	}
-}
-
-
-template<class HostType>
-bool
-server::host::file<HostType>::parse_uri(const std::string &uri,
-												  server::host_cache &cache)
-{
-	if (!server::host::parse_uri(uri, cache))
-		return false;
-	
-	// Making the path relative
-	cache.path = canonical("." / cache.path, this->file_host_parameters_.root);
-	
-	return true;
+	return this->handle_error(std::move(request_ptr), e.what(), status);
 }

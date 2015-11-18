@@ -78,26 +78,17 @@ server::client_manager::unlock() noexcept
 
 
 void
-server::client_manager::log_error(const char *what, const server::http::status &status)
+server::client_manager::handle_error(server::protocol::http::request::ptr_type request_ptr,
+									 const char *what,
+									 const server::http::status &status)
 {
 	this->logger().stream(logger::level::error)
 		<< "Client manager (worker " << this->worker_.id()
-		<< "): " << this->client_address() << ": " << what
+		<< "): " << request_ptr->client_address() << ": " << what
 		<< " => " << status.code() << '.';
-}
-
-
-void
-server::client_manager::handle_error(server::protocol::http::request request_ptr,
-									 const char *what,
-									 const server::http::status &status,
-									 bool exit,
-									 bool send_phony)
-{
-	this->log_error(what, status);
 	
-	if (exit) this->keep_alive(false);
-	if (send_phony) this->send_phony(request_ptr, status);
+	this->keep_alive(false);
+	this->send_phony(std::move(request_ptr), status);
 }
 
 
@@ -195,33 +186,33 @@ server::client_manager::process_request(server::protocol::http::request::ptr_typ
 	
 	// Protocol errors
 	catch (const server::protocol::http::unimplemented_method &e) {
-		this->handle_error(request_ptr, e,				 not_implemented);
+		this->handle_error(std::move(request_ptr), e,				 not_implemented);
 	}
 	catch (const server::protocol::http::unsupported_protocol_version &e) {
-		this->handle_error(request_ptr, e,				 http_version_not_supported);
+		this->handle_error(std::move(request_ptr), e,				 http_version_not_supported);
 	}
 	catch (const server::protocol::http::error &e) {
 		// Also catches incorrect_protocol, incorrect_start_string, incorrect_header_string,
 		// header_required, incorrect_host_header, incorrect_port
-		this->handle_error(request_ptr, e,				 bad_request);
+		this->handle_error(std::move(request_ptr), e,				 bad_request);
 	}
 	
 	// Host errors
 	catch (const server::host::host_not_found &e) {
-		this->handle_error(request_ptr, e,				 not_found);
+		this->handle_error(std::move(request_ptr), e,				 not_found);
 	}
 	catch (const server::host::error &e) {
 		// Also catches headers_has_content_length, duplicate_header
-		this->handle_error(request_ptr, e,				 internal_server_error);
+		this->handle_error(std::move(request_ptr), e,				 internal_server_error);
 	}
 	
 	// Other errors
 	catch (const std::exception &e) {
-		this->handle_error(request_ptr, e,				 internal_server_error);
+		this->handle_error(std::move(request_ptr), e,				 internal_server_error);
 	}
 	catch (...) {
 		// Impossible (maybe, logger?..)
-		this->handle_error(request_ptr, "Unknown error", internal_server_error);
+		this->handle_error(std::move(request_ptr), "Unknown error", internal_server_error);
 	}
 }
 

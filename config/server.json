@@ -7,6 +7,8 @@
 			"type": "files_and_template_pages",
 			"root": "/var/unitrack/www",
 			
+			"default_index_file": "index.html",
+			
 			"allow_match_mode": "any",
 			"allow_regexes": [ "/.*" ],
 			

@@ -42,4 +42,4 @@ inline back_inserter_functor<Container> make_back_inserter_functor(Container &co
 
 #include <base/functional.hpp>
 
-#endif // BASE_FUNCTIONAL_H
+#endif	// BASE_FUNCTIONAL_H

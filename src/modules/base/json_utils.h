@@ -61,4 +61,4 @@ inline bool get_variant(const nlohmann::json &json, std::function<void (Ts)> &&.
 
 #include <base/json_utils.hpp>
 
-#endif // JSON_UTILS_H
+#endif	// JSON_UTILS_H

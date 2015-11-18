@@ -28,7 +28,7 @@ namespace host {
 // 	- must have non-static method:
 // 		
 // 		std::pair<base::send_buffers_t, base::send_buffers_t>
-// 		operator()(const file_host<HostType, CacheType> &host,	// Host, that is handler's owner
+// 		operator()(const file<HostType> &host,	// Host, that is handler's owner
 // 				   CacheType &cache);							// Cache that the handler can use
 // 		
 // 		Return value: first if headers buffers, second is content buffers.
@@ -51,86 +51,87 @@ namespace host {
 // NOTE: If you don't know what is these, and what should you do, simple files-only host example:
 // 		server::parameters params;
 // 		// Set parameters with: params.smth = smth_val;
-// 		server::file_host<server::files_only> host(logger, params);
+// 		server::file<server::files_only> host(logger, params);
 
 
 template<class HostType>
-class file_host:
+class file:
 	public server::host::base
 {
 public:
-	struct only_parameters
+	struct current_parameters
 	{
 		// May be useful, if several allow_regexes specified.
 		enum class allow_match_mode
 		{
-			any,	// Uri matches any of allow_regexes (and doesn't match any of deny_regexes).
-			all		// Uri matches all of allow_regexes (and doesn't match any of deny_regexes).
-		};
+			any,	// Path matches any of allow_regexes (and doesn't match any of deny_regexes).
+			all		// Path matches all of allow_regexes (and doesn't match any of deny_regexes).
+		};	// enum class allow_match_mode
 		
 		
-		boost::filesystem::path root;			// Required
+		boost::filesystem::path root;						// Required
+		
+		// Set to "index.html" for standard behavior. Empty value denies searching, if directory path requested
+		boost::filesystem::path default_index_file = "";	// Optional
 		
 		std::vector<std::regex>
-			deny_regexes =						// Optional
+			deny_regexes =									// Optional
 				{
 					std::regex(".*\\.\\./.*"),	// Don't allow "../" sequences!
 					std::regex(".*/\\..*")		// Don't allow hidden directories and files
 				},
-			allow_regexes =						// Optional
+			allow_regexes =									// Optional
 				{
 					// Don't allow anything by default
 				};
 		
-		allow_match_mode mode					// Optional
-			= allow_match_mode::all;
+		allow_match_mode mode = allow_match_mode::all;		// Optional
 		
 		
-		explicit only_parameters() = default;
-		explicit only_parameters(const nlohmann::json &config);
-	};	// struct only_parameters
+		
+		explicit current_parameters() = default;
+		explicit current_parameters(const nlohmann::json &config);
+	};	// struct current_parameters
 	
 	
 	struct parameters:
 		public server::host::base::parameters,
-		public only_parameters
+		public current_parameters
 	{
-		using only_parameters::allow_match_mode;
+		using current_parameters::allow_match_mode;
 		
 		
 		explicit parameters() = default;
 		
 		explicit parameters(const nlohmann::json &config):
 			server::host::base::parameters(config),
-			only_parameters(config)
+			current_parameters(config)
 		{}
 	};	// struct parameters
 	
 	
 	
-	file_host(logger::logger &logger,
+	file(logger::logger &logger,
 			  const parameters &parameters,
 			  HostType &&handler = std::move(HostType()));
 	
-	file_host(logger::logger &logger,
+	file(logger::logger &logger,
 			  const parameters &parameters,
 			  const HostType &handler);
 	
 	
 	// Non-copy/-move constructable/assignable. Use ptrs.
-	template<class HostType1, class CacheType1>
-	file_host(const file_host<HostType1, CacheType1> &other) = delete;
+	template<class HostType1>
+	file(const file<HostType1> &other) = delete;
 	
-	template<class HostType1, class CacheType1>
-	file_host(file_host<HostType1, CacheType1> &&other) = delete;
+	template<class HostType1>
+	file(file<HostType1> &&other) = delete;
 	
-	template<class HostType1, class CacheType1>
-	file_host<HostType, CacheType> &
-	operator=(const file_host<HostType1, CacheType1> &other) = delete;
+	template<class HostType1>
+	file<HostType> & operator=(const file<HostType1> &other) = delete;
 	
-	template<class HostType1, class CacheType1>
-	file_host<HostType, CacheType> &
-	operator=(file_host<HostType1, CacheType1> &&other) = delete;
+	template<class HostType1>
+	file<HostType> & operator=(file<HostType1> &&other) = delete;
 	
 	
 	// Prepares a correct response to the client.
@@ -140,48 +141,38 @@ public:
 	virtual
 	server::protocol::http::response::ptr_type
 	response(server::protocol::http::request::ptr_type request_ptr) override;
-	
-	
-	// URI parsing
-	bool parse_uri(const std::string &uri, server::host_cache &cache);
 protected:
-	bool validate_path(const std::string &path) const noexcept;
-	bool validate_args(const server::uri_arguments_map_t &args_map,
-					   const server::uri_arguments_set_t &args_set) const noexcept;
-	bool validate_method(server::http::method method) const noexcept;
+	// Validators
+	inline
+	void validate_method(server::http::method method) const;
+	
+	void validate_path(const std::string &path) const;
 	
 	
-	server::response_data_t
-	log_and_phony_response(const std::string &message,
-						   server::http::version version,
-						   server::file_host<HostType, CacheType>::cache_shared_ptr_t cache_ptr,
-						   const server::http::status &status);
+	// Error handlers
+	server::protocol::http::response::ptr_type
+	handle_error(server::protocol::http::request::ptr_type request_ptr,
+				 const char *what,
+				 const server::http::status &status);
 	
-	
-	server::response_data_t
-	handle_filesystem_error(const boost::filesystem::filesystem_error &e,
-							server::http::version version,
-							server::file_host<HostType, CacheType>::cache_shared_ptr_t cache_ptr,
-							const server::http::status &status);
-private:
-	server::response_data_t
-	response(server::file_host<HostType, CacheType>::cache_shared_ptr_t &&cache_ptr,
-			 server::http::method method,
-			 server::http::version version,
-			 server::headers_t &&request_headers);
+	inline
+	server::protocol::http::response::ptr_type
+	handle_error(server::protocol::http::request::ptr_type request_ptr,
+				 const std::exception &e,
+				 const server::http::status &status);
 	
 	
 	// Data
-	only_parameters parameters_;
-	
+	current_parameters parameters_;
+private:
 	HostType handler_;
-};	// class file_host
+};	// class file
 
 
 };	// namespace host
 };	// namespace server
 
 
-#include <server/file_host.hpp>
+#include <server/host/file.hpp>
 
 #endif	// SERVER_HOST_FILE_H

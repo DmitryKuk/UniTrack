@@ -36,12 +36,9 @@ server::client_manager::keep_alive(bool status) noexcept
 // protected
 inline
 void
-server::client_manager::handle_error(server::client_manager::request_data_ptr_t request_data_ptr,
+server::client_manager::handle_error(server::protocol::http::request::ptr_type request_ptr,
 									 const std::exception &e,
-									 const server::http::status &status,
-									 bool exit,
-									 bool send_phony,
-									 std::unordered_map<std::string, std::string> &&headers)
+									 const server::http::status &status)
 {
-	this->handle_error(request_data_ptr, e.what(), status, exit, send_phony, std::move(headers));
+	this->handle_error(std::move(request_ptr), e.what(), status);
 }

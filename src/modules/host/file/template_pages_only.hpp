@@ -54,7 +54,7 @@ host::file::template_pages_only::operator()(const FileHost &host,
 	std::for_each(
 		response_ptr->page_.begin(response_ptr->page_model_),
 		response_ptr->page_.end(),
-		[&, &response = *response_ptr](base::send_buffer_type buffer)
+		[&, &buffers = response_ptr->buffers](base::send_buffer_type buffer)
 		{
 			content_len += base::buffer_size(buffer);	// Calculating content length
 			buffers.push_back(std::move(buffer));

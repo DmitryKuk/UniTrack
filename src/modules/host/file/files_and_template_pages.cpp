@@ -2,6 +2,8 @@
 
 #include <host/file/files_and_template_pages.h>
 
+#include <string>
+
 #include <base/json_utils.h>
 
 
@@ -15,13 +17,12 @@ host::file::files_and_template_pages::parameters::parameters(const nlohmann::jso
 		std::string str;
 		
 		if (base::json_utils::extract(config, str, "default_behavior")) {
-			if (str == "files") {
+			if (str == "files")
 				this->default_behavior = behavior::files;
-			} else if (str == "template_pages") {
+			else if (str == "template_pages")
 				this->default_behavior = behavior::template_pages;
-			} else {
-				throw std::logic_error("Incorrect config");
-			}
+			else
+				throw host::incorrect_config("Allow values for \"default_behavior\": \"files\", \"template_pages\"");
 		}
 	}
 	

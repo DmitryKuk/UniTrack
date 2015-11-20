@@ -27,6 +27,10 @@ server::host::path_forbidden::path_forbidden(const std::string &path):
 	server::host::error("Path forbidden: \"" + path + '\"')
 {}
 
+server::host::path_forbidden::path_forbidden(const std::string &path, const std::string &message):
+	server::host::error("Path forbidden: \"" + path + "\": " + message)
+{}
+
 
 server::host::path_not_found::path_not_found(const std::string &path):
 	server::host::error("Path not found: \"" + path + '\"')

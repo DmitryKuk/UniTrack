@@ -18,6 +18,7 @@ typedef boost::asio::const_buffer						send_buffer_type;
 typedef std::vector<send_buffer_type>					send_buffers_type;
 typedef std::back_insert_iterator<send_buffers_type>	send_buffers_insert_iterator_type;
 
+using std::back_inserter;
 
 using boost::asio::buffer;
 using boost::asio::buffer_cast;

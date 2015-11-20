@@ -125,15 +125,23 @@ server::host::file<HostType>::response(server::protocol::http::request::ptr_type
 	catch (const server::host::path_is_directory &e) {
 		return this->handle_error(std::move(request_ptr), e,			forbidden);
 	}
-	catch (const server::path_forbidden &e) {
+	catch (const server::host::path_forbidden &e) {
 		return this->handle_error(std::move(request_ptr), e,			forbidden);
 	}
-	catch (const server::path_not_found &e) {
+	catch (const server::host::path_not_found &e) {
 		return this->handle_error(std::move(request_ptr), e,			not_found);
 	}
 	
-	// Handler errors
-	catch (const server::file_host_handler_error &e) {
+	// Other (handler) errors
+	catch (const server::host::method_not_allowed &e) {
+		return this->handle_error(std::move(request_ptr), e,			forbidden);
+	}
+	catch (const server::host::error &e) {
+		return this->handle_error(std::move(request_ptr), e,			internal_server_error);
+	}
+	
+	// Other errors (maybe, file host handler or logger?)
+	catch (const std::exception &e) {
 		return this->handle_error(std::move(request_ptr), e,			internal_server_error);
 	}
 	

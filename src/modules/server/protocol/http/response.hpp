@@ -31,14 +31,14 @@ server::protocol::http::response::finish_headers()
 }
 
 
-template<class T>
+template<class... Args>
 inline
 void
-server::protocol::http::response::add_body(const T &data)
+server::protocol::http::response::add_body(const Args &... data)
 {
 	using base::buffer;
 	
-	this->add_body(buffer(data));
+	this->add_body(buffer(data...));
 }
 
 
@@ -48,4 +48,15 @@ void
 server::protocol::http::response::add_body(const base::send_buffer_type &buffer)
 {
 	this->buffers.push_back(buffer);
+}
+
+
+// Returns index of send buffer, that points to value of last added header
+// WARNING: Call this method immidiately after add_header or add_headers called!
+//          Otherwise, trash value will be returned!
+inline
+size_t
+server::protocol::http::response::header_value_index() const noexcept
+{
+	return this->buffers.size() - 2;	// Index of buffer, that points to last header's value
 }

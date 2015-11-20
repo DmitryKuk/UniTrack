@@ -48,10 +48,10 @@ public:
 	// After these steps you have response ready to send. You may skip steps 2 and 4, if you need.
 	
 	void add_start_string(const server::protocol::http::status &status,
-						  server::protocol::http::version version = v_1_1);
+							server::protocol::http::version version = v_1_1);
+	
 	
 	void add_header(const std::string &name, const std::string &value);
-	
 	
 	// Headers should be iterable container. Each element should have first and second members,
 	// both convertible to std::string. Usage example:
@@ -62,11 +62,17 @@ public:
 	inline void finish_headers();
 	
 	
-	template<class T>
-	inline void add_body(const T &data);
+	template<class... Args>
+	inline void add_body(const Args &... data);
 	
 	template<>
 	inline void add_body(const base::send_buffer_type &buffer);
+	
+	
+	// Returns index of send buffer, that points to value of last added header
+	// WARNING: Call this method immidiately after add_header or add_headers called!
+	//          Otherwise, trash value will be returned!
+	inline size_t header_value_index() const noexcept;
 };	// class response
 
 

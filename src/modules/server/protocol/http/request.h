@@ -45,7 +45,7 @@ public:
 	
 	
 	// Constructor with client address
-	using server::protocol::request(const boost::asio::ip::address &client_address);
+	using server::protocol::request::request(const boost::asio::ip::address &client_address);
 	
 	request() = default;
 	request(const request &other) = default;

@@ -43,6 +43,7 @@ class path_forbidden: public error
 {
 public:
 	explicit path_forbidden(const std::string &path);
+	explicit path_forbidden(const std::string &path, const std::string &message);
 };
 
 

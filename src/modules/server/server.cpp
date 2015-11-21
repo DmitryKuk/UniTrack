@@ -6,9 +6,11 @@
 #include <system_error>
 
 
-server::server::parameters(const nlohmann::json &config)
+server::server::parameters::parameters(const nlohmann::json &config)
 {
-	base::json_utils::extract(config, this->server_names, "server_names");
+	base::json_utils::extract(config, this->ports,			"ports");
+	base::json_utils::extract(config, this->workers,		"workers");
+	base::json_utils::extract(config, this->server_names,	"server_names");
 }
 
 

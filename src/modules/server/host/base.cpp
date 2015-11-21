@@ -1,6 +1,6 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#include <server/host/base/host.h>
+#include <server/host/base.h>
 
 #include <chrono>
 #include <mutex>
@@ -8,6 +8,7 @@
 
 #include <base/json_utils.h>
 #include <server/host/exceptions.h>
+#include <server/worker.h>
 
 
 // class server::host::base::parameters

@@ -4,7 +4,7 @@
 
 
 # Other modules this target depends on
-MODULE_DEPS			 		= base logger server templatizer logic
+MODULE_DEPS			 		= base logger server host templatizer logic
 
 
 # External libs this target depends on

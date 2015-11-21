@@ -3,7 +3,7 @@
 
 // Returns worker id
 inline
-server::worker::id
+server::worker::id_type
 server::worker::id() const noexcept
 {
 	return this->parameters_.id;

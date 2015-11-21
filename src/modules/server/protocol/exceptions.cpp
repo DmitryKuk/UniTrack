@@ -4,5 +4,5 @@
 
 
 server::protocol::error::error(const std::string &what_arg):
-	server::protocol::error(what_arg)
+	std::logic_error(what_arg)
 {}

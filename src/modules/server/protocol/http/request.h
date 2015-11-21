@@ -29,8 +29,8 @@ public:
 	
 	// Data
 	// Protocol info
-	server::protocol::http::method					method  = unknown;
-	server::protocol::http::version					version = unknown;
+	server::protocol::http::method					method  = server::protocol::http::method::unknown;
+	server::protocol::http::version					version = server::protocol::http::version::unknown;
 	
 	// Non-parsed URI
 	std::string										uri;
@@ -45,7 +45,7 @@ public:
 	
 	
 	// Constructor with client address
-	using server::protocol::request::request(const boost::asio::ip::address &client_address);
+	using server::protocol::request::request;
 	
 	request() = default;
 	request(const request &other) = default;

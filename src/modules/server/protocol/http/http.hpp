@@ -3,7 +3,7 @@
 
 inline
 unsigned int
-server::http::status::code() const noexcept
+server::protocol::http::status::code() const noexcept
 {
 	return this->code_;
 }
@@ -11,7 +11,7 @@ server::http::status::code() const noexcept
 
 inline
 const std::string &
-server::http::status::code_str() const noexcept
+server::protocol::http::status::code_str() const noexcept
 {
 	return this->code_str_;
 }
@@ -19,7 +19,7 @@ server::http::status::code_str() const noexcept
 
 inline
 const std::string &
-server::http::status::description() const noexcept
+server::protocol::http::status::description() const noexcept
 {
 	return this->description_;
 }

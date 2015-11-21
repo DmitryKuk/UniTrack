@@ -22,7 +22,7 @@ public:
 	
 	
 	// Buffers to send
-	base::send_buffers_t buffers;
+	base::send_buffers_type buffers;
 	
 	
 	response() = default;

@@ -11,12 +11,12 @@ templatizer::raw_chunk::raw_chunk(const char *data, size_t size) noexcept:
 
 
 // virtual
-void
-templatizer::raw_chunk::generate(base::send_buffers_insert_iterator_t buffers_ins_it,
-								 base::strings_cache_insert_functor_t /*cache_inserter*/,
-								 const templatizer::model &model) const
+size_t
+templatizer::raw_chunk::generate(base::send_buffers_insert_functor buffers_ins_fn,
+								 base::strings_cache & /*cache*/,							// Unused
+								 const templatizer::model & /*model*/) const				// Unused
 {
-	*buffers_ins_it = base::buffer(this->data_, this->size_);
+	return buffers_ins_fn(this->data_, this->size_);
 }
 
 

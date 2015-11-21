@@ -3,7 +3,7 @@
 
 inline
 server::protocol::http::response::response(const server::protocol::http::status &status,
-										   server::protocol::http::version version):
+										   server::protocol::http::version version)
 {
 	this->add_start_string(status, version);
 }
@@ -42,6 +42,7 @@ server::protocol::http::response::add_body(const Args &... data)
 }
 
 
+// Template specialization for base::send_buffer_type
 template<>
 inline
 void

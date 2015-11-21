@@ -53,7 +53,7 @@ server::worker::add_client(server::socket_ptr_t socket_ptr) noexcept
 													   *this,
 													   it,
 													   socket_ptr,
-													   this->host_manager_);
+													   this->server_.host_manager());
 	} catch (...) {
 		this->logger().stream(logger::level::error)
 			<< "Worker: Worker " << this->id() << ": Client not added.";

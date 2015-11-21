@@ -2,7 +2,7 @@
 
 #include <logic/global_instance_parameters.h>
 
-#include <logic/logic_exceptions.h>
+#include <logic/exceptions.h>
 
 
 logic::mongo_parameters::mongo_parameters(const nlohmann::json &config)

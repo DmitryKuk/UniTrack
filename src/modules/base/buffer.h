@@ -4,7 +4,7 @@
 #define BASE_BUFFER_H
 
 #include <vector>
-#include <iterator>
+#include <functional>
 
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/streambuf.hpp>
@@ -14,11 +14,9 @@ namespace base {
 
 
 // Send buffers
-typedef boost::asio::const_buffer						send_buffer_type;
-typedef std::vector<send_buffer_type>					send_buffers_type;
-typedef std::back_insert_iterator<send_buffers_type>	send_buffers_insert_iterator_type;
+typedef boost::asio::const_buffer		send_buffer_type;
+typedef std::vector<send_buffer_type>	send_buffers_type;
 
-using std::back_inserter;
 
 using boost::asio::buffer;
 using boost::asio::buffer_cast;
@@ -27,7 +25,28 @@ using boost::asio::buffer_size;
 using boost::asio::streambuf;
 
 
+class send_buffers_insert_functor
+{
+public:
+	inline send_buffers_insert_functor(base::send_buffers_type &buffers);
+	
+	send_buffers_insert_functor(const send_buffers_insert_functor &other) = default;
+	send_buffers_insert_functor(send_buffers_insert_functor &&other) = default;
+	
+	send_buffers_insert_functor & operator=(const send_buffers_insert_functor &other) = default;
+	send_buffers_insert_functor & operator=(send_buffers_insert_functor &&other) = default;
+	
+	
+	template<class... Args>
+	size_t operator()(Args &&... args) const;
+private:
+	base::send_buffers_type *buffers_ptr_;
+};	// class send_buffers_insert_functor
+
+
 };	// namespace base
 
+
+#include <base/buffer.hpp>
 
 #endif	// BASE_BUFFER_H

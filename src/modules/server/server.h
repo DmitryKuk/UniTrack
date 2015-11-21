@@ -24,7 +24,7 @@ class server:
 public:
 	struct parameters
 	{
-		server::port_set_t			ports			= {};
+		server::port_set_type		ports			= {};
 		unsigned int				workers			= 1;
 		
 		

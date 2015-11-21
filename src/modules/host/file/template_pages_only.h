@@ -11,6 +11,7 @@
 
 #include <base/buffer.h>
 #include <server/worker.h>
+#include <server/protocol/http.h>
 #include <templatizer/page.h>
 #include <logic/page_model.h>
 #include <logic/global_instance.h>
@@ -30,7 +31,7 @@ public:
 		inline response(const templatizer::page &page,
 						logic::page_model &&model,
 						const server::protocol::http::status &status,
-						server::protocol::http::version version = v_1_1);
+						server::protocol::http::version version = server::protocol::http::version::v_1_1);
 	private:
 		// Data
 		const templatizer::page &page_;

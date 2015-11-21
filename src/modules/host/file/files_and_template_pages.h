@@ -10,6 +10,7 @@
 #include <base/buffer.h>
 #include <server/host/file/files_only.h>
 #include <server/worker.h>
+#include <server/protocol/http.h>
 #include <logic/global_instance.h>
 #include <host/file/template_pages_only.h>
 

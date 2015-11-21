@@ -4,12 +4,12 @@
 
 #include <functional>
 
-#include <server/server_http.h>
+#include <server/server.h>
 
 
 server::acceptor::acceptor(logger::logger &logger,
-						   server::server_http &server,
-						   const acceptor_parameters &parameters,
+						   server::server &server,
+						   const parameters &parameters,
 						   boost::asio::io_service &acceptors_io_service,
 						   boost::asio::io_service &workers_io_service):
 	logger::enable_logger(logger),
@@ -40,7 +40,7 @@ server::acceptor::~acceptor()
 
 // Handles the accept event
 void
-server::acceptor::accept_handler(server::socket_ptr_t socket_ptr,
+server::acceptor::accept_handler(server::socket_ptr_type socket_ptr,
 								 const boost::system::error_code &err) noexcept
 {
 	if (err) {

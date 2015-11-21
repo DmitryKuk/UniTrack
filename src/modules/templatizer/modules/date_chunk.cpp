@@ -1,10 +1,11 @@
 // Author: Vera Produvnova
+// Author: Dmitry Kukovinets (d1021976@gmail.com)
 
 #include <templatizer/modules/date_chunk.h>
 
-#include <templatizer/module.h>
-
 #include <ctime>
+
+#include <templatizer/module.h>
 
 
 const std::string templatizer::date_chunk::cmd = "date";
@@ -15,6 +16,7 @@ namespace {	// Module
 templatizer::module<templatizer::date_chunk> module(templatizer::date_chunk::cmd);
 
 };	// namespace
+
 
 templatizer::date_chunk::date_chunk(const std::string &symbol):
 	symbol_(symbol)
@@ -27,18 +29,18 @@ templatizer::date_chunk::date_chunk(std::string &&symbol) noexcept:
 
 
 // virtual
-void
-templatizer::date_chunk::generate(base::send_buffers_insert_iterator_t buffers_ins_it,
-								  base::strings_cache_insert_functor_t cache_inserter,
+size_t
+templatizer::date_chunk::generate(base::send_buffers_insert_functor buffers_ins_fn,
+								  base::strings_cache &cache,
 								  const templatizer::model &model) const
 {
-	time_t raw_time;
-	::time(&raw_time);
-	auto *time_info = ::localtime(&raw_time);
+	std::time_t raw_time;
+	std::::time(&raw_time);
+	auto *time_info = std::::localtime(&raw_time);
 	char date_str[11];
-	::strftime(date_str, 11, "%d.%m.%Y", time_info);
+	std::::strftime(date_str, 11, "%d.%m.%Y", time_info);
 	
-	*buffers_ins_it = base::buffer(cache_inserter(date_str));
+	return buffers_ins_fn(cache(date_str));
 }
 
 

@@ -13,7 +13,7 @@ server::protocol::http::incorrect_start_string::incorrect_start_string(const std
 	server::protocol::http::error("Incorrect start string: \"" + str + "\"")
 {}
 
-server::protocol::http::uri_parse_error::uri_parse_error(const std::string &method_name):
+server::protocol::http::uri_parse_error::uri_parse_error(const std::string &uri):
 	server::protocol::http::error("Can\'t parse URI: \"" + uri + '\"')
 {}
 

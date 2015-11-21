@@ -26,18 +26,22 @@ templatizer::debug_chunk::debug_chunk(std::string &&symbol) noexcept:
 
 
 // virtual
-void
-templatizer::debug_chunk::generate(base::send_buffers_insert_iterator_t buffers_ins_it,
-								   base::strings_cache_insert_functor_t cache_inserter,
+size_t
+templatizer::debug_chunk::generate(base::send_buffers_insert_functor buffers_ins_fn,
+								   base::strings_cache &cache,
 								   const templatizer::model &model) const
 {
 	const auto &value = model.variable(this->symbol_);	// This can throw
 	
-	*buffers_ins_it = base::buffer(cache_inserter("DEBUG (length = "));
-	*buffers_ins_it = base::buffer(cache_inserter(std::to_string(value.size())));
-	*buffers_ins_it = base::buffer(cache_inserter("): \""));
-	*buffers_ins_it = base::buffer(value);
-	*buffers_ins_it = base::buffer(cache_inserter("\""));
+	size_t len = 0;
+	
+	len += buffers_ins_fn("DEBUG (length = ");
+	len += buffers_ins_fn(cache(std::to_string(value.size())));
+	len += buffers_ins_fn("): \"");
+	len += buffers_ins_fn(value);
+	len += buffers_ins_fn("\"");
+	
+	return len;
 }
 
 

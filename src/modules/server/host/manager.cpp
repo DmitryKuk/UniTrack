@@ -2,7 +2,7 @@
 
 #include <server/host/manager.h>
 
-#include <server/host_exceptions.h>
+#include <server/host/exceptions.h>
 
 
 server::host::manager::manager(logger::logger &logger):

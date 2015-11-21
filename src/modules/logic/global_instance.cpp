@@ -2,11 +2,35 @@
 
 #include <logic/global_instance.h>
 
-#include <logic/logic_exceptions.h>
+#include <base/json_utils.h>
+
+#include <logic/exceptions.h>
 
 
+// class logic::mongo_parameters
+logic::mongo_parameters::mongo_parameters(const nlohmann::json &config)
+{
+	if (!base::json_utils::extract(config, this->uri, "uri"))
+		throw logic::parameters_init_error("Required key: \"uri\" missed (in mongo parameters)");
+}
+
+
+
+// class logic::parameters
+logic::parameters::parameters(const nlohmann::json &config)
+{
+	try {
+		this->mongo = logic::mongo_parameters(base::json_utils::at(config, "mongo"));
+	} catch (const std::out_of_range &) {
+		throw logic::parameters_init_error("Required key: \"mongo\" missed");
+	}
+}
+
+
+
+// class logic::global_instance
 logic::global_instance::global_instance(logger::logger &logger,
-										const logic::global_instance_parameters &parameters,
+										const logic::parameters &parameters,
 										const mongo::client::Options &options):
 	logger::enable_logger(logger),
 	
@@ -15,17 +39,17 @@ logic::global_instance::global_instance(logger::logger &logger,
 	parameters_(parameters)
 {
 	if (!this->mongo_client_global_instance_.initialized())
-		throw logic::global_instance_init_error(
-			this->mongo_client_global_instance_.status().toString()
-		);
+		throw logic::global_instance_init_error(this->mongo_client_global_instance_.status().toString());
 	
 	
+	// Connection to MongoDB
 	{
 		std::string error_message;
 		auto cs = mongo::ConnectionString::parse(this->parameters_.mongo.uri, error_message);
-		if (!cs.isValid()) throw logic::mongodb_incorrect_uri(error_message);
+		if (!cs.isValid())
+			throw logic::mongodb_incorrect_uri(error_message);
 		
-		this->connection_ptr_.reset(cs.connect(error_message));
+		this->connection_ptr_ = std::unique_ptr<mongo::DBClientBase>(cs.connect(error_message));
 		if (this->connection_ptr_) {
 			this->logger().stream(logger::level::info)
 				<< "Logic: Connected to MongoDB.";
@@ -37,10 +61,10 @@ logic::global_instance::global_instance(logger::logger &logger,
 
 
 logic::page_model
-logic::global_instance::generate(const server::host_cache &cache) const
+logic::global_instance::generate(const server::protocol::http::request &request) const
 {
 	auto stream = this->logger().stream(logger::level::info);
-	stream << "Here! " << cache.path;
+	stream << "Here! " << request.path;
 	
 	
 	logic::page_model model;

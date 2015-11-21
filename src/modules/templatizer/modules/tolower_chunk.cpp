@@ -1,9 +1,12 @@
 // Author: Vera Produvnova
+// Author: Dmitry Kukovinets (d1021976@gmail.com)
 
 #include <templatizer/modules/tolower_chunk.h>
 
-#include <templatizer/module.h>
+#include <cctype>
+#include <algorithm>
 
+#include <templatizer/module.h>
 
 
 const std::string templatizer::tolower_chunk::cmd = "tolower";
@@ -27,15 +30,15 @@ templatizer::tolower_chunk::tolower_chunk(std::string &&symbol) noexcept:
 
 
 // virtual
-void
-templatizer::tolower_chunk::generate(base::send_buffers_insert_iterator_t buffers_ins_it,
-									 base::strings_cache_insert_functor_t cache_inserter,
+size_t
+templatizer::tolower_chunk::generate(base::send_buffers_insert_functor buffers_ins_fn,
+									 base::strings_cache &cache,
 									 const templatizer::model &model) const
 { 
 	auto tolow = model.variable(this->symbol_);
-	std::transform(tolow.begin(), tolow.end(), tolow.begin(), tolower);
+	std::transform(tolow.begin(), tolow.end(), tolow.begin(), std::tolower);
 	
-	*buffers_ins_it = base::buffer(cache_inserter(tolow));
+	return buffers_ins_fn(cache_inserter(tolow));
 }
 
 

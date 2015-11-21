@@ -10,7 +10,7 @@ server::client_manager::client_address() const noexcept
 
 
 inline
-server::port_t
+server::port_type
 server::client_manager::server_port() const noexcept
 {
 	return this->server_port_;
@@ -38,7 +38,7 @@ inline
 void
 server::client_manager::handle_error(server::protocol::http::request::ptr_type request_ptr,
 									 const std::exception &e,
-									 const server::http::status &status)
+									 const server::protocol::http::status &status)
 {
 	this->handle_error(std::move(request_ptr), e.what(), status);
 }

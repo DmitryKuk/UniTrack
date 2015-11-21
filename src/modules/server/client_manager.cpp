@@ -17,7 +17,7 @@ server::client_manager::client_manager(logger::logger &logger,
 									   worker &w,
 									   const_iterator_t iterator,
 									   server::socket_ptr_type socket_ptr,
-									   server::host_manager &host_manager):
+									   server::host::manager &host_manager):
 	logger::enable_logger(logger),
 	
 	host_manager_(host_manager),
@@ -80,7 +80,7 @@ server::client_manager::unlock() noexcept
 void
 server::client_manager::handle_error(server::protocol::http::request::ptr_type request_ptr,
 									 const char *what,
-									 const server::http::status &status)
+									 const server::protocol::http::status &status)
 {
 	this->logger().stream(logger::level::error)
 		<< "Client manager (worker " << this->worker_.id()
@@ -122,7 +122,7 @@ server::client_manager::send_response(server::protocol::response::ptr_type respo
 
 void
 server::client_manager::send_phony(server::protocol::http::request::ptr_type request_ptr,
-								   const server::http::status &status)
+								   const server::protocol::http::status &status)
 {
 	// Getting data for the phony...
 	auto data = server::host::error_host().phony_response(request_ptr, status);

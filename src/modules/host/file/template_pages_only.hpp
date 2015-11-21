@@ -37,7 +37,7 @@ host::file::template_pages_only::operator()(const FileHost &host,
 	// Generating page model, loading template page, if need, and creating response
 	auto response_ptr = std::make_shared<host::template_pages_only::response>(
 		this->pages_cache_.at(path),
-		this->logic_global_instance_.generate(request_ptr);
+		this->logic_global_instance_.generate(*request);
 		server::protocol::http::status::ok,
 		request_ptr->version
 	);
@@ -53,16 +53,9 @@ host::file::template_pages_only::operator()(const FileHost &host,
 	
 	
 	// Generating content
-	size_t content_len = 0;
-	std::for_each(
-		response_ptr->page_.begin(response_ptr->page_model_),
-		response_ptr->page_.end(),
-		[&, &buffers = response_ptr->buffers](base::send_buffer_type buffer)
-		{
-			content_len += base::buffer_size(buffer);	// Calculating content length
-			buffers.push_back(std::move(buffer));
-		}
-	);
+	size_t content_len = response_ptr->page_.generate(response_ptr->headers,
+													  response_ptr->cache,
+													  response_ptr->page_model_);
 	
 	
 	// Fix Content-Length header

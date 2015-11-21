@@ -7,6 +7,8 @@
 #include <unordered_set>
 #include <unordered_map>
 
+#include <server/types.h>
+
 
 namespace server {
 namespace protocol {

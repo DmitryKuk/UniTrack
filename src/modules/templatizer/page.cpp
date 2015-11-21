@@ -3,6 +3,7 @@
 #include <templatizer/page.h>
 
 #include <regex>
+#include <functional>
 
 #include <templatizer/module_registrar.h>
 #include <templatizer/modules/var_chunk.h>
@@ -72,7 +73,7 @@ templatizer::page::load()
 	using namespace boost::interprocess;
 	
 	try {
-		chunk_ptrs_deque_t chunk_ptrs;
+		chunk_ptrs_deque_type chunk_ptrs;
 		
 		
 		// Parsing
@@ -184,24 +185,26 @@ templatizer::page::clear() noexcept
 
 // Generates result page from template using data model
 // adding all data to the buffers and using the cache.
-void
-templatizer::page::generate(base::send_buffers_t &buffers,
-							base::strings_cache_t &cache,
+size_t
+templatizer::page::generate(base::send_buffers_type &buffers,
+							base::strings_cache &cache,
 							const templatizer::model &model) const
 {
-	auto buffers_ins_it = std::back_inserter(buffers);
-	auto cache_inserter = base::make_back_inserter_functor(cache);
+	base::send_buffers_insert_functor buffers_insert_fn{buffers};
 	
+	size_t len = 0;
 	for (const auto &chunk_ptr: this->chunk_ptrs_)
-		chunk_ptr->generate(buffers_ins_it, cache_inserter, model);
+		len += chunk_ptr->generate(buffers_insert_fn, cache, model);
+	
+	return len;
 }
 
 
 // All symbols need to get from model
-templatizer::page::symbol_set
+templatizer::page::symbol_set_type
 templatizer::page::symbols() const
 {
-	templatizer::page::symbol_set res;
+	templatizer::page::symbol_set_type res;
 	this->export_symbols(res);
 	return res;
 }
@@ -209,7 +212,7 @@ templatizer::page::symbols() const
 
 // Same as symbols(), but puts them into set
 void
-templatizer::page::export_symbols(templatizer::page::symbol_set &symbols) const
+templatizer::page::export_symbols(templatizer::page::symbol_set_type &symbols) const
 {
 	for (const auto &chunk_ptr: this->chunk_ptrs_)
 		chunk_ptr->export_symbols(symbols);
@@ -219,8 +222,8 @@ templatizer::page::export_symbols(templatizer::page::symbol_set &symbols) const
 std::ostream &
 operator<<(std::ostream &stream, const templatizer::page::page_printer &printer)
 {
-	base::send_buffers_t buffers;
-	base::strings_cache_t cache;
+	base::send_buffers_type buffers;
+	base::strings_cache cache;
 	
 	// Generating the page...
 	printer.page.generate(buffers, cache, printer.model);

@@ -24,7 +24,7 @@ public:
 	
 	
 	inline response(const server::protocol::http::status &status,
-					server::protocol::http::version version = v_1_1);
+					server::protocol::http::version version = server::protocol::http::version::v_1_1);
 	
 	response() = default;
 	
@@ -48,7 +48,7 @@ public:
 	// After these steps you have response ready to send. You may skip steps 2 and 4, if you need.
 	
 	void add_start_string(const server::protocol::http::status &status,
-							server::protocol::http::version version = v_1_1);
+						  server::protocol::http::version version = server::protocol::http::version::v_1_1);
 	
 	
 	void add_header(const std::string &name, const std::string &value);
@@ -62,11 +62,9 @@ public:
 	inline void finish_headers();
 	
 	
+	// Arguments for base::buffer function or base::send_buffer_type object (see template specialization in .hpp)
 	template<class... Args>
 	inline void add_body(const Args &... data);
-	
-	template<>
-	inline void add_body(const base::send_buffer_type &buffer);
 	
 	
 	// Returns index of send buffer, that points to value of last added header

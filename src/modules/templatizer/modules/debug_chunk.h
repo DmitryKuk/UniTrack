@@ -1,12 +1,12 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#ifndef TEMPLATIZER_DEBUG_CHUNK_CPP
-#define TEMPLATIZER_DEBUG_CHUNK_CPP
+#ifndef TEMPLATIZER_MODULES_DEBUG_CHUNK_CPP
+#define TEMPLATIZER_MODULES_DEBUG_CHUNK_CPP
 
 #include <string>
 
 #include <base/buffer.h>
-#include <base/cache.h>
+#include <base/strings_cache.h>
 
 #include <templatizer/chunk.h>
 #include <templatizer/model.h>
@@ -26,9 +26,9 @@ public:
 	debug_chunk(std::string &&symbol) noexcept;
 	
 	
-	virtual void generate(base::send_buffers_insert_iterator_t buffers_ins_it,
-						  base::strings_cache_insert_functor_t cache_inserter,
-						  const templatizer::model &model) const override;
+	virtual size_t generate(base::send_buffers_insert_functor buffers_ins_fn,
+							base::strings_cache &cache,
+							const templatizer::model &model) const override;
 	
 	
 	virtual void export_symbols(std::unordered_set<std::string> &symbols) const override;
@@ -40,4 +40,4 @@ private:
 };	// namespace templatizer
 
 
-#endif // TEMPLATIZER_DEBUG_CHUNK_CPP
+#endif	// TEMPLATIZER_MODULES_DEBUG_CHUNK_CPP

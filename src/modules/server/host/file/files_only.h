@@ -9,6 +9,7 @@
 #include <base/buffer.h>
 #include <server/types.h>
 #include <server/worker.h>
+#include <server/protocol/http.h>
 
 
 namespace server {
@@ -24,7 +25,7 @@ public:
 	public:
 		inline response(base::mapped_file &&mapped_file,
 						const server::protocol::http::status &status,
-						server::protocol::http::version version = v_1_1);
+						server::protocol::http::version version = server::protocol::http::version::v_1_1);
 	private:
 		// Data
 		base::mapped_file mapped_file_;

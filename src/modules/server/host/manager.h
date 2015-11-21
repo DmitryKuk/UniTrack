@@ -11,6 +11,7 @@
 
 
 namespace server {
+namespace host {
 
 
 class manager:
@@ -50,6 +51,7 @@ private:
 };	// class manager
 
 
+};	// namespace host
 };	// namespace server
 
 

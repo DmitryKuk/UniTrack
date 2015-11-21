@@ -12,28 +12,28 @@
 namespace server {
 
 
-struct acceptor_parameters {
-	server::port_t	port;
-};
-
-
-class server_http;
+class server;
 
 
 class acceptor:
 	protected logger::enable_logger
 {
 public:
+	struct parameters {
+		server::port_type port;
+	};	// struct parameters
+	
+	
 	acceptor(logger::logger &logger,
-			 server::server_http &server,
-			 const acceptor_parameters &parameters,
+			 server::server &server,
+			 const parameters &parameters,
 			 boost::asio::io_service &acceptors_io_service,
 			 boost::asio::io_service &workers_io_service);
 	~acceptor();
 private:
 	// Handlers
 	// Handles the accept event
-	void accept_handler(server::socket_ptr_t socket_ptr,
+	void accept_handler(server::socket_ptr_type socket_ptr,
 						const boost::system::error_code &err) noexcept;
 	
 	// Add accept_handler to the io_service event loop
@@ -41,9 +41,9 @@ private:
 	
 	
 	// Data
-	server::server_http &server_;
+	server::server &server_;
 	
-	acceptor_parameters parameters_;
+	parameters parameters_;
 	
 	boost::asio::io_service &acceptors_io_service_,
 							&workers_io_service_;	// Binding new sockets to it

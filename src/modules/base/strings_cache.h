@@ -26,6 +26,9 @@ public:
 	// Returns cached copy of given string
 	inline const std::string & cache(const std::string &str);
 	inline const std::string & cache(std::string &&str);
+	
+	inline const std::string & operator()(const std::string &str);
+	inline const std::string & operator()(std::string &&str);
 private:
 	std::deque<std::string> strings_;
 };	// class strings_cache

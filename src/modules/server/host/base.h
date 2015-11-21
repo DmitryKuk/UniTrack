@@ -13,10 +13,14 @@
 #include <logger/logger.h>
 #include <base/buffer.h>
 #include <server/protocol/http.h>
-#include <server/worker.h>
 
 
 namespace server {
+
+
+class worker;
+
+
 namespace host {
 
 

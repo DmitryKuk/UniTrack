@@ -26,12 +26,12 @@ templatizer::var_chunk::var_chunk(std::string &&symbol) noexcept:
 
 
 // virtual
-void
-templatizer::var_chunk::generate(base::send_buffers_insert_iterator_t buffers_ins_it,
-								 base::strings_cache_insert_functor_t /*cache_inserter*/,
+size_t
+templatizer::var_chunk::generate(base::send_buffers_insert_functor buffers_ins_fn,
+								 base::strings_cache & /*cache*/,
 								 const templatizer::model &model) const
 {
-	*buffers_ins_it = base::buffer(model.variable(this->symbol_));
+	return buffers_ins_fn(model.variable(this->symbol_));
 }
 
 

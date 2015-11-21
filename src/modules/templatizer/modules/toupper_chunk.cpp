@@ -1,9 +1,12 @@
 // Author: Vera Produvnova
+// Author: Dmitry Kukovinets (d1021976@gmail.com)
 
 #include <templatizer/modules/toupper_chunk.h>
 
-#include <templatizer/module.h>
+#include <cctype>
+#include <algorithm>
 
+#include <templatizer/module.h>
 
 
 const std::string templatizer::toupper_chunk::cmd = "toupper";
@@ -27,15 +30,15 @@ templatizer::toupper_chunk::toupper_chunk(std::string &&symbol) noexcept:
 
 
 // virtual
-void
-templatizer::toupper_chunk::generate(base::send_buffers_insert_iterator_t buffers_ins_it,
-									 base::strings_cache_insert_functor_t cache_inserter,
+size_t
+templatizer::toupper_chunk::generate(base::send_buffers_insert_functor buffers_ins_fn,
+									 base::strings_cache &cache,
 									 const templatizer::model &model) const
 { 
 	auto toup = model.variable(this->symbol_);
-	std::transform(toup.begin(), toup.end(), toup.begin(), toupper);
+	std::transform(toup.begin(), toup.end(), toup.begin(), std::toupper);
 	
-	*buffers_ins_it = base::buffer(cache_inserter(toup));
+	return buffers_ins_fn(cache(toup));
 }
 
 

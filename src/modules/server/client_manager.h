@@ -71,12 +71,12 @@ protected:
 	
 	void handle_error(server::protocol::http::request::ptr_type request_ptr,
 					  const char *what,
-					  const server::http::status &status);
+					  const server::protocol::http::status &status);
 	
 	inline
 	void handle_error(server::protocol::http::request::ptr_type request_ptr,
 					  const std::exception &e,
-					  const server::http::status &status);
+					  const server::protocol::http::status &status);
 	
 	
 	void add_request_handler();
@@ -84,7 +84,7 @@ protected:
 	void send_response(server::protocol::response::ptr_type response_ptr);
 	
 	void send_phony(server::protocol::http::request::ptr_type request_ptr,
-					const server::http::status &status);
+					const server::protocol::http::status &status);
 	
 	
 	void log_request(const server::protocol::http::request &request);

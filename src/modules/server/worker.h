@@ -11,22 +11,25 @@
 
 #include <logger/logger.h>
 #include <server/client_manager.h>
-#include <server/host_manager.h>
 #include <server/types.h>
 
 
 namespace server {
 
 
+class server;
+
+
 class worker:
 	protected logger::enable_logger
 {
 public:
-	typedef unsigned int id;
+	typedef unsigned int id_type;
+	
 	
 	struct parameters
 	{
-		worker::id id;
+		worker::id_type id;
 	};	// struct parameters
 	
 	
@@ -49,7 +52,7 @@ public:
 	
 	
 	// Returns worker id
-	inline server::worker_id_type id() const noexcept;
+	inline worker::id_type id() const noexcept;
 	
 	// Returns worker thread id (need for server's dispatcher)
 	inline std::thread::id thread_id() const noexcept;

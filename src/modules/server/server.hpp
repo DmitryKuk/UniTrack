@@ -32,3 +32,12 @@ server::server::host_manager() noexcept
 {
 	return this->host_manager_;
 }
+
+
+// Returns server names
+inline
+const std::vector<std::string> &
+server::server::names() const noexcept
+{
+	return this->parameters_.server_names;
+}

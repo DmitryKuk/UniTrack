@@ -5,6 +5,7 @@
 
 #include <thread>
 #include <memory>
+#include <random>
 
 #include <boost/asio/io_service.hpp>
 
@@ -26,14 +27,13 @@ public:
 	struct parameters
 	{
 		worker::id id;
-	};	// struct worker_parameters
+	};	// struct parameters
 	
 	
 	
 	worker(logger::logger &logger,
 		   const parameters &parameters,
-		   boost::asio::io_service &io_service,
-		   server::host_manager &host_manager);
+		   server::server &server);
 	
 	
 	// Non-copy/-move constructable/assignable. Use ptrs.
@@ -42,6 +42,10 @@ public:
 	
 	worker & operator=(const worker &other) = delete;
 	worker & operator=(worker &&other) = delete;
+	
+	
+	// Returns server name (random!)
+	const std::string & server_name() const noexcept;
 	
 	
 	// Returns worker id
@@ -76,14 +80,16 @@ private:
 	// Data
 	parameters parameters_;
 	
-	server::host_manager &host_manager_;
+	server::server &server_;
 	
-	boost::asio::io_service &io_service_;
 	boost::asio::io_service::work work_;
 	
 	server::client_manager_list_type client_managers_;	// Clients, worker are working with
 	
 	std::thread worker_thread_;
+	
+	
+	mutable std::minstd_rand0 server_name_generator_;
 };	// class worker
 
 

@@ -80,7 +80,8 @@ server::host::file<HostType>::file(logger::logger &logger,
 template<class HostType>
 // virtual
 server::protocol::http::response::ptr_type
-server::host::file<HostType>::response(server::protocol::http::request::ptr_type request_ptr)
+server::host::file<HostType>::response(const server::worker &worker,
+									   server::protocol::http::request::ptr_type request_ptr)
 {
 	using namespace server::protocol::http::status;
 	
@@ -106,7 +107,7 @@ server::host::file<HostType>::response(server::protocol::http::request::ptr_type
 		}
 		
 		
-		return this->handler_(*this, request_ptr, path);
+		return this->handler_(*this, worker, request_ptr, path);
 	}
 	
 	// Filesystem errors

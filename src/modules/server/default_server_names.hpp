@@ -2,6 +2,7 @@
 
 // This file contains strings that are default names for server.
 // WARNING: This file will be included into the code, so do NOT write anything else here!
+// See also: Server config file -- names set in it. Names below are default names, if no names are given in config.
 
 
 "UniTrack/0.0.1",

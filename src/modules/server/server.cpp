@@ -6,8 +6,14 @@
 #include <system_error>
 
 
+server::server::parameters(const nlohmann::json &config)
+{
+	base::json_utils::extract(config, this->server_names, "server_names");
+}
+
+
 server::server::server(logger::logger &logger,
-								 const server_http_parameters &parameters):
+					   const server::server::parameters &parameters):
 	logger::enable_logger(logger),
 	parameters_(parameters),
 	

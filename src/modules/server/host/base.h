@@ -7,13 +7,13 @@
 #include <vector>
 #include <deque>
 #include <memory>
-#include <random>
 
 #include <json.hpp>
 
 #include <logger/logger.h>
 #include <base/buffer.h>
 #include <server/protocol/http.h>
+#include <server/worker.h>
 
 
 namespace server {
@@ -33,13 +33,8 @@ public:
 	// This is default parameters for error_host.
 	struct parameters
 	{
-		std::string					name;			// Required
-		server::port_set_type		ports;			// Required
-		
-		std::vector<std::string>	server_names =	// Optional
-			{
-#				include <server/host/default_server_names.hpp>
-			};
+		std::string				name;	// Required
+		server::port_set_type	ports;	// Required
 		
 		
 		explicit parameters() = default;
@@ -62,21 +57,19 @@ public:
 	bool port_allowed(server::port_type port) const noexcept;
 	
 	
-	// Returns server name as string (random!).
-	const std::string & server_name() const noexcept;
-	
-	
 	// Prepares a correct response to the client.
 	// NOTE: By default -- phony "404 Not Found". Redefine this function in child classes.
 	virtual
 	server::protocol::http::response::ptr_type
-	response(server::protocol::http::request::ptr_type request_ptr);
+	response(const server::worker &worker,
+			 server::protocol::http::request::ptr_type request_ptr);
 	
 	
 	// Prepares a phony response to the client.
 	// WARNING: Remember to save anywhere status too (standard statuses are already saved)!
 	server::protocol::http::response::ptr_type
-	phony_response(server::protocol::http::request::ptr_type request_ptr,
+	phony_response(const server::worker &worker,
+				   server::protocol::http::request::ptr_type request_ptr,
 				   const server::protocol::http::status &status);
 	
 	
@@ -90,12 +83,17 @@ public:
 	
 	// Creates error_host if it does not exist. You may call it once from server, if you want.
 	static void create_error_host(logger::logger &logger);
+	
+	
+	// Gets server name from worker and adds it to headers in response.
+	// Returns true, if name was added. Otherwise, false (if returned server name is empty).
+	static
+	bool add_server_name(const server::worker &worker,
+						 const server::protocol::http::response &response);
 protected:
 	parameters parameters_;
 private:
 	static std::unique_ptr<base> error_host_ptr_;
-	
-	mutable std::minstd_rand0 server_name_generator_;
 };	// class base
 
 

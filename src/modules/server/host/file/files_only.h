@@ -7,8 +7,8 @@
 
 #include <base/mapped_file.h>
 #include <base/buffer.h>
-
 #include <server/types.h>
+#include <server/worker.h>
 
 
 namespace server {
@@ -34,6 +34,7 @@ public:
 	template<class FileHost>
 	server::protocol::http::response::ptr_type
 	operator()(const FileHost &host,
+			   const server::worker &worker,
 			   server::protocol::http::request::ptr_type request_ptr,
 			   const boost::filesystem::path &path);
 };	// class files_only

@@ -12,6 +12,7 @@
 #include <server/types.h>
 #include <server/host/base.h>
 #include <server/protocol/http.h>
+#include <server/worker.h>
 
 
 namespace server {
@@ -140,7 +141,8 @@ public:
 	// contains data need to be sent, so save the given shared_ptr anywhere during all sending!
 	virtual
 	server::protocol::http::response::ptr_type
-	response(server::protocol::http::request::ptr_type request_ptr) override;
+	response(const server::worker &worker,
+			 server::protocol::http::request::ptr_type request_ptr) override;
 protected:
 	// Validators
 	inline

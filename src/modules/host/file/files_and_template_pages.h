@@ -9,6 +9,7 @@
 
 #include <base/buffer.h>
 #include <server/host/file/files_only.h>
+#include <server/worker.h>
 #include <logic/global_instance.h>
 #include <host/file/template_pages_only.h>
 
@@ -27,7 +28,7 @@ public:
 		enum class behavior {
 			template_pages,
 			files
-		};
+		};	// enum class behavior
 		
 		
 		// By default: interpret all files as plain files...
@@ -50,6 +51,7 @@ public:
 	template<class FileHost>
 	server::protocol::http::response::ptr_type
 	operator()(const FileHost &host,
+			   const server::worker &worker,
 			   server::protocol::http::request::ptr_type request_ptr,
 			   const boost::filesystem::path &path);
 private:

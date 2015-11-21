@@ -27,6 +27,7 @@ host::file::template_pages_only::template_pages_only(logic::global_instance &log
 template<class FileHost>
 server::protocol::http::response::ptr_type
 host::file::template_pages_only::operator()(const FileHost &host,
+											const server::worker &worker,
 											server::protocol::http::request::ptr_type request_ptr,
 											const boost::filesystem::path &path)
 {
@@ -43,7 +44,9 @@ host::file::template_pages_only::operator()(const FileHost &host,
 	
 	
 	// Adding headers
-	response_ptr->add_header(server::protocol::http::header::content_length, ""s);
+	server::host::base::add_server_name(worker, *response_ptr);						// Server name
+	
+	response_ptr->add_header(server::protocol::http::header::content_length, ""s);	// Content-Length
 	size_t content_len_index = response_ptr->header_value_index();
 	
 	response_ptr->finish_headers();

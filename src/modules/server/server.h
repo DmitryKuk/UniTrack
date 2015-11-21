@@ -18,19 +18,30 @@
 namespace server {
 
 
-struct server_parameters
-{
-	server::port_set_t	ports					= {};
-	unsigned int		workers					= 1;
-};
-
-
 class server:
 	protected logger::enable_logger
 {
 public:
+	struct parameters
+	{
+		server::port_set_t			ports			= {};
+		unsigned int				workers			= 1;
+		
+		
+		std::vector<std::string>	server_names	=	// Optional
+			{
+#				include <server/default_server_names.hpp>
+			};
+		
+		
+		explicit parameters() = default;
+		explicit parameters(const nlohmann::json &config);
+	};	// struct parameters
+	
+	
+	
 	server(logger::logger &logger,
-				const server_parameters &parameters);
+		   const parameters &parameters);
 	
 	
 	// Non-copy/-move constructable/assignable. Use ptrs.
@@ -51,6 +62,9 @@ public:
 	
 	// Returns the hosts manager of this server
 	inline server::host_manager & host_manager() noexcept;
+	
+	// Returns server names
+	inline const std::vector<std::string> & names() const noexcept;
 protected:
 	friend class server::acceptor;
 	
@@ -68,7 +82,7 @@ private:
 	
 	
 	// Data
-	server_parameters parameters_;
+	parameters parameters_;
 	
 	server::host_manager host_manager_;
 	

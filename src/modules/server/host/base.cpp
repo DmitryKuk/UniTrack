@@ -10,22 +10,11 @@
 #include <server/host/exceptions.h>
 
 
-namespace {
-
-
-const std::string host_without_name = "";
-
-
-};	// namespace
-
-
 // class server::host::base::parameters
 server::host::base::parameters::parameters(const nlohmann::json &config):
 	name(base::json_utils::get<decltype(this->name)>(config, "name")),
 	ports(base::json_utils::get<decltype(this->ports)>(config, "ports"))
-{
-	base::json_utils::extract(config, this->server_names, "server_names");
-}
+{}
 
 
 // class server::host::base
@@ -53,18 +42,6 @@ server::host::base::port_allowed(server::port_type port) const noexcept
 }
 
 
-// Returns host name as string (random!)
-const std::string &
-server::host::base::server_name() const noexcept
-{
-	if (this->parameters_.server_names.empty())
-		return ::host_without_name;
-	
-	size_t index = this->server_name_generator_() % this->parameters_.server_names.size();
-	return this->parameters_.server_names[index];
-}
-
-
 // Prepares a correct response to the client.
 // NOTE: By default -- phony "404 Not Found". Redefine this function in child classes.
 // virtual
@@ -79,7 +56,8 @@ server::host::base::response(server::protocol::http::request::ptr_type request_p
 // WARNING: Remember to save anywhere status too (standard statuses are already saved)!
 template<class Headers>
 server::protocol::http::response::ptr_type
-phony_response(server::protocol::http::request::ptr_type request_ptr,
+phony_response(const server::worker &worker,
+			   server::protocol::http::request::ptr_type request_ptr,
 			   const server::protocol::http::status &status)
 {
 	// Body elements
@@ -118,8 +96,7 @@ phony_response(server::protocol::http::request::ptr_type request_ptr,
 	
 	
 	// Server name
-	auto server_name = this->server_name();
-	response_ptr->add_header(server::protocol::http::header::server, server_name);
+	server::host::base::add_server_name(worker, *response_ptr);
 	
 	
 	// Status strings
@@ -187,4 +164,20 @@ server::host::base::create_error_host(logger::logger &logger)
 	std::unique_lock<std::mutex> lock(m);
 	if (server::host::base::error_host_ptr_ == nullptr)
 		server::host::base::error_host_ptr_ = std::make_unique<server::host>(logger, server::host_http_parameters());
+}
+
+
+// Gets server name from worker and adds it to headers in response.
+// Returns true, if name was added. Otherwise, false (if returned server name is empty).
+// static
+bool
+server::host::base::add_server_name(const server::worker &worker,
+									const server::protocol::http::response &response)
+{
+	const std::string &server_name = worker.server_name();
+	if (server_name.empty())
+		return false;
+	
+	response.add_header(server::protocol::http::header::server, server_name);
+	return true;
 }

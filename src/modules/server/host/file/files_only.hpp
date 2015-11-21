@@ -19,6 +19,7 @@ server::host::files_only::response::response(base::mapped_file &&mapped_file,
 template<class FileHost>
 server::protocol::http::response::ptr_type
 server::host::files_only::operator()(const FileHost &host,
+									 const server::worker &worker,
 									 server::protocol::http::request::ptr_type request_ptr,
 									 const boost::filesystem::path &path)
 {
@@ -45,6 +46,9 @@ server::host::files_only::operator()(const FileHost &host,
 			server::protocol::http::status::ok,
 			request_ptr->version
 		);
+		
+		
+		server::host::base::add_server_name(worker, *response_ptr);	// Server name
 		
 		
 		const void *file_content = request_ptr->mapped_file.data();

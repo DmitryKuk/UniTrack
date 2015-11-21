@@ -18,6 +18,7 @@ host::file::files_and_template_pages::files_and_template_pages(
 template<class FileHost>
 server::protocol::http::response::ptr_type
 host::file::files_and_template_pages::operator()(const FileHost &host,
+												 const server::worker &worker,
 												 server::protocol::http::request::ptr_type request_ptr,
 												 const boost::filesystem::path &path)
 {
@@ -33,7 +34,7 @@ host::file::files_and_template_pages::operator()(const FileHost &host,
 	
 	// Dispatching work to one of handlers
 	if (is_template_page)
-		return this->host::file::template_pages_only::operator()(host, std::move(request_ptr), path);
+		return this->host::file::template_pages_only::operator()(host, worker, std::move(request_ptr), path);
 	else
-		return this->server::host::file::files_only::operator()(host, std::move(request_ptr), path);
+		return this->server::host::file::files_only::operator()(host, worker, std::move(request_ptr), path);
 }

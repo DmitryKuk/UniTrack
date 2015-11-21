@@ -10,6 +10,7 @@
 #include <boost/filesystem/path.hpp>
 
 #include <base/buffer.h>
+#include <server/worker.h>
 #include <templatizer/page.h>
 #include <logic/page_model.h>
 #include <logic/global_instance.h>
@@ -46,6 +47,7 @@ public:
 	template<class FileHost>
 	server::protocol::http::response::ptr_type
 	operator()(const FileHost &host,
+			   const server::worker &worker,
 			   server::protocol::http::request::ptr_type request_ptr,
 			   const boost::filesystem::path &path);
 private:

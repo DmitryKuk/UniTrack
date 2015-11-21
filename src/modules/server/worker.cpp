@@ -2,21 +2,40 @@
 
 #include <server/worker.h>
 
+#include <chrono>
+
 
 server::worker::worker(logger::logger &logger,
 					   const server::worker::parameters &parameters,
-					   boost::asio::io_service &io_service,
-					   server::host_manager &host_manager):
+					   server::server &server):
 	logger::enable_logger(logger),
 	parameters_(parameters),
 	
-	host_manager_(host_manager),
+	server_(server),
 	
-	io_service_(io_service),
 	work_(io_service_),
 	
-	worker_thread_(std::bind(&worker::run, this))
+	worker_thread_(std::bind(&worker::run, this)),
+	
+	server_name_generator_(std::chrono::system_clock::now().time_since_epoch().count())
 {}
+
+
+// Returns server name (random!)
+const std::string &
+server::worker::server_name() const noexcept
+{
+	const auto &server_names = this->server_.names();
+	
+	if (server_names.empty()) {
+		static const std::string empty_name;
+		
+		return empty_name;
+	}
+	
+	size_t index = this->server_name_generator_() % server_names.size();
+	return server_names[index];
+}
 
 
 // Adds new client to the worker

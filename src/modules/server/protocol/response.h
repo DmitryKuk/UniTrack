@@ -34,6 +34,8 @@ public:
 	
 	response & operator=(const response &other) = delete;
 	response & operator=(response &&other) = delete;
+protected:
+	using base::strings_cache::operator();	// Allow only cache() method
 };	// class response
 
 

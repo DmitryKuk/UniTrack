@@ -14,7 +14,7 @@
 
 
 server::client_manager::client_manager(logger::logger &logger,
-									   worker &w,
+									   server::worker &w,
 									   const_iterator_t iterator,
 									   server::socket_ptr_type socket_ptr,
 									   server::host::manager &host_manager):
@@ -177,11 +177,11 @@ server::client_manager::process_request(server::protocol::http::request::ptr_typ
 			throw;
 		}
 		
-		auto host_ptr = this->host_manager_.host(host, port);
-		this->send_response(host_ptr->response(request_ptr));
-		
 		if (request_ptr->keep_alive)
 			this->add_request_handler();
+		
+		auto host_ptr = this->host_manager_.host(host, port);
+		this->send_response(host_ptr->response(this->worker_, request_ptr));
 	}
 	
 	// Protocol errors
@@ -266,7 +266,7 @@ server::client_manager::add_response_handler()
 
 
 void
-server::client_manager::response_handler(server::host_cache::shared_ptr_t cache_ptr,
+server::client_manager::response_handler(server::protocol::response::ptr_type response_ptr,
 										 const boost::system::error_code &err,
 										 size_t bytes_transferred)
 {

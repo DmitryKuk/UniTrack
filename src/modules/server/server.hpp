@@ -41,3 +41,12 @@ server::server::names() const noexcept
 {
 	return this->parameters_.server_names;
 }
+
+
+// Returns request handler
+inline
+const server::server::request_handler_type &
+server::server::request_handler() const noexcept
+{
+	return this->request_handler_;
+}

@@ -5,6 +5,8 @@
 #include <functional>
 #include <system_error>
 
+#include <server/worker.h>
+
 
 server::server::parameters::parameters(const nlohmann::json &config)
 {
@@ -15,8 +17,11 @@ server::server::parameters::parameters(const nlohmann::json &config)
 
 
 server::server::server(logger::logger &logger,
-					   const server::server::parameters &parameters):
+					   const server::server::parameters &parameters,
+					   server::server::request_handler_type &&request_handler):
 	logger::enable_logger(logger),
+	
+	request_handler_(std::move(request_handler)),
 	parameters_(parameters),
 	
 	host_manager_(this->logger()),
@@ -59,18 +64,10 @@ server::server::server(logger::logger &logger,
 			auto workers_count = this->parameters_.workers;
 			this->worker_ptrs_.reserve(workers_count);
 			
-			for (server::worker_parameters parameters{ .id = 0 };
-				 workers_count--;
-				 ++parameters.id) {
-				auto worker_ptr = std::make_unique<server::worker>(
-					this->logger(),
-					parameters,
-					this->workers_io_service_,
-					this->host_manager()
-				);
+			for (server::worker::parameters parameters{ .id = 0 }; workers_count--; ++parameters.id) {
+				this->workers_.emplace_back(this->logger(), parameters, *this);
 				
 				this->workers_dispatch_table_.emplace(worker_ptr->thread_id(), worker_ptr->id());
-				this->worker_ptrs_.emplace_back(std::move(worker_ptr));
 			}
 			
 			this->logger().stream(logger::level::info)
@@ -133,6 +130,17 @@ server::server::dispatch_client(server::socket_ptr_t socket_ptr) noexcept
 {
 	this->workers_io_service_.dispatch(std::bind(&server::dispatch_client_worker_thread,
 												 this, socket_ptr));
+}
+
+
+// protected
+// Registers worker as current for this thread. Need for client dispatching
+// WARNING: Call it only from worker threads!
+static
+void
+server::server::register_worker(worker &worker) noexcept
+{
+	
 }
 
 

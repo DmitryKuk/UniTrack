@@ -1,7 +1,7 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#ifndef SERVER_WORKER_H
-#define SERVER_WORKER_H
+#ifndef SERVER_SERVER_WORKER_H
+#define SERVER_SERVER_WORKER_H
 
 #include <thread>
 #include <memory>
@@ -36,7 +36,7 @@ public:
 	
 	worker(logger::logger &logger,
 		   const parameters &parameters,
-		   server::server &server);
+		   server &server);
 	
 	
 	// Non-copy/-move constructable/assignable. Use ptrs.
@@ -69,7 +69,7 @@ public:
 	
 	
 	// Erases client by iterator. Client manager uses this.
-	void erase_client(client_manager_list_const_iterator_t iterator) noexcept;
+	void erase_client(server::client_manager::const_iterator_type iterator) noexcept;
 private:
 	// Must be called in worker_thread_ thread
 	// NOTE: Constructor calls this automatically. Do NOT call it manually!
@@ -83,11 +83,11 @@ private:
 	// Data
 	parameters parameters_;
 	
-	server::server &server_;
+	server &server_;
 	
 	boost::asio::io_service::work work_;
 	
-	server::client_manager_list_type client_managers_;	// Clients, worker are working with
+	server::client_manager::list_type client_managers_;	// Clients, worker are working with
 	
 	std::thread worker_thread_;
 	
@@ -99,6 +99,6 @@ private:
 };	// namespace server
 
 
-#include <server/worker.hpp>
+#include <server/server_worker.hpp>
 
-#endif	// SERVER_WORKER_H
+#endif	// SERVER_SERVER_WORKER_H

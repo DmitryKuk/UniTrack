@@ -101,7 +101,7 @@ private:
 	
 	void add_response_handler();
 	
-	void response_handler(server::host_cache::shared_ptr_t cache_ptr,
+	void response_handler(server::protocol::response::ptr_type response_ptr,
 						  const boost::system::error_code &err,
 						  size_t bytes_transferred);
 	

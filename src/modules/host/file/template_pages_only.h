@@ -10,7 +10,7 @@
 #include <boost/filesystem/path.hpp>
 
 #include <base/buffer.h>
-#include <server/worker.h>
+#include <server/server_worker.h>
 #include <server/protocol/http.h>
 #include <templatizer/page.h>
 #include <logic/page_model.h>

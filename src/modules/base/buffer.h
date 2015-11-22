@@ -38,7 +38,7 @@ public:
 	
 	
 	template<class... Args>
-	size_t operator()(Args &&... args) const;
+	size_t operator()(const Args &... args) const;
 private:
 	base::send_buffers_type *buffers_ptr_;
 };	// class send_buffers_insert_functor

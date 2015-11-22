@@ -53,7 +53,7 @@ host::file::template_pages_only::operator()(const FileHost &host,
 	
 	
 	// Generating content
-	size_t content_len = response_ptr->page_.generate(response_ptr->headers,
+	size_t content_len = response_ptr->page_.generate(response_ptr->buffers,
 													  response_ptr->cache,
 													  response_ptr->page_model_);
 	

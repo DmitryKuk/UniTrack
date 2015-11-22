@@ -4,6 +4,8 @@
 
 #include <chrono>
 
+#include <server/server.h>
+
 
 server::worker::worker(logger::logger &logger,
 					   const server::worker::parameters &parameters,
@@ -41,7 +43,7 @@ server::worker::server_name() const noexcept
 // Adds new client to the worker
 // Returns true, if added successfully
 bool
-server::worker::add_client(server::socket_ptr_t socket_ptr) noexcept
+server::worker::add_client(server::socket_ptr_type socket_ptr) noexcept
 {
 	this->logger().stream(logger::level::info)
 		<< "Worker: Adding client to worker " << this->id() << '.';
@@ -69,7 +71,7 @@ server::worker::add_client(server::socket_ptr_t socket_ptr) noexcept
 
 // Erases client by iterator. Client manager uses this.
 void
-server::worker::erase_client(client_manager_list_const_iterator_t iterator) noexcept
+server::worker::erase_client(server::client_manager::const_iterator_type iterator) noexcept
 {
 	this->client_managers_.erase(iterator);
 }

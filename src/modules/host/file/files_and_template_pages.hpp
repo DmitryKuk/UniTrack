@@ -1,25 +1,26 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
 #include <string>
-#include <regex>
+
+#include <server/worker.h>
 
 
 inline
 host::file::files_and_template_pages::files_and_template_pages(
-	logic::global_instance &logic_global_instance,
+	logic::global_instance &logic,
 	const host::file::files_and_template_pages::parameters &parameters
 ):
-	template_pages_only(logic_global_instance),
+	template_pages_only{logic},
 	
-	parameters_(parameters)
+	parameters_{parameters}
 {}
 
 
 template<class FileHost>
-server::protocol::http::response::ptr_type
+std::shared_ptr<server::protocol::http::response>
 host::file::files_and_template_pages::operator()(const FileHost &host,
 												 const server::worker &worker,
-												 server::protocol::http::request::ptr_type request_ptr,
+												 const server::protocol::http::request &request,
 												 const boost::filesystem::path &path)
 {
 	using behavior = host::file::files_and_template_pages::parameters::behavior;
@@ -34,7 +35,7 @@ host::file::files_and_template_pages::operator()(const FileHost &host,
 	
 	// Dispatching work to one of handlers
 	if (is_template_page)
-		return this->host::file::template_pages_only::operator()(host, worker, std::move(request_ptr), path);
+		return this->host::file::template_pages_only::operator()(host, worker, request, path);
 	else
-		return this->server::host::file::files_only::operator()(host, worker, std::move(request_ptr), path);
+		return this->server::host::file::files_only::operator()(host, worker, request, path);
 }

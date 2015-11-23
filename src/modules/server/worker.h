@@ -1,16 +1,15 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#ifndef SERVER_SERVER_WORKER_H
-#define SERVER_SERVER_WORKER_H
+#ifndef SERVER_WORKER_H
+#define SERVER_WORKER_H
 
-#include <thread>
 #include <memory>
 #include <random>
 
 #include <boost/asio/io_service.hpp>
 
 #include <logger/logger.h>
-#include <server/client_manager.h>
+#include <system/process.h>
 #include <server/types.h>
 
 
@@ -18,87 +17,65 @@ namespace server {
 
 
 class server;
+class acceptor;
+
+
+namespace host {
+
+
+class manager;
+
+
+};	// namespace host
 
 
 class worker:
-	protected logger::enable_logger
+	public logger::enable_logger
 {
 public:
-	typedef unsigned int id_type;
-	
-	
-	struct parameters
-	{
-		worker::id_type id;
-	};	// struct parameters
-	
-	
-	
-	worker(logger::logger &logger,
-		   const parameters &parameters,
-		   server &server);
-	
-	
-	// Non-copy/-move constructable/assignable. Use ptrs.
-	worker(const worker &other) = delete;
-	worker(worker &&other) = delete;
-	
-	worker & operator=(const worker &other) = delete;
-	worker & operator=(worker &&other) = delete;
+	// Creates and runs new worker in separate process
+	// Returns correct child process object (only in parent process!)
+	// Throws: std::system_error, if it's impossible to create process (only in parent process!)
+	// NEVER returns in child process!
+	static system::process run(logger::logger &logger, server &server);
 	
 	
 	// Returns server name (random!)
 	const std::string & server_name() const noexcept;
 	
+	// Returns server's host manager
+	inline ::server::host::manager & host_manager() noexcept;
 	
-	// Returns worker id
-	inline worker::id_type id() const noexcept;
-	
-	// Returns worker thread id (need for server's dispatcher)
-	inline std::thread::id thread_id() const noexcept;
-	
+	// Returns thiw worker's io_service
+	inline boost::asio::io_service & io_service() noexcept;
 	
 	// Adds new client to the worker
-	// Returns true, if added successfully
-	bool add_client(server::socket_ptr_type socket_ptr) noexcept;
-	
-	
-	inline bool joinable() const noexcept;	// Checks worker's thread for joinable
-	inline void join();						// Joins worker's thread
-	inline void detach();					// Detaches worker's thread
-	
-	
-	// Erases client by iterator. Client manager uses this.
-	void erase_client(server::client_manager::const_iterator_type iterator) noexcept;
+	void add_client(::server::socket &&socket) noexcept;
 private:
-	// Must be called in worker_thread_ thread
-	// NOTE: Constructor calls this automatically. Do NOT call it manually!
-	void run() noexcept;
+	// Constructor
+	worker(logger::logger &logger, server &server);
 	
-	// Stops the worker (canceling all incoming clients)
-	// NOTE: Do NOT call this manually! Worker's run() does it.
-	void stop() noexcept;
+	
+	// Returns exit status for current process
+	int run() noexcept;
 	
 	
 	// Data
-	parameters parameters_;
-	
 	server &server_;
 	
-	boost::asio::io_service::work work_;
 	
-	server::client_manager::list_type client_managers_;	// Clients, worker are working with
+	boost::asio::io_service io_service_;
+	boost::asio::io_service::work empty_work_;
+	std::vector<::server::acceptor> acceptors_;
 	
-	std::thread worker_thread_;
 	
-	
-	mutable std::minstd_rand0 server_name_generator_;
+	std::minstd_rand0 server_name_generator_;
 };	// class worker
 
 
 };	// namespace server
 
 
-#include <server/server_worker.hpp>
+#include <server/worker.hpp>
 
-#endif	// SERVER_SERVER_WORKER_H
+#endif	// SERVER_WORKER_H

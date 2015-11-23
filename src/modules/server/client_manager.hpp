@@ -18,27 +18,10 @@ server::client_manager::server_port() const noexcept
 
 
 inline
-bool
-server::client_manager::keep_alive() const noexcept
-{
-	return this->keep_alive_;
-}
-
-
-inline
 void
-server::client_manager::keep_alive(bool status) noexcept
-{
-	this->keep_alive_ = status;
-}
-
-
-// protected
-inline
-void
-server::client_manager::handle_error(server::protocol::http::request::ptr_type request_ptr,
+server::client_manager::handle_error(const server::protocol::http::request &request,
 									 const std::exception &e,
 									 const server::protocol::http::status &status)
 {
-	this->handle_error(std::move(request_ptr), e.what(), status);
+	this->handle_error(request, e.what(), status);
 }

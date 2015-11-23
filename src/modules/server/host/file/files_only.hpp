@@ -4,24 +4,25 @@
 
 #include <server/host/base.h>
 #include <server/host/exceptions.h>
+#include <server/worker.h>
 
 
 inline
-server::host::files_only::response::response(base::mapped_file &&mapped_file,
-											 const server::protocol::http::status &status,
-											 server::protocol::http::version version = v_1_1):
-	server::protocol::http::response(status, version),
+server::host::file::files_only::response::response(::base::mapped_file &&mapped_file,
+												   const ::server::protocol::http::status &status,
+												   ::server::protocol::http::version version):
+	::server::protocol::http::response(status, version),
 	
 	mapped_file_(std::move(mapped_file))
 {}
 
 
 template<class FileHost>
-server::protocol::http::response::ptr_type
-server::host::files_only::operator()(const FileHost &host,
-									 const server::worker &worker,
-									 server::protocol::http::request::ptr_type request_ptr,
-									 const boost::filesystem::path &path)
+std::shared_ptr<::server::protocol::http::response>
+server::host::file::files_only::operator()(const FileHost &host,
+										   const ::server::worker &worker,
+										   const ::server::protocol::http::request &request,
+										   const boost::filesystem::path &path)
 {
 	using namespace boost::interprocess;
 	
@@ -29,34 +30,34 @@ server::host::files_only::operator()(const FileHost &host,
 	try {
 		bool need_body = false;
 		
-		switch (request_ptr->method) {
-			case server::protocol::http::method::GET:
+		switch (request.method) {
+			case ::server::protocol::http::method::GET:
 				need_body = true;
 				break;
-			case server::protocol::http::method::HEAD:
+			case ::server::protocol::http::method::HEAD:
 				need_body = false;
 				break;
 			default:
-				throw server::host::method_not_allowed(server::protocol::http::method_to_str(request_ptr->method));
+				throw ::server::host::method_not_allowed(::server::protocol::http::method_to_str(request.method));
 		}
 		
 		
-		auto response_ptr = std::make_shared<server::host::files_only::response>(
-			base::mapped_file(path, read_only, MAP_SHARED),
-			server::protocol::http::status::ok,
-			request_ptr->version
+		auto response_ptr = std::make_shared<::server::host::file::files_only::response>(
+			::base::mapped_file(path, read_only, MAP_SHARED),
+			::server::protocol::http::status::ok,
+			request.version
 		);
 		
 		
-		server::host::base::add_server_name(worker, *response_ptr);	// Server name
+		::server::host::base::add_server_name(worker, *response_ptr);	// Server name
 		
 		
-		const void *file_content = request_ptr->mapped_file.data();
-		size_t file_size = request_ptr->mapped_file.size();
+		const void *file_content = response_ptr->mapped_file_.data();
+		size_t file_size = response_ptr->mapped_file_.size();
 		
 		auto &content_len_str = response_ptr->cache(std::to_string(file_size));
 		
-		response_ptr->add_header(server::protocol::http::header::content_length, content_len_str);
+		response_ptr->add_header(::server::protocol::http::header::content_length, content_len_str);
 		response_ptr->finish_headers();
 		
 		if (need_body)
@@ -67,8 +68,8 @@ server::host::files_only::operator()(const FileHost &host,
 	}
 	
 	// File mapping error (impossible -- path checked by server::host::file<files_only>::response method)
-	catch (const base::path_not_found &e) {
-		throw server::path_not_found(path.string());
+	catch (const ::base::path_not_found &e) {
+		throw ::server::host::path_not_found(path.string());
 	}
 	
 	// Interprocess error
@@ -77,9 +78,9 @@ server::host::files_only::operator()(const FileHost &host,
 		
 		switch (e.get_error_code()) {
 			case not_such_file_or_directory: case not_found_error:	// Impossible too
-				throw server::host::path_not_found(path.string());
+				throw ::server::host::path_not_found(path.string());
 			default:
-				throw server::host::path_forbidden(path.string(), "file_mapping: "s + e.what());
+				throw ::server::host::path_forbidden(path.string(), "file_mapping: "s + e.what());
 		}
 	}
 }

@@ -17,11 +17,9 @@ server::server::parameters::parameters(const nlohmann::json &config)
 
 
 server::server::server(logger::logger &logger,
-					   const server::server::parameters &parameters,
-					   server::server::request_handler_type &&request_handler):
+					   const server::server::parameters &parameters):
 	logger::enable_logger(logger),
 	
-	request_handler_(std::move(request_handler)),
 	parameters_(parameters),
 	
 	host_manager_(this->logger()),

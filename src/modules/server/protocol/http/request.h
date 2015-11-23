@@ -4,7 +4,6 @@
 #define SERVER_PROTOCOL_HTTP_REQUEST_H
 
 #include <string>
-#include <memory>
 #include <unordered_map>
 
 #include <boost/asio/ip/address.hpp>
@@ -24,9 +23,6 @@ class request:
 	public server::protocol::request
 {
 public:
-	typedef std::shared_ptr<request> ptr_type;
-	
-	
 	// Data
 	// Protocol info
 	server::protocol::http::method					method  = server::protocol::http::method::unknown;

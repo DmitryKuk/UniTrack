@@ -15,7 +15,7 @@ server::host::manager::manager(logger::logger &logger):
 // same name is already managed by this manager.
 // Thread-safety: no (it's write function).
 bool
-server::host::manager::add_host(server::host::base::ptr_type host_ptr) noexcept
+server::host::manager::add_host(std::shared_ptr<server::host::base> host_ptr) noexcept
 {
 	if (host_ptr == nullptr) {
 		this->logger().stream(logger::level::error)
@@ -39,7 +39,7 @@ server::host::manager::add_host(server::host::base::ptr_type host_ptr) noexcept
 // Finds the host with specified name.
 // Returns std::shared_ptr to it or throws server::host_not_found exception.
 // Thread-sefety: yes (it's read function).
-server::host::base::ptr_type
+std::shared_ptr<server::host::base>
 server::host::manager::host(const std::string &name, server::port_type port)
 {
 	auto it = this->hosts_.find(&name);
@@ -47,7 +47,7 @@ server::host::manager::host(const std::string &name, server::port_type port)
 		this->logger().stream(logger::level::sec_info)
 			<< "Host manager: Requested access to nonexistent host: \"" << name << "\", port: " << port << '.';
 		
-		throw server::host_not_found(name);
+		throw server::host::host_not_found(name);
 	}
 	
 	auto host_ptr = it->second;
@@ -55,7 +55,7 @@ server::host::manager::host(const std::string &name, server::port_type port)
 		this->logger().stream(logger::level::sec_warning)
 			<< "Host manager: Requested access to non-allowed port: host: \"" << name << "\", port: " << port << '.';
 		
-		throw server::host_not_found(name);
+		throw server::host::port_not_allowed(name, port);
 	}
 	
 	return host_ptr;

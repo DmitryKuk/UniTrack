@@ -3,56 +3,17 @@
 #ifndef SERVER_HOST_FILE_H
 #define SERVER_HOST_FILE_H
 
+#include <vector>
+#include <regex>
+
 #include <boost/filesystem/path.hpp>
 
-#include <base/buffer.h>
-
 #include <logger/logger.h>
-
-#include <server/types.h>
 #include <server/host/base.h>
-#include <server/protocol/http.h>
-#include <server/worker.h>
 
 
 namespace server {
 namespace host {
-
-
-// Requirements to the class HostType:
-// 	- may have class inside:
-// 		class cache (even it is empty), that have a default constructor
-// 		
-// 		Then you can leave CacheType template parameter as is. If not (for example, HostType
-// 		is pointer to function or lambda), try to set CacheType to server::host_cache. But then
-// 		HostType object will be unable to use own cache.
-// 	- must have non-static method:
-// 		
-// 		std::pair<base::send_buffers_t, base::send_buffers_t>
-// 		operator()(const file<HostType> &host,	// Host, that is handler's owner
-// 				   CacheType &cache);							// Cache that the handler can use
-// 		
-// 		Return value: first if headers buffers, second is content buffers.
-// 		Headers buffers must contain Content-Length, if need.
-// 		This method can throws: server::path_forbidden or server::path_not_found.
-// 		In this case status will be 403 Forbidden and 404 Not Found.
-// 		Other exceptions will be processed with status 500 Internal Server Error.
-// 		
-// 		This method can use cache pointed by cache_ptr and must return buffers
-// 		ready to socket.async_send(). All data is in that cache.
-// 
-// See also:
-// - base/buffer.h and server/types.h for base::send_buffers_t and server::file_host_cache<>::ptr_t
-
-// Requirements to class CacheType:
-// 	- must be inheritor of server::host_cache
-// 	- must have typedef inside: ptr_t
-
-
-// NOTE: If you don't know what is these, and what should you do, simple files-only host example:
-// 		server::parameters params;
-// 		// Set parameters with: params.smth = smth_val;
-// 		server::file<server::files_only> host(logger, params);
 
 
 template<class HostType>
@@ -113,12 +74,12 @@ public:
 	
 	
 	file(logger::logger &logger,
-			  const parameters &parameters,
-			  HostType &&handler = std::move(HostType()));
+		  const parameters &parameters,
+		  HostType &&handler = std::move(HostType()));
 	
 	file(logger::logger &logger,
-			  const parameters &parameters,
-			  const HostType &handler);
+		  const parameters &parameters,
+		  const HostType &handler);
 	
 	
 	// Non-copy/-move constructable/assignable. Use ptrs.
@@ -135,14 +96,10 @@ public:
 	file<HostType> & operator=(file<HostType1> &&other) = delete;
 	
 	
-	// Prepares a correct response to the client.
-	// Returns pair<vector<buffer>, shared_ptr<cache>> ready to socket.async_send().
-	// WARNING: first field of result does NOT contain data, only references. Second field
-	// contains data need to be sent, so save the given shared_ptr anywhere during all sending!
 	virtual
-	server::protocol::http::response::ptr_type
-	response(const server::worker &worker,
-			 server::protocol::http::request::ptr_type request_ptr) override;
+	std::shared_ptr<server::protocol::http::response>
+	response(const worker &worker,
+			 const server::protocol::http::request &request) override;
 protected:
 	// Validators
 	inline
@@ -152,14 +109,16 @@ protected:
 	
 	
 	// Error handlers
-	server::protocol::http::response::ptr_type
-	handle_error(server::protocol::http::request::ptr_type request_ptr,
+	std::shared_ptr<server::protocol::http::response>
+	handle_error(const worker &worker,
+				 const server::protocol::http::request &request,
 				 const char *what,
 				 const server::http::status &status);
 	
 	inline
-	server::protocol::http::response::ptr_type
-	handle_error(server::protocol::http::request::ptr_type request_ptr,
+	std::shared_ptr<server::protocol::http::response>
+	handle_error(const worker &worker,
+				 const server::protocol::http::request &request,
 				 const std::exception &e,
 				 const server::http::status &status);
 	

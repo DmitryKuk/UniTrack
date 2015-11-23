@@ -11,15 +11,16 @@
 const templatizer::page &
 host::file::template_pages_only::pages_cache::at(const boost::filesystem::path &path)
 {
-	auto it = this->cache_.find(path);
+	auto path_str = path.string();
+	auto it = this->cache_.find(path_str);
 	
 	if (it == this->cache_.end()) {
 		bool inserted = false;
-		std::tie(it, inserted) = this->cache_.emplace(path, templatizer::page(path));
+		std::tie(it, inserted) = this->cache_.emplace(std::move(path_str), std::make_unique<templatizer::page>(path));
 		
 		if (!inserted)
 			throw server::host::error("Can\'t emplace template page");
 	}
 	
-	return it->second;
+	return *(it->second);
 }

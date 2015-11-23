@@ -4,14 +4,13 @@
 #define SERVER_HOST_BASE_H
 
 #include <string>
-#include <vector>
-#include <deque>
 #include <memory>
 
 #include <json.hpp>
 
 #include <logger/logger.h>
 #include <base/buffer.h>
+#include <server/types.h>
 #include <server/protocol/http.h>
 
 
@@ -30,9 +29,6 @@ class base:
 	protected logger::enable_logger
 {
 public:
-	typedef std::shared_ptr<base> ptr_type;
-	
-	
 	// Host parameters. Need for every host.
 	// This is default parameters for error_host.
 	struct parameters
@@ -64,16 +60,16 @@ public:
 	// Prepares a correct response to the client.
 	// NOTE: By default -- phony "404 Not Found". Redefine this function in child classes.
 	virtual
-	server::protocol::http::response::ptr_type
+	std::shared_ptr<server::protocol::http::response>
 	response(const server::worker &worker,
-			 server::protocol::http::request::ptr_type request_ptr);
+			 const server::protocol::http::request &request);
 	
 	
 	// Prepares a phony response to the client.
 	// WARNING: Remember to save anywhere status too (standard statuses are already saved)!
-	server::protocol::http::response::ptr_type
+	std::shared_ptr<server::protocol::http::response>
 	phony_response(const server::worker &worker,
-				   server::protocol::http::request::ptr_type request_ptr,
+				   const server::protocol::http::request &request,
 				   const server::protocol::http::status &status);
 	
 	
@@ -91,9 +87,8 @@ public:
 	
 	// Gets server name from worker and adds it to headers in response.
 	// Returns true, if name was added. Otherwise, false (if returned server name is empty).
-	static
-	bool add_server_name(const server::worker &worker,
-						 const server::protocol::http::response &response);
+	static bool add_server_name(const server::worker &worker,
+								const server::protocol::http::response &response);
 protected:
 	parameters parameters_;
 private:

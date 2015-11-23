@@ -19,7 +19,7 @@
 application::application(int argc, char **argv):
 	status_{0}
 {
-	using std::literals;
+	using namespace std::literals;
 	
 	
 	std::ios::sync_with_stdio(false);

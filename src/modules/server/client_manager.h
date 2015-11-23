@@ -26,23 +26,20 @@ class worker;
 
 
 class client_manager:
+	private std::enable_shared_from_this<client_manager>,
 	protected logger::enable_logger
 {
 public:
-	typedef std::shared_ptr<client_manager> ptr_type;
-	typedef std::list<ptr_type> list_type;
-	typedef list_type::const_iterator const_iterator_type;
+	// Use this method for creating client_manager objects. You should NOT manage objects of this class -- they do it.
+	static void run(worker &worker, server::socket &&socket);
 	
 	
-	client_manager(logger::logger &logger,
-				   worker &w,
-				   const_iterator_type iterator,
-				   server::socket_ptr_type socket_ptr,
-				   server::host::manager &host_manager);
 	~client_manager();
+private:
+	client_manager(worker &w, server::socket &&socket);
 	
 	
-	// Non-copy/-move constructable/assignable.
+	// Non-copy/-move constructable/assignable. Why? Because of implicit async execution flow (see below).
 	client_manager(const client_manager &other) = delete;
 	client_manager(client_manager &&other) = delete;
 	
@@ -50,80 +47,65 @@ public:
 	client_manager & operator=(client_manager &&other) = delete;
 	
 	
+	// Client and server connection info
 	inline const boost::asio::ip::address &client_address() const noexcept;
 	inline server::port_type server_port() const noexcept;
 	
-	inline bool keep_alive() const noexcept;
-protected:
-	inline void keep_alive(bool status) noexcept;
 	
-	
-	// Mutex-like functions (for usage with std::unique_lock), but provides reference counting
-	friend class std::unique_lock<client_manager>;
-	typedef std::unique_lock<client_manager> unique_lock_t;
-	
-	// Tells current object does not destroy itself
-	void lock() noexcept;
-	
-	// Removes manager from worker, if no works running
-	void unlock() noexcept;
-	
-	
-	void handle_error(server::protocol::http::request::ptr_type request_ptr,
+	// Helpers
+	void handle_error(const server::protocol::http::request &request,
 					  const char *what,
 					  const server::protocol::http::status &status);
 	
 	inline
-	void handle_error(server::protocol::http::request::ptr_type request_ptr,
+	void handle_error(const server::protocol::http::request &request,
 					  const std::exception &e,
 					  const server::protocol::http::status &status);
 	
 	
-	void add_request_handler();
+	void send_response(std::unique_ptr<server::protocol::http::response> &&response_ptr);
 	
-	void send_response(server::protocol::response::ptr_type response_ptr);
-	
-	void send_phony(server::protocol::http::request::ptr_type request_ptr,
+	void send_phony(const server::protocol::http::request &request,
 					const server::protocol::http::status &status);
 	
 	
 	void log_request(const server::protocol::http::request &request);
-private:
-	// Helpers
-	void process_request(server::protocol::http::request::ptr_type request_ptr) noexcept;
 	
 	
-	// Handlers
-	void request_handler(server::protocol::http::request::ptr_type request_ptr,
-						 const boost::system::error_code &err,
-						 size_t bytes_transferred);
+	void process_request(const server::protocol::http::request &request) noexcept;
 	
 	
-	void add_response_handler();
+	// WARNING: Implicit async execution flow!
+	// NOTE: client_manager object is alive, while exists std::shared_ptr to it. Methods below implicitly save
+	// those pointers, while operations go.
 	
-	void response_handler(server::protocol::response::ptr_type response_ptr,
-						  const boost::system::error_code &err,
-						  size_t bytes_transferred);
+	// Request
+	static void add_request_handler(std::shared_ptr<client_manager> this_);
+	
+	static void request_handler(std::shared_ptr<client_manager> &&this_,
+								std::unique_ptr<server::protocol::http::request> &&request_ptr,
+								const boost::system::error_code &err,
+								size_t bytes_transferred);
+	
+	
+	// Response
+	static void add_response_handler(std::shared_ptr<client_manager> this_, bool sending = true);
+	
+	static void response_handler(std::shared_ptr<client_manager> &&this_,
+								 const boost::system::error_code &err,
+								 size_t bytes_transferred);
 	
 	
 	// Data
-	server::host::manager &host_manager_;
-	
 	worker &worker_;
-	const_iterator_type iterator_;
-	
-	unsigned int running_operations_;
-	
 	
 	// Connection data
-	server::socket_ptr_type		socket_ptr_;
+	server::socket				socket_;
 	boost::asio::ip::address	client_address_;
 	server::port_type			server_port_;
-	bool						keep_alive_ = false;
 	
 	
-	std::queue<server::protocol::response::ptr_type> responses_queue_;
-	bool sending_;
+	std::queue<std::unique_ptr<server::protocol::http::response>> responses_queue_;
 };	// class client_manager
 
 

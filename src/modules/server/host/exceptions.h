@@ -6,6 +6,8 @@
 #include <string>
 #include <stdexcept>
 
+#include <server/types.h>
+
 
 namespace server {
 namespace host {
@@ -18,17 +20,17 @@ public:
 };
 
 
-class duplicate_header: public error
-{
-public:
-	explicit duplicate_header(const std::string &name);
-};
-
-
 class host_not_found: public error
 {
 public:
 	explicit host_not_found(const std::string &name);
+};
+
+
+class port_not_allowed: public error
+{
+public:
+	explicit port_not_allowed(const std::string &host, ::server::port_type port);
 };
 
 

@@ -13,12 +13,13 @@ namespace server {
 
 
 // Sockets
-typedef std::shared_ptr<boost::asio::ip::tcp::socket> socket_ptr_type;
+using socket			= boost::asio::ip::tcp::socket;
+using socket_ptr_type	= std::shared_ptr<socket>;
 
 
 // Ports
-typedef unsigned short					port_type;
-typedef std::unordered_set<port_type>	port_set_type;
+using port_type			= unsigned short;
+using port_set_type		= std::unordered_set<port_type>;
 
 
 };	// namespace server

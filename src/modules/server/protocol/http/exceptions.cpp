@@ -4,7 +4,7 @@
 
 
 server::protocol::http::error::error(const std::string &what_arg):
-	server::protocol::error(what_arg)
+	::server::protocol::error(what_arg)
 {}
 
 

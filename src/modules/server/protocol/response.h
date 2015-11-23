@@ -3,8 +3,6 @@
 #ifndef SERVER_PROTOCOL_RESPONSE_H
 #define SERVER_PROTOCOL_RESPONSE_H
 
-#include <memory>
-
 #include <base/buffer.h>
 #include <base/strings_cache.h>
 
@@ -18,9 +16,6 @@ class response:
 	public base::strings_cache
 {
 public:
-	typedef std::shared_ptr<response> ptr_type;
-	
-	
 	// Buffers to send
 	base::send_buffers_type buffers;
 	

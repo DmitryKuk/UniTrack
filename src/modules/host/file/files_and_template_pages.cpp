@@ -5,6 +5,7 @@
 #include <string>
 
 #include <base/json_utils.h>
+#include <host/exceptions.h>
 
 
 host::file::files_and_template_pages::parameters::parameters(const nlohmann::json &config)

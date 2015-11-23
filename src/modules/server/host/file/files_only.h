@@ -4,16 +4,23 @@
 #define SERVER_HOST_FILE_FILES_ONLY_H
 
 #include <string>
+#include <memory>
+
+#include <boost/filesystem/path.hpp>
 
 #include <base/mapped_file.h>
-#include <base/buffer.h>
 #include <server/types.h>
-#include <server/worker.h>
 #include <server/protocol/http.h>
 
 
 namespace server {
+
+
+class worker;
+
+
 namespace host {
+namespace file {
 
 
 class files_only
@@ -23,24 +30,27 @@ public:
 		public server::protocol::http::response
 	{
 	public:
-		inline response(base::mapped_file &&mapped_file,
+		inline response(::base::mapped_file &&mapped_file,
 						const server::protocol::http::status &status,
 						server::protocol::http::version version = server::protocol::http::version::v_1_1);
 	private:
+		friend class files_only;
+		
 		// Data
-		base::mapped_file mapped_file_;
+		::base::mapped_file mapped_file_;
 	};	// class response
 	
 	
 	template<class FileHost>
-	server::protocol::http::response::ptr_type
+	std::shared_ptr<server::protocol::http::response>
 	operator()(const FileHost &host,
-			   const server::worker &worker,
-			   server::protocol::http::request::ptr_type request_ptr,
+			   const worker &worker,
+			   const server::protocol::http::request &request,
 			   const boost::filesystem::path &path);
 };	// class files_only
 
 
+};	// namespace file
 };	// namespace host
 };	// namespace server
 

@@ -5,6 +5,10 @@
 
 #include <memory>
 
+#include <boost/filesystem/path.hpp>
+
+#include <json.hpp>
+
 #include <mongo/client/init.h>
 #include <mongo/client/options.h>
 #include <mongo/client/dbclient.h>
@@ -56,16 +60,17 @@ public:
 	
 	
 	explicit global_instance(logger::logger &logger,
-							 const logic::parameters &parameters,
+							 const parameters &parameters,
 							 const mongo::client::Options &options = mongo::client::Options());
 	
 	
-	logic::page_model generate(const server::protocol::http::request &request) const;
+	logic::page_model generate(const server::protocol::http::request &request,
+							   const boost::filesystem::path &path) const;
 private:
 	mongo::client::GlobalInstance mongo_client_global_instance_;
 	std::unique_ptr<mongo::DBClientBase> connection_ptr_;
 	
-	logic::parameters parameters_;
+	parameters parameters_;
 };	// class global_instance
 
 

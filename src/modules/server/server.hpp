@@ -34,19 +34,18 @@ server::server::host_manager() noexcept
 }
 
 
+inline
+const server::host_manager &
+server::server::host_manager() const noexcept
+{
+	return this->host_manager_;
+}
+
+
 // Returns server names
 inline
 const std::vector<std::string> &
 server::server::names() const noexcept
 {
 	return this->parameters_.server_names;
-}
-
-
-// Returns request handler
-inline
-const server::server::request_handler_type &
-server::server::request_handler() const noexcept
-{
-	return this->request_handler_;
 }

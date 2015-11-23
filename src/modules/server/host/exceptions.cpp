@@ -14,7 +14,12 @@ server::host::duplicate_header::duplicate_header(const std::string &name):
 
 
 server::host::host_not_found::host_not_found(const std::string &name):
-	server::host::error("Host \"" + name + "\" not found")
+	server::host::error("Host not found: \"" + name + '\"')
+{}
+
+
+server::host::port_not_allowed::port_not_allowed(const std::string &host, ::server::port_type port):
+	server::host::error("Port not allowed: " + std::to_string(port) + "(host: \"" + host + "\")")
 {}
 
 

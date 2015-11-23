@@ -39,9 +39,9 @@ public:
 	raw_chunk(const char *data, size_t size) noexcept;
 	
 	
-	virtual void generate(base::send_buffers_insert_functor buffers_ins_fn,
-						  base::strings_cache &cache,
-						  const templatizer::model &model) const override;
+	virtual size_t generate(base::send_buffers_insert_functor buffers_ins_fn,
+							base::strings_cache &cache,
+							const templatizer::model &model) const override;
 	
 	
 	virtual void export_symbols(std::unordered_set<std::string> &symbols) const noexcept override;

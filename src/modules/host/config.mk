@@ -15,5 +15,5 @@ else
 endif
 
 
-# Disable warnings in Boost.Asio for new version of Clang
-COMPILE_FLAGS				= -Wno-unused-local-typedef
+# Disable warnings in Boost.Asio for new version of Clang and mongo driver
+COMPILE_FLAGS				= -Wno-unused-local-typedef -Wno-deprecated-declarations

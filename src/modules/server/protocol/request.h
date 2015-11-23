@@ -3,8 +3,6 @@
 #ifndef SERVER_PROTOCOL_REQUEST_H
 #define SERVER_PROTOCOL_REQUEST_H
 
-#include <memory>
-
 #include <boost/asio/ip/address.hpp>
 
 #include <base/buffer.h>
@@ -18,9 +16,6 @@ namespace protocol {
 class request
 {
 public:
-	typedef std::shared_ptr<request> ptr_type;
-	
-	
 	// Client info
 	boost::asio::ip::address	client_address;
 	

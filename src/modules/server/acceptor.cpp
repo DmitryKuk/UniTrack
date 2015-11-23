@@ -4,69 +4,53 @@
 
 #include <functional>
 
-#include <server/server.h>
+#include <server/worker.h>
 
 
-server::acceptor::acceptor(logger::logger &logger,
-						   server::server &server,
-						   const parameters &parameters,
-						   boost::asio::io_service &acceptors_io_service,
-						   boost::asio::io_service &workers_io_service):
-	logger::enable_logger(logger),
+server::acceptor::acceptor(::server::worker &worker, ::server::port_type port):
+	boost::asio::ip::tcp::acceptor{worker.io_service(),
+								   {boost::asio::ip::tcp::v4(), port},	// Local endpoint
+								   true},								// Reuse address
 	
-	server_(server),
-	parameters_(parameters),
+	logger::enable_logger{worker.logger()},
 	
-	acceptors_io_service_(acceptors_io_service),
-	workers_io_service_(workers_io_service),
-	
-	endpoint_(boost::asio::ip::tcp::v4(), parameters_.port),
-	acceptor_(acceptors_io_service_, endpoint_)
+	worker_{worker},
+	socket_{this->worker_.io_service()}
 {
 	this->add_accept_handler();
 	
 	this->logger().stream(logger::level::info)
-		<< "Acceptor: Accepting on port: " << this->parameters_.port
-		<< ": started.";
+		<< "Accepting on port: " << this->local_endpoint().port() << ": started.";
 }
 
 
 server::acceptor::~acceptor()
 {
 	boost::system::error_code err;
-	this->acceptor_.close(err);
-}
-
-
-// Handles the accept event
-void
-server::acceptor::accept_handler(server::socket_ptr_type socket_ptr,
-								 const boost::system::error_code &err) noexcept
-{
-	if (err) {
-		this->logger().stream(logger::level::error)
-			<< "Acceptor: Accepting on port: " << this->parameters_.port
-			<< ": " << err.message() << '.';
-	} else {
-		this->add_accept_handler();	// Continue accepting
-		
-		this->logger().stream(logger::level::info)
-			<< "Acceptor: New connection on port: " << this->parameters_.port
-			<< ": Accepted.";
-	}
-	
-	this->server_.dispatch_client(socket_ptr);
+	this->close(err);
 }
 
 
 // Add accept_handler to the io_service event loop
 void
-server::acceptor::add_accept_handler() noexcept
+server::acceptor::add_accept_handler()
 {
 	using namespace std::placeholders;
 	
-	auto socket_ptr = std::make_shared<boost::asio::ip::tcp::socket>(this->workers_io_service_);
-	this->acceptor_.async_accept(*socket_ptr,
-								 std::bind(&acceptor::accept_handler,
-										   this, socket_ptr, _1));
+	this->async_accept(this->socket_, std::bind(&acceptor::accept_handler, this, _1));
+}
+
+
+// Handles the accept event
+void
+server::acceptor::accept_handler(const boost::system::error_code &err)
+{
+	if (err) {
+		this->logger().stream(logger::level::error)
+			<< "Accepting on port: " << this->local_endpoint().port() << ": " << err.message() << '.';
+	} else {
+		this->worker_.add_client(std::move(this->socket_));
+		
+		this->add_accept_handler();	// Continue accepting
+	}
 }

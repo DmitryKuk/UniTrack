@@ -4,10 +4,11 @@
 #define SERVER_HOST_MANAGER_H
 
 #include <unordered_map>
+#include <memory>
 
 #include <logger/logger.h>
-#include <server/host/base.h>
 #include <server/types.h>
+#include <server/host/base.h>
 
 
 namespace server {
@@ -25,13 +26,13 @@ public:
 	// Returns true, if host successfully addes, or false, if host with the
 	// same name is already managed by this manager.
 	// Thread-safety: no (it's write function).
-	bool add_host(server::host::base::ptr_type host_ptr) noexcept;
+	bool add_host(std::shared_ptr<server::host::base> host_ptr) noexcept;
 	
 	
 	// Finds the host with specified name.
 	// Returns std::shared_ptr to it or throws server::host_not_found exception.
 	// Thread-sefety: yes (it's read function).
-	server::host::base::ptr_type host(const std::string &name, server::port_type port);
+	std::shared_ptr<server::host::base> host(const std::string &name, server::port_type port);
 	
 	
 	// Returns reference to error host object, creating it, if does not exist.
@@ -47,7 +48,7 @@ private:
 		}
 	};	// class equal_to
 	
-	std::unordered_map<const std::string *, server::host::base::ptr_type, equal_to> hosts_;
+	std::unordered_map<const std::string *, std::shared_ptr<server::host::base>, equal_to> hosts_;
 };	// class manager
 
 

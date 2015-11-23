@@ -9,12 +9,19 @@
 
 #include <boost/filesystem/path.hpp>
 
-#include <base/buffer.h>
-#include <server/server_worker.h>
 #include <server/protocol/http.h>
 #include <templatizer/page.h>
 #include <logic/page_model.h>
 #include <logic/global_instance.h>
+
+
+namespace server {
+
+
+class worker;
+
+
+};	// namespace server
 
 
 namespace host {
@@ -33,23 +40,24 @@ public:
 						const server::protocol::http::status &status,
 						server::protocol::http::version version = server::protocol::http::version::v_1_1);
 	private:
+		friend class template_pages_only;
+		
 		// Data
 		const templatizer::page &page_;
 		
 		logic::page_model page_model_;
-		
-		friend class template_pages_only;
 	};	// class response
 	
 	
-	inline template_pages_only(logic::global_instance &logic_global_instance);
+	
+	inline template_pages_only(logic::global_instance &logic);
 	
 	
 	template<class FileHost>
-	server::protocol::http::response::ptr_type
+	std::shared_ptr<server::protocol::http::response>
 	operator()(const FileHost &host,
 			   const server::worker &worker,
-			   server::protocol::http::request::ptr_type request_ptr,
+			   const server::protocol::http::request &request,
 			   const boost::filesystem::path &path);
 private:
 	class pages_cache
@@ -57,13 +65,15 @@ private:
 	public:
 		const templatizer::page & at(const boost::filesystem::path &path);
 	private:
-		std::unordered_map<boost::filesystem::path, std::unique_ptr<templatizer::page>> cache_;
+		std::unordered_map<std::string, std::unique_ptr<templatizer::page>> cache_;
 	};	// class pages_cache
 	
 	
+	
+	// Data
 	pages_cache pages_cache_;
 	
-	logic::global_instance &logic_global_instance_;
+	logic::global_instance &logic_;
 };	// template_pages_only
 
 

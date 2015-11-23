@@ -13,7 +13,7 @@ namespace protocol {
 namespace http {
 
 
-class error: public server::protocol::error
+class error: public ::server::protocol::error
 {
 public:
 	explicit error(const std::string &what_arg);

@@ -7,20 +7,16 @@
 #include <server/server.h>
 
 
-server::worker::worker(logger::logger &logger,
-					   const server::worker::parameters &parameters,
-					   server::server &server):
-	logger::enable_logger(logger),
-	parameters_(parameters),
-	
-	server_(server),
-	
-	work_(io_service_),
-	
-	worker_thread_(std::bind(&worker::run, this)),
-	
-	server_name_generator_(std::chrono::system_clock::now().time_since_epoch().count())
-{}
+// Creates and runs new worker in separate process
+// Returns correct child process object (only in parent process!)
+// Throws: std::system_error, if it's impossible to create process (only in parent process!)
+// NEVER returns in child process!
+// static
+system::process
+server::worker::run(logger::logger &logger, server &server)
+{
+	return system::process{[&] { return server::worker{logger, server}.run(); }};
+}
 
 
 // Returns server name (random!)
@@ -42,65 +38,78 @@ server::worker::server_name() const noexcept
 
 // Adds new client to the worker
 // Returns true, if added successfully
-bool
-server::worker::add_client(server::socket_ptr_type socket_ptr) noexcept
+void
+server::worker::add_client(server::socket &&socket) noexcept
 {
-	this->logger().stream(logger::level::info)
-		<< "Worker: Adding client to worker " << this->id() << '.';
+	auto client_address = socket.remote_endpoint().address();
 	
 	
 	try {
-		auto it = this->client_managers_.emplace(this->client_managers_.end(), nullptr);
-		*it = std::make_shared<server::client_manager>(this->logger(),
-													   *this,
-													   it,
-													   socket_ptr,
-													   this->server_.host_manager());
+		this->logger().stream(logger::level::info)
+			<< "Client accepted: " << client_address << '.';
+	} catch (...) {}
+	
+	
+	try {
+		server::client_manager::run(*this, std::move(socket));
+	} catch (const std::exception &e) {
+		try {
+			this->logger().stream(logger::level::error)
+				<< "Can\'t process client: " << client_address << ": " << e.what() << '.';
+		} catch (...) {}
 	} catch (...) {
-		this->logger().stream(logger::level::error)
-			<< "Worker: Worker " << this->id() << ": Client not added.";
-		return false;
+		try {
+			this->logger().stream(logger::level::error)
+				<< "Can\'t process client: " << client_address << ": Unknown error.";
+		} catch (...) {}
 	}
-	
-	
-	this->logger().stream(logger::level::info)
-		<< "Worker: Worker " << this->id() << ": Client added.";
-	return true;
-}
-
-
-// Erases client by iterator. Client manager uses this.
-void
-server::worker::erase_client(server::client_manager::const_iterator_type iterator) noexcept
-{
-	this->client_managers_.erase(iterator);
 }
 
 
 // private
-// Must be called in worker_thread_ thread
-// NOTE: Constructor calls this automatically. Do NOT call it manually!
-void
-server::worker::run() noexcept
-{
-	this->logger().stream(logger::level::info)
-		<< "Worker: Worker " << this->id() << " started.";
+// Constructor
+server::worker::worker(logger::logger &logger, const server::server &server):
+	logger::enable_logger{logger},
 	
-	this->io_service_.run();	// Stops when server stops this service
-	this->stop();
+	server_{server},
+	
+	empty_work_{this->io_service_},
+	
+	server_name_generator_{std::chrono::system_clock::now().time_since_epoch().count()}
+{
+	this->acceptors_.reserve(this->server_.parameters_.ports.size());
+	for (auto port: this->server_.parameters_.ports)
+		this->acceptors_.emplace_back(*this, port);
 }
 
 
-// Stops the worker
-// NOTE: Do NOT call this manually! Worker's run() does it.
-void
-server::worker::stop() noexcept
+// Returns exit status for current process
+int
+server::worker::run() noexcept
 {
-	this->logger().stream(logger::level::info)
-		<< "Worker: Worker " << this->id() << " stopping...";
+	try {
+		this->logger().stream(logger::level::info)
+			<< "Worker started.";
+	} catch (...) {}
 	
 	
+	try {
+		this->io_service_.run();
+	} catch (const std::exception &e) {
+		try {
+			this->logger().stream(logger::level::error)
+				<< "Worker failed: " << e.what();
+		} catch (...) {}
+		
+		return 1;
+	}
 	
-	this->logger().stream(logger::level::info)
-		<< "Worker: Worker " << this->id() << " stopped.";
+	
+	try {
+		this->logger().stream(logger::level::info)
+			<< "Worker stopped.";
+	} catch (...) {}
+	
+	
+	return 0;
 }

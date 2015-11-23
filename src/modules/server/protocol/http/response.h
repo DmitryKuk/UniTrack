@@ -4,7 +4,6 @@
 #define SERVER_PROTOCOL_HTTP_RESPONSE_H
 
 #include <string>
-#include <memory>
 
 #include <base/buffer.h>
 #include <base/strings_cache.h>
@@ -20,9 +19,6 @@ class response:
 	public server::protocol::response
 {
 public:
-	typedef std::shared_ptr<response> ptr_type;
-	
-	
 	inline response(const server::protocol::http::status &status,
 					server::protocol::http::version version = server::protocol::http::version::v_1_1);
 	

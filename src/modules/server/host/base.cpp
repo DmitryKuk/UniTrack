@@ -46,19 +46,20 @@ server::host::base::port_allowed(server::port_type port) const noexcept
 // Prepares a correct response to the client.
 // NOTE: By default -- phony "404 Not Found". Redefine this function in child classes.
 // virtual
-server::protocol::http::response::ptr_type
-server::host::base::response(server::protocol::http::request::ptr_type request_ptr)
+std::shared_ptr<server::protocol::http::response>
+server::host::base::response(const server::worker &worker,
+							 const server::protocol::http::request &request)
 {
-	return this->phony_response(request_ptr, server::http::status::not_found);
+	return this->phony_response(worker, request, server::http::status::not_found);
 }
 
 
 // Prepares a phony response to the client.
 // WARNING: Remember to save anywhere status too (standard statuses are already saved)!
 template<class Headers>
-server::protocol::http::response::ptr_type
+std::shared_ptr<server::protocol::http::response>
 phony_response(const server::worker &worker,
-			   server::protocol::http::request::ptr_type request_ptr,
+			   const server::protocol::http::request &request,
 			   const server::protocol::http::status &status)
 {
 	// Body elements
@@ -93,7 +94,7 @@ phony_response(const server::worker &worker,
 	
 	
 	// Response
-	auto response_ptr = std::make_shared<server::protocol::http::response>(status, request_ptr->version);
+	auto response_ptr = std::make_shared<server::protocol::http::response>(status, request.version);
 	
 	
 	// Server name
@@ -104,15 +105,15 @@ phony_response(const server::worker &worker,
 	const std::string &code_str    = status.code_str(),
 					  &description = status.description();
 	
-	std::vector<const std::string *> body = { &body_1, &code_str, &body_2, &description,
-											  &body_3, &code_str, &body_4, &description,
-											  &body_5, &server_name, &body_6 };
+	std::vector<const std::string *> body_ptrs = { &body_1, &code_str, &body_2, &description,
+												   &body_3, &code_str, &body_4, &description,
+												   &body_5, &server_name, &body_6 };
 	
 	// Calculating content length
 	const std::string *content_len_ptr = nullptr;
 	{
 		size_t content_len = std::accumulate(
-			std::begin(body), std::end(body), size_t{0},
+			std::begin(body_ptrs), std::end(body_ptrs), size_t{0},
 			[](size_t current, const std::string &body_element) -> size_t
 			{
 				return current + body_element.size();
@@ -127,8 +128,9 @@ phony_response(const server::worker &worker,
 	response_ptr->finish_headers();
 	
 	// Adding body
-	for (const auto body_element: body)
-		response_ptr->add_body(*body_element);
+	for (const auto body_element_ptr: body_ptrs)
+		response_ptr->add_body(*body_element_ptr);
+	
 	
 	return response_ptr;
 }

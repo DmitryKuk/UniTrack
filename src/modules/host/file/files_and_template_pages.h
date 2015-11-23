@@ -3,16 +3,26 @@
 #ifndef HOST_FILE_FILES_AND_TEMPLATE_PAGES_H
 #define HOST_FILE_FILES_AND_TEMPLATE_PAGES_H
 
+#include <memory>
 #include <regex>
+
+#include <boost/filesystem/path.hpp>
 
 #include <json.hpp>
 
-#include <base/buffer.h>
 #include <server/host/file/files_only.h>
-#include <server/server_worker.h>
 #include <server/protocol/http.h>
 #include <logic/global_instance.h>
 #include <host/file/template_pages_only.h>
+
+
+namespace server {
+
+
+class worker;
+
+
+};	// namespace server
 
 
 namespace host {
@@ -45,17 +55,17 @@ public:
 	
 	
 	
-	inline files_and_template_pages(logic::global_instance &logic_global_instance,
+	inline files_and_template_pages(logic::global_instance &logic,
 									const parameters &parameters);
 	
 	
 	template<class FileHost>
-	server::protocol::http::response::ptr_type
+	std::shared_ptr<server::protocol::http::response>
 	operator()(const FileHost &host,
 			   const server::worker &worker,
-			   server::protocol::http::request::ptr_type request_ptr,
+			   const server::protocol::http::request &request,
 			   const boost::filesystem::path &path);
-private:
+protected:
 	parameters parameters_;
 };	// files_and_template_pages
 

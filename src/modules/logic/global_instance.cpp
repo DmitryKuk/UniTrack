@@ -8,21 +8,21 @@
 
 
 // class logic::mongo_parameters
-logic::mongo_parameters::mongo_parameters(const nlohmann::json &config)
+logic::global_instance::mongo_parameters::mongo_parameters(const nlohmann::json &config)
 {
 	if (!base::json_utils::extract(config, this->uri, "uri"))
-		throw logic::parameters_init_error("Required key: \"uri\" missed (in mongo parameters)");
+		throw logic::parameters_init_error{"Required key: \"uri\" missed (in mongo parameters)"};
 }
 
 
 
 // class logic::parameters
-logic::parameters::parameters(const nlohmann::json &config)
+logic::global_instance::parameters::parameters(const nlohmann::json &config)
 {
 	try {
-		this->mongo = logic::mongo_parameters(base::json_utils::at(config, "mongo"));
+		this->mongo = logic::global_instance::mongo_parameters{base::json_utils::at(config, "mongo")};
 	} catch (const std::out_of_range &) {
-		throw logic::parameters_init_error("Required key: \"mongo\" missed");
+		throw logic::parameters_init_error{"Required key: \"mongo\" missed"};
 	}
 }
 
@@ -32,14 +32,14 @@ logic::parameters::parameters(const nlohmann::json &config)
 logic::global_instance::global_instance(logger::logger &logger,
 										const logic::global_instance::parameters &parameters,
 										const mongo::client::Options &options):
-	logger::enable_logger(logger),
+	logger::enable_logger{logger},
 	
-	mongo_client_global_instance_(options),
+	mongo_client_global_instance_{options},
 	
-	parameters_(parameters)
+	parameters_{parameters}
 {
 	if (!this->mongo_client_global_instance_.initialized())
-		throw logic::global_instance_init_error(this->mongo_client_global_instance_.status().toString());
+		throw logic::global_instance_init_error{this->mongo_client_global_instance_.status().toString()};
 	
 	
 	// Connection to MongoDB
@@ -47,14 +47,14 @@ logic::global_instance::global_instance(logger::logger &logger,
 		std::string error_message;
 		auto cs = mongo::ConnectionString::parse(this->parameters_.mongo.uri, error_message);
 		if (!cs.isValid())
-			throw logic::mongodb_incorrect_uri(error_message);
+			throw logic::mongodb_incorrect_uri{error_message};
 		
-		this->connection_ptr_ = std::unique_ptr<mongo::DBClientBase>(cs.connect(error_message));
+		this->connection_ptr_ = std::unique_ptr<mongo::DBClientBase>{cs.connect(error_message)};
 		if (this->connection_ptr_) {
 			this->logger().stream(logger::level::info)
 				<< "Logic: Connected to MongoDB.";
 		} else {
-			throw logic::mongodb_connection_error(error_message);
+			throw logic::mongodb_connection_error{error_message};
 		}
 	}
 }

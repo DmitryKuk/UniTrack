@@ -8,8 +8,8 @@ server::host::error::error(const std::string &what_arg):
 {}
 
 
-server::host::duplicate_header::duplicate_header(const std::string &name):
-	server::host::error("Duplicate header: \"" + name + '\"')
+server::host::incorrect_config::incorrect_config(const std::string &what_arg):
+	server::host::error("Incorrect host config: " + what_arg)
 {}
 
 

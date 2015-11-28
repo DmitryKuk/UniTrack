@@ -8,6 +8,7 @@
 #include <base/buffer.h>
 #include <base/strings_cache.h>
 #include <server/protocol/response.h>
+#include <server/protocol/http/http.h>
 
 
 namespace server {
@@ -16,11 +17,11 @@ namespace http {
 
 
 class response:
-	public server::protocol::response
+	public ::server::protocol::response
 {
 public:
-	inline response(const server::protocol::http::status &status,
-					server::protocol::http::version version = server::protocol::http::version::v_1_1);
+	inline response(const ::server::protocol::http::status &status,
+					::server::protocol::http::version version = ::server::protocol::http::version::v_1_1);
 	
 	response() = default;
 	
@@ -43,8 +44,8 @@ public:
 	// 4. Add body:    repeat:	r.add_body(data);
 	// After these steps you have response ready to send. You may skip steps 2 and 4, if you need.
 	
-	void add_start_string(const server::protocol::http::status &status,
-						  server::protocol::http::version version = server::protocol::http::version::v_1_1);
+	void add_start_string(const ::server::protocol::http::status &status,
+						  ::server::protocol::http::version version = ::server::protocol::http::version::v_1_1);
 	
 	
 	void add_header(const std::string &name, const std::string &value);

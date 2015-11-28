@@ -20,8 +20,14 @@ class acceptor:
 	public logger::enable_logger
 {
 public:
-	acceptor(worker &worker, server::port_type port);
+	acceptor(worker &worker, ::server::port_type port);
 	~acceptor();
+	
+	acceptor(acceptor &&other) = default;
+	acceptor & operator=(acceptor &&other) = default;
+	
+	acceptor(const acceptor &other) = delete;
+	acceptor & operator=(const acceptor &other) = delete;
 private:
 	// Handlers
 	// Add accept_handler to the io_service event loop
@@ -35,7 +41,7 @@ private:
 	// Data
 	worker &worker_;
 	
-	server::socket socket_;
+	::server::socket socket_;
 };
 
 

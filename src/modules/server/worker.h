@@ -9,7 +9,7 @@
 #include <boost/asio/io_service.hpp>
 
 #include <logger/logger.h>
-#include <system/process.h>
+#include <system_/process.h>
 #include <server/types.h>
 
 
@@ -37,7 +37,7 @@ public:
 	// Returns correct child process object (only in parent process!)
 	// Throws: std::system_error, if it's impossible to create process (only in parent process!)
 	// NEVER returns in child process!
-	static system::process run(logger::logger &logger, server &server);
+	static system_::process run(logger::logger &logger, server &server);
 	
 	
 	// Returns server name (random!)
@@ -69,7 +69,7 @@ private:
 	std::vector<::server::acceptor> acceptors_;
 	
 	
-	std::minstd_rand0 server_name_generator_;
+	mutable std::minstd_rand0 server_name_generator_;
 };	// class worker
 
 

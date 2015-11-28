@@ -3,7 +3,6 @@
 #include <application.h>
 
 #include <iostream>
-#include <stdexcept>
 
 #include <json.hpp>
 
@@ -11,12 +10,12 @@
 #include <templatizer/page.h>
 #include <server/server.h>
 #include <server/host/file.h>
-#include <server/host/file/files_only.h>
-#include <host/file/template_pages_only.h>
-#include <host/file/files_and_template_pages.h>
+#include <server/host/file_handlers/files_only.h>
+#include <host/file_handlers/template_pages_only.h>
+#include <host/file_handlers/files_and_template_pages.h>
 
 
-application::application(int argc, char **argv):
+application::application(int argc, char **argv) noexcept:
 	status_{0}
 {
 	using namespace std::literals;
@@ -35,6 +34,7 @@ application::application(int argc, char **argv):
 	
 	
 	try {
+		// Logic and logic config
 		this->logic_ptr_ = std::make_unique<logic::global_instance>(
 			this->logger(),
 			logic::global_instance::parameters{
@@ -43,56 +43,60 @@ application::application(int argc, char **argv):
 		);
 		
 		
-		// Config
-		auto config = base::json_utils::json_from_file(server_config_path);
-		
-		
-		// Server
-		this->server_ptr_ = std::make_unique<server::server_http>(
-			this->logger(),
-			server::server::parameters{
-				base::json_utils::at(config, "server")
-			}
-		);
+		// Server and hosts config
+		auto config = base::json_utils::json_from_file(project_config::server);
 		
 		
 		// Hosts
+		this->host_manager_ptr_ = std::make_unique<server::host::manager>(this->logger());
 		for (const auto &host_config: base::json_utils::at(config, "hosts")) {
-			server::host::file::parameters params{host_config};
+			server::host::file_parameters file_host_parameters{host_config};
 			const auto type = base::json_utils::get<std::string>(host_config, "type");
 			
 			if (type == "files_only") {
-				this->server_ptr_->host_manager().add_host(
-					std::make_shared<server::file_host<server::files_only>>(
+				this->host_manager_ptr_->add_host(
+					std::make_shared<server::host::file<server::host::file_handlers::files_only>>(
 						this->logger(),
-						params
+						file_host_parameters
 					)
 				);
 			} else if (type == "template_pages_only") {
-				this->server_ptr_->host_manager().add_host(
-					std::make_shared<server::host::file<host::file::template_pages_only>>(
+				this->host_manager_ptr_->add_host(
+					std::make_shared<server::host::file<host::file_handlers::template_pages_only>>(
 						this->logger(),
-						params,
-						host::file::template_pages_only{
-							this->logic_global_instance_
+						file_host_parameters,
+						host::file_handlers::template_pages_only{
+							*this->logic_ptr_
 						}
 					)
 				);
 			} else if (type == "files_and_template_pages") {
-				this->server_ptr_->host_manager().add_host(
-					std::make_shared<server::host::file<host::file::files_and_template_pages>>(
+				this->host_manager_ptr_->add_host(
+					std::make_shared<server::host::file<host::file_handlers::files_and_template_pages>>(
 						this->logger(),
-						params,
-						host::file::files_and_template_pages{
-							this->logic_global_instance_,
-							host::file::files_and_template_pages::parameters{host_config}
+						file_host_parameters,
+						host::file_handlers::files_and_template_pages{
+							*this->logic_ptr_,
+							host::file_handlers::files_and_template_pages::parameters{host_config}
 						}
 					)
 				);
 			} else {
-				throw std::logic_error("Incorrect config");
+				throw server::host::incorrect_config{"Unknown host type: \"" + type
+													 + "\", correct values are: \"files_only\", "
+													   "\"template_pages_only\", \"files_and_template_pages\""};
 			}
 		}
+		
+		
+		// Server
+		this->server_ptr_ = std::make_unique<server::server>(
+			this->logger(),
+			*this->host_manager_ptr_,
+			server::server::parameters{
+				base::json_utils::at(config, "server")
+			}
+		);
 	} catch (const std::exception &e) {
 		this->handle_error(e);
 	}
@@ -103,7 +107,8 @@ application::application(int argc, char **argv):
 int
 application::run_interactive() noexcept
 {
-	if (this->status_) return this->status();
+	if (this->status_)
+		return this->status();
 	
 	
 	try {
@@ -111,7 +116,8 @@ application::run_interactive() noexcept
 			<< "Running interactive mode. Press Ctrl+D to exit...";
 		
 		// Waiting for Ctrl+D
-		while (std::cin) std::cin.get();
+		while (std::cin)
+			std::cin.get();
 		
 		this->stop();
 	} catch (const std::exception &e) {
@@ -138,17 +144,17 @@ application::stop()
 
 
 void
-application::handle_error(const std::exception &e)
+application::handle_error(const std::exception &e) noexcept
 {
 	this->status_ = 1;
 	
-	try {
-		if (this->logger_ptr_ == nullptr)
-			throw std::runtime_error("Logic not set");
-		
+	if (this->logger_ptr_ == nullptr) {
+		try {
+			std::cerr << "Critical error occured: Logger not set.";
+			std::cerr << "Critical error occured: " << e.what() << std::endl;
+		} catch (...) {}
+	} else {
 		this->logger().stream(logger::level::critical)
-			<< "Critical error occured: " << e.what() << '.';
-	} catch (const std::exception &) {
-		std::cerr << "Critical error occured: " << e.what() << std::endl;
+			<< e.what() << '.';
 	}
 }

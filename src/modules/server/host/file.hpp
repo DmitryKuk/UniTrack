@@ -2,61 +2,15 @@
 
 #include <boost/filesystem.hpp>
 
-#include <base/json_utils.h>
 #include <server/host/exceptions.h>
-
-
-// struct server::host::file<HostType>::current_parameters
-template<class HostType>
-server::host::file<HostType>::current_parameters::current_parameters(const nlohmann::json &config):
-	root(base::json_utils::get<decltype(this->root)>(config, "root"))
-{
-	if (!boost::filesystem::exists(this->root))
-		throw server::path_not_found(this->root.string());
-	this->root = std::move(boost::filesystem::canonical(this->root, "/"));
-	
-	
-	// Allow mode
-	{
-		const auto mode = base::json_utils::get<std::string>(config, "allow_match_mode");
-		if (mode == "any") {
-			this->mode = server::host::file::parameters::allow_match_mode::any;
-		} else if (mode == "all") {
-			this->mode = server::host::file::parameters::allow_match_mode::all;
-		} else {
-			throw std::logic_error("Incorrect config");
-		}
-	}
-	
-	
-	// Optional parameters
-	{
-		static const auto fill_regexes = [](auto &regex_vector, const auto &regexes)
-		{
-			regex_vector.clear();
-			for (const std::string &regex: regexes)
-				regex_vector.emplace_back(regex);
-		};
-		
-		
-		try {
-			fill_regexes(this->allow_regexes, base::json_utils::at(config, "allow_regexes"));
-		} catch (const std::out_of_range &) {}
-		
-		try {
-			fill_regexes(this->deny_regexes, base::json_utils::at(config, "deny_regexes"));
-		} catch (const std::out_of_range &) {}
-	}
-}
-
 
 
 // class server::host::file<HostType>
 template<class HostType>
 server::host::file<HostType>::file(logger::logger &logger,
-								   const server::file_host_parameters &parameters,
+								   const ::server::host::file_parameters &parameters,
 								   HostType &&handler):
-	server::host{logger, parameters},
+	::server::host::base{logger, parameters},
 	
 	parameters_{parameters},
 	handler_{std::move(handler)}
@@ -65,9 +19,9 @@ server::host::file<HostType>::file(logger::logger &logger,
 
 template<class HostType>
 server::host::file<HostType>::file(logger::logger &logger,
-								   const server::file_host_parameters &parameters,
+								   const ::server::host::file_parameters &parameters,
 								   const HostType &handler):
-	server::host{logger, parameters},
+	::server::host::base{logger, parameters},
 	
 	parameters_{parameters},
 	handler_{handler}
@@ -76,11 +30,11 @@ server::host::file<HostType>::file(logger::logger &logger,
 
 template<class HostType>
 // virtual
-std::shared_ptr<server::protocol::http::response>
+std::unique_ptr<::server::protocol::http::response>
 server::host::file<HostType>::response(const worker &worker,
-									   const server::protocol::http::request &request)
+									   const ::server::protocol::http::request &request)
 {
-	using namespace server::protocol::http::status;
+	using ::server::protocol::http::status;
 	
 	
 	try {
@@ -95,12 +49,12 @@ server::host::file<HostType>::response(const worker &worker,
 		auto path = boost::filesystem::canonical(path_current / request.path, this->parameters_.root);
 		if (boost::filesystem::is_directory(path)) {
 			if (this->parameters_.default_index_file == "")
-				throw server::host::path_is_directory(path.string());
+				throw ::server::host::path_is_directory{path.string()};
 			
 			path = boost::filesystem::canonical(this->parameters_.default_index_file, path);
 			
 			if (boost::filesystem::is_directory(path))	// Path is still directory, WTF?..
-				throw server::host::path_is_directory(path.string());
+				throw ::server::host::path_is_directory{path.string()};
 		}
 		
 		
@@ -111,42 +65,42 @@ server::host::file<HostType>::response(const worker &worker,
 	catch (const boost::filesystem::filesystem_error &e) {
 		switch (e.code().value()) {
 			case boost::system::errc::no_such_file_or_directory:
-				return	this->handle_error(worker, request, e, not_found);
+				return	this->handle_error(worker, request, e, status::not_found);
 			case boost::system::errc::permission_denied:
-				return	this->handle_error(worker, request, e, forbidden);
+				return	this->handle_error(worker, request, e, status::forbidden);
 			default:
-				return	this->handle_error(worker, request, e, internal_server_error);
+				return	this->handle_error(worker, request, e, status::internal_server_error);
 		}
 	}
 	
 	// Incorrect path
-	catch (const server::host::path_is_directory &e) {
-		return			this->handle_error(worker, request, e, forbidden);
+	catch (const ::server::host::path_is_directory &e) {
+		return			this->handle_error(worker, request, e, status::forbidden);
 	}
-	catch (const server::host::path_forbidden &e) {
-		return			this->handle_error(worker, request, e, forbidden);
+	catch (const ::server::host::path_forbidden &e) {
+		return			this->handle_error(worker, request, e, status::forbidden);
 	}
-	catch (const server::host::path_not_found &e) {
-		return			this->handle_error(worker, request, e, not_found);
+	catch (const ::server::host::path_not_found &e) {
+		return			this->handle_error(worker, request, e, status::not_found);
 	}
 	
 	// Other (handler) errors
-	catch (const server::host::method_not_allowed &e) {
-		return			this->handle_error(worker, request, e, forbidden);
+	catch (const ::server::host::method_not_allowed &e) {
+		return			this->handle_error(worker, request, e, status::forbidden);
 	}
-	catch (const server::host::error &e) {
-		return			this->handle_error(worker, request, e, internal_server_error);
+	catch (const ::server::host::error &e) {
+		return			this->handle_error(worker, request, e, status::internal_server_error);
 	}
 	
 	// Other errors (maybe, file host handler or logger?)
 	catch (const std::exception &e) {
-		return			this->handle_error(worker, request, e, internal_server_error);
+		return			this->handle_error(worker, request, e, status::internal_server_error);
 	}
 	
 	// Other errors (impossible)
 	catch (...) {
 		static const char e[] = "Unknown error";
-		return			this->handle_error(worker, request, e, internal_server_error);
+		return			this->handle_error(worker, request, e, status::internal_server_error);
 	}
 }
 
@@ -154,13 +108,13 @@ server::host::file<HostType>::response(const worker &worker,
 template<class HostType>
 inline
 void
-server::host::file<HostType>::validate_method(server::http::method method) const
+server::host::file<HostType>::validate_method(::server::protocol::http::method method) const
 {
-	using namespace server::protocol::http::method;
+	using ::server::protocol::http::method;
 	
 	// This host only supports GET and HEAD methods
-	if (method != GET && method != HEAD)
-		throw server::host::method_not_allowed(server::protocol::http::method_to_str(method));
+	if (method != method::GET && method != method::HEAD)
+		throw ::server::host::method_not_allowed{::server::protocol::http::method_to_str(method)};
 }
 
 
@@ -171,7 +125,7 @@ server::host::file<HostType>::validate_path(const std::string &path) const
 	// Checks for denied regexes
 	for (const auto &deny_regex: this->parameters_.deny_regexes)
 		if (std::regex_match(path, deny_regex))
-			throw server::host::path_forbidden(path);
+			throw ::server::host::path_forbidden{path};
 	
 	
 	// Checks for allowed regexes
@@ -179,14 +133,14 @@ server::host::file<HostType>::validate_path(const std::string &path) const
 	
 	if (this->parameters_.allow_regexes.empty()) {
 		verification_status = false;
-	} else if (this->parameters_.mode == server::host::file::parameters::allow_match_mode::any) {	// Any
+	} else if (this->parameters_.mode == file_parameters::allow_match_mode::any) {	// Any
 		verification_status = false;
 		for (const auto &allow_regex: this->parameters_.allow_regexes)
 			if (std::regex_match(path, allow_regex)) {
 				verification_status = true;
 				break;
 			}
-	} else {																						// All
+	} else {																		// All
 		verification_status = true;
 		for (const auto &allow_regex: this->parameters_.allow_regexes)
 			if (!std::regex_match(path, allow_regex)) {
@@ -196,16 +150,16 @@ server::host::file<HostType>::validate_path(const std::string &path) const
 	}
 	
 	if (!verification_status)
-		throw server::host::path_forbidden(path);
+		throw ::server::host::path_forbidden{path};
 }
 
 
 template<class HostType>
-std::shared_ptr<server::protocol::http::response>
+std::unique_ptr<::server::protocol::http::response>
 server::host::file<HostType>::handle_error(const worker &worker,
-										   const server::protocol::http::request &request,
+										   const ::server::protocol::http::request &request,
 										   const char *what,
-										   const server::http::status &status)
+										   const ::server::protocol::http::status &status)
 {
 	this->logger().stream(logger::level::error)
 		<< "File host: \"" << this->name()
@@ -219,11 +173,11 @@ server::host::file<HostType>::handle_error(const worker &worker,
 
 template<class HostType>
 inline
-std::shared_ptr<server::protocol::http::response>
+std::unique_ptr<::server::protocol::http::response>
 server::host::file<HostType>::handle_error(const worker &worker,
-										   const server::protocol::http::request &request,
+										   const ::server::protocol::http::request &request,
 										   const std::exception &e,
-										   const server::http::status &status)
+										   const ::server::protocol::http::status &status)
 {
 	return this->handle_error(worker, request, e.what(), status);
 }

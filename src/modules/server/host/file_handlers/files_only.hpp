@@ -8,21 +8,21 @@
 
 
 inline
-server::host::file::files_only::response::response(::base::mapped_file &&mapped_file,
-												   const ::server::protocol::http::status &status,
-												   ::server::protocol::http::version version):
-	::server::protocol::http::response(status, version),
+server::host::file_handlers::files_only::response::response(::base::mapped_file &&mapped_file,
+															const ::server::protocol::http::status &status,
+															::server::protocol::http::version version):
+	::server::protocol::http::response{status, version},
 	
-	mapped_file_(std::move(mapped_file))
+	mapped_file_{std::move(mapped_file)}
 {}
 
 
 template<class FileHost>
-std::shared_ptr<::server::protocol::http::response>
-server::host::file::files_only::operator()(const FileHost &host,
-										   const ::server::worker &worker,
-										   const ::server::protocol::http::request &request,
-										   const boost::filesystem::path &path)
+std::unique_ptr<::server::protocol::http::response>
+server::host::file_handlers::files_only::operator()(const FileHost &host,
+													const ::server::worker &worker,
+													const ::server::protocol::http::request &request,
+													const boost::filesystem::path &path)
 {
 	using namespace boost::interprocess;
 	
@@ -38,12 +38,13 @@ server::host::file::files_only::operator()(const FileHost &host,
 				need_body = false;
 				break;
 			default:
-				throw ::server::host::method_not_allowed(::server::protocol::http::method_to_str(request.method));
+				throw ::server::host::method_not_allowed{::server::protocol::http::method_to_str(request.method)};
+				break;
 		}
 		
 		
-		auto response_ptr = std::make_shared<::server::host::file::files_only::response>(
-			::base::mapped_file(path, read_only, MAP_SHARED),
+		auto response_ptr = std::make_unique<::server::host::file_handlers::files_only::response>(
+			::base::mapped_file{path, read_only, MAP_SHARED},
 			::server::protocol::http::status::ok,
 			request.version
 		);
@@ -64,12 +65,12 @@ server::host::file::files_only::operator()(const FileHost &host,
 			response_ptr->add_body(file_content, file_size);
 		
 		
-		return response_ptr;
+		return std::move(response_ptr);
 	}
 	
 	// File mapping error (impossible -- path checked by server::host::file<files_only>::response method)
 	catch (const ::base::path_not_found &e) {
-		throw ::server::host::path_not_found(path.string());
+		throw ::server::host::path_not_found{path.string()};
 	}
 	
 	// Interprocess error
@@ -78,9 +79,9 @@ server::host::file::files_only::operator()(const FileHost &host,
 		
 		switch (e.get_error_code()) {
 			case not_such_file_or_directory: case not_found_error:	// Impossible too
-				throw ::server::host::path_not_found(path.string());
+				throw ::server::host::path_not_found{path.string()};
 			default:
-				throw ::server::host::path_forbidden(path.string(), "file_mapping: "s + e.what());
+				throw ::server::host::path_forbidden{path.string(), "file_mapping: "s + e.what()};
 		}
 	}
 }

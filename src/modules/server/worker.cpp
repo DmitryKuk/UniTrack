@@ -2,9 +2,9 @@
 
 #include <server/worker.h>
 
-#include <chrono>
-
 #include <server/server.h>
+#include <server/acceptor.h>
+#include <server/session.h>
 
 
 // Creates and runs new worker in separate process
@@ -12,10 +12,10 @@
 // Throws: std::system_error, if it's impossible to create process (only in parent process!)
 // NEVER returns in child process!
 // static
-system::process
-server::worker::run(logger::logger &logger, server &server)
+system_::process
+server::worker::run(logger::logger &logger, ::server::server &server)
 {
-	return system::process{[&] { return server::worker{logger, server}.run(); }};
+	return system_::process{[&] { return ::server::worker{logger, server}.run(); }};
 }
 
 
@@ -39,43 +39,38 @@ server::worker::server_name() const noexcept
 // Adds new client to the worker
 // Returns true, if added successfully
 void
-server::worker::add_client(server::socket &&socket) noexcept
+server::worker::add_client(::server::socket &&socket) noexcept
 {
 	auto client_address = socket.remote_endpoint().address();
 	
 	
-	try {
-		this->logger().stream(logger::level::info)
-			<< "Client accepted: " << client_address << '.';
-	} catch (...) {}
+	this->logger().stream(logger::level::info)
+		<< "Client accepted: " << client_address << '.';
 	
 	
 	try {
-		server::client_manager::run(*this, std::move(socket));
+		::server::session::run(*this, std::move(socket));
 	} catch (const std::exception &e) {
-		try {
-			this->logger().stream(logger::level::error)
-				<< "Can\'t process client: " << client_address << ": " << e.what() << '.';
-		} catch (...) {}
+		this->logger().stream(logger::level::error)
+			<< "Can\'t process client: " << client_address << ": " << e.what() << '.';
 	} catch (...) {
-		try {
-			this->logger().stream(logger::level::error)
-				<< "Can\'t process client: " << client_address << ": Unknown error.";
-		} catch (...) {}
+		this->logger().stream(logger::level::error)
+			<< "Can\'t process client: " << client_address << ": Unknown error.";
 	}
 }
 
 
 // private
 // Constructor
-server::worker::worker(logger::logger &logger, const server::server &server):
+server::worker::worker(logger::logger &logger, ::server::server &server):
 	logger::enable_logger{logger},
 	
 	server_{server},
 	
 	empty_work_{this->io_service_},
 	
-	server_name_generator_{std::chrono::system_clock::now().time_since_epoch().count()}
+	server_name_generator_{std::random_device{}()}	// /dev/urandom used as seed generator
+	// static_cast<unsigned int>(std::chrono::system_clock::now().time_since_epoch().count())
 {
 	this->acceptors_.reserve(this->server_.parameters_.ports.size());
 	for (auto port: this->server_.parameters_.ports)
@@ -87,28 +82,22 @@ server::worker::worker(logger::logger &logger, const server::server &server):
 int
 server::worker::run() noexcept
 {
-	try {
-		this->logger().stream(logger::level::info)
-			<< "Worker started.";
-	} catch (...) {}
+	this->logger().stream(logger::level::info)
+		<< "Worker started.";
 	
 	
 	try {
 		this->io_service_.run();
 	} catch (const std::exception &e) {
-		try {
-			this->logger().stream(logger::level::error)
-				<< "Worker failed: " << e.what();
-		} catch (...) {}
+		this->logger().stream(logger::level::error)
+			<< "Worker failed: " << e.what();
 		
 		return 1;
 	}
 	
 	
-	try {
-		this->logger().stream(logger::level::info)
-			<< "Worker stopped.";
-	} catch (...) {}
+	this->logger().stream(logger::level::info)
+		<< "Worker stopped.";
 	
 	
 	return 0;

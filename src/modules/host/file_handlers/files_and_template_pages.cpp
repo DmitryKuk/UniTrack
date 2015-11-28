@@ -1,6 +1,6 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#include <host/file/files_and_template_pages.h>
+#include <host/file_handlers/files_and_template_pages.h>
 
 #include <string>
 
@@ -8,11 +8,11 @@
 #include <host/exceptions.h>
 
 
-host::file::files_and_template_pages::parameters::parameters(const nlohmann::json &config)
+host::file_handlers::files_and_template_pages::parameters::parameters(const nlohmann::json &config)
 {
 	// Optional parameters
 	{
-		using behavior = host::file::files_and_template_pages::parameters::behavior;
+		using behavior = host::file_handlers::files_and_template_pages::parameters::behavior;
 		
 		
 		std::string str;
@@ -23,7 +23,8 @@ host::file::files_and_template_pages::parameters::parameters(const nlohmann::jso
 			else if (str == "template_pages")
 				this->default_behavior = behavior::template_pages;
 			else
-				throw host::incorrect_config("Allow values for \"default_behavior\": \"files\", \"template_pages\"");
+				throw server::host::incorrect_config{"Incorrect default_behavior: \"" + str
+													 + "\", correct values are: \"files\", \"template_pages\""};
 		}
 	}
 	

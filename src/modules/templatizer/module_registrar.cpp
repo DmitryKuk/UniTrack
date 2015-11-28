@@ -29,6 +29,6 @@ templatizer::module_registrar::module(const std::string &command) const
 {
 	auto it = this->find(command);
 	if (it == this->end())
-		throw templatizer::module_not_found(command);
+		throw templatizer::module_not_found{command};
 	return it->second;
 }

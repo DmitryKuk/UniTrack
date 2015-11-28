@@ -7,7 +7,6 @@
 #include <functional>
 
 #include <boost/asio/buffer.hpp>
-#include <boost/asio/streambuf.hpp>
 
 
 namespace base {
@@ -21,8 +20,6 @@ typedef std::vector<send_buffer_type>	send_buffers_type;
 using boost::asio::buffer;
 using boost::asio::buffer_cast;
 using boost::asio::buffer_size;
-
-using boost::asio::streambuf;
 
 
 class send_buffers_insert_functor

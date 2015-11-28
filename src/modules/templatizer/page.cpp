@@ -14,16 +14,16 @@
 
 // Default constructor
 templatizer::page::page() noexcept:
-	state_(templatizer::page::state::ok)
+	state_{templatizer::page::state::ok}
 {}
 
 
 // Move constructor
 templatizer::page::page(templatizer::page &&other) noexcept:
-	base::mapped_file(std::move(other)),
+	base::mapped_file{std::move(other)},
 	
-	state_(other.state_),
-	chunk_ptrs_(std::move(other.chunk_ptrs_))
+	state_{other.state_},
+	chunk_ptrs_{std::move(other.chunk_ptrs_)}
 {
 	other.state_ = templatizer::page::state::ok;
 }
@@ -31,9 +31,9 @@ templatizer::page::page(templatizer::page &&other) noexcept:
 
 // Constructs and loads template data
 templatizer::page::page(const boost::filesystem::path &path):
-	base::mapped_file(path, boost::interprocess::read_only, MAP_SHARED),	// This can throw
+	base::mapped_file{path, boost::interprocess::read_only, MAP_SHARED},	// This can throw
 	
-	state_(templatizer::page::state::ok)
+	state_{templatizer::page::state::ok}
 {
 	this->load();	// This can throw
 }
@@ -89,7 +89,7 @@ templatizer::page::load()
 			// letter or '_' (like in C). Minimum length of name is 1 symbol.
 			// NOTE: Some space symbols around VAR_NAME is allowed (but not a newline).
 			// VAR_NAME is a first group of the regex.
-			static const std::regex regex(
+			static const std::regex regex{
 				"("
 					// Full form: ${ COMMAND ... }
 					"\\$[\\{\\(][[:space:]]*([[:alpha:]_][[:alnum:]_]*)"	// COMMAND [2]
@@ -99,13 +99,14 @@ templatizer::page::load()
 					"\\$([[:alpha:]_][[:alnum:]_]*)"						// VAR_NAME [4]
 				")",
 				std::regex::optimize
-			);
+			};
+			
+			static const std::regex_iterator<const char *> end;
 			
 			
 			size_t old_pos = 0;
 			
-			for (std::regex_iterator<const char *>
-				 it(mapped_data, mapped_data + mapped_size, regex), end;
+			for (std::regex_iterator<const char *> it{mapped_data, mapped_data + mapped_size, regex};
 				 it != end;
 				 ++it) {
 				// Adding previous raw chunk
@@ -136,8 +137,7 @@ templatizer::page::load()
 					
 					
 					// These can throw
-					auto chunk_generator
-						= templatizer::module_registrar::default_module_registrar.module(command);
+					auto chunk_generator = templatizer::module_registrar::default_module_registrar.module(command);
 					chunk_ptrs.emplace_back(chunk_generator(std::move(argument)));
 				}
 			}
@@ -163,11 +163,11 @@ templatizer::page::load()
 			this->clear();
 		} else {
 			this->set_state(templatizer::page::state::file_error);
-			throw templatizer::file_mapping_error(this->path().string(), e.what());
+			throw templatizer::file_mapping_error{this->path().string(), e.what()};
 		}
 	} catch (const templatizer::module_not_found &e) {
 		this->set_state(templatizer::page::state::parse_error);
-		throw templatizer::file_parsing_error(this->path().string(), e.what());
+		throw templatizer::file_parsing_error{this->path().string(), e.what()};
 	}
 }
 

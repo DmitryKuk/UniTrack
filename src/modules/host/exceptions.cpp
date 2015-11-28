@@ -3,6 +3,6 @@
 #include <host/exceptions.h>
 
 
-host::incorrect_config::incorrect_config(const std::string &message):
-	server::host::error("Incorrect config: " + message)
+host::template_pages_cache_error::template_pages_cache_error(const std::string &path):
+	server::host::error("Can\'t add template page to cache: \"" + path + '\"')
 {}

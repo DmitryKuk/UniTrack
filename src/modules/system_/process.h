@@ -6,7 +6,7 @@
 #include <unistd.h>
 
 
-namespace system {
+namespace system_ {
 
 
 class process
@@ -36,7 +36,9 @@ private:
 };	// class process
 
 
-};	// namespace system
+};	// namespace system_
 
+
+#include <system_/process.hpp>
 
 #endif	// SYTEM_PROCESS_H

@@ -25,7 +25,7 @@ class worker;
 
 
 namespace host {
-namespace file {
+namespace file_handlers {
 
 
 class template_pages_only
@@ -54,7 +54,7 @@ public:
 	
 	
 	template<class FileHost>
-	std::shared_ptr<server::protocol::http::response>
+	std::unique_ptr<server::protocol::http::response>
 	operator()(const FileHost &host,
 			   const server::worker &worker,
 			   const server::protocol::http::request &request,
@@ -77,10 +77,10 @@ private:
 };	// template_pages_only
 
 
-};	// namespace file
+};	// namespace file_handlers
 };	// namespace host
 
 
-#include <host/file/template_pages_only.hpp>
+#include <host/file_handlers/template_pages_only.hpp>
 
 #endif	// HOST_FILE_TEMPLATE_PAGES_ONLY_H

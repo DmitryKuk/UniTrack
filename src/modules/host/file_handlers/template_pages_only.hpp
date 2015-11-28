@@ -4,9 +4,9 @@
 #include <server/host/base.h>
 
 
-// class host::file::template_pages_only::response
+// class host::file_handlers::template_pages_only::response
 inline
-host::file::template_pages_only::response::response(const templatizer::page &page,
+host::file_handlers::template_pages_only::response::response(const templatizer::page &page,
 													logic::page_model &&model,
 													const server::protocol::http::status &status,
 													server::protocol::http::version version):
@@ -18,16 +18,16 @@ host::file::template_pages_only::response::response(const templatizer::page &pag
 
 
 
-// class host::file::template_pages_only
+// class host::file_handlers::template_pages_only
 inline
-host::file::template_pages_only::template_pages_only(logic::global_instance &logic):
+host::file_handlers::template_pages_only::template_pages_only(logic::global_instance &logic):
 	logic_{logic}
 {}
 
 
 template<class FileHost>
-std::shared_ptr<server::protocol::http::response>
-host::file::template_pages_only::operator()(const FileHost &host,
+std::unique_ptr<server::protocol::http::response>
+host::file_handlers::template_pages_only::operator()(const FileHost &host,
 											const server::worker &worker,
 											const server::protocol::http::request &request,
 											const boost::filesystem::path &path)
@@ -36,7 +36,7 @@ host::file::template_pages_only::operator()(const FileHost &host,
 	
 	
 	// Generating page model, loading template page, if need, and creating response
-	auto response_ptr = std::make_shared<host::file::template_pages_only::response>(
+	auto response_ptr = std::make_unique<host::file_handlers::template_pages_only::response>(
 		this->pages_cache_.at(path),
 		this->logic_.generate(request, path),
 		server::protocol::http::status::ok,
@@ -64,5 +64,5 @@ host::file::template_pages_only::operator()(const FileHost &host,
 	response_ptr->buffers[content_len_index] = ::base::buffer(content_len_str);
 	
 	
-	return response_ptr;
+	return std::move(response_ptr);
 }

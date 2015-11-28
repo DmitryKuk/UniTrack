@@ -25,14 +25,13 @@ public:
 	// - boost::interprocess_error
 	mapped_file(const boost::filesystem::path &path,
 				boost::interprocess::mode_t mode,
-				boost::interprocess::map_options_t map_options
-					= boost::interprocess::default_map_options);
+				boost::interprocess::map_options_t map_options = boost::interprocess::default_map_options);
 	
 	mapped_file(mapped_file &&other) = default;
 	mapped_file & operator=(mapped_file &&other) = default;
 	
 	mapped_file(const mapped_file &other) = delete;
-	mapped_file & operator=(const mapped_file &other) = default;
+	mapped_file & operator=(const mapped_file &other) = delete;
 	
 	
 	inline const boost::filesystem::path & path() const noexcept;

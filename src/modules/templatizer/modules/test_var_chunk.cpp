@@ -22,7 +22,7 @@ public:
 		try {
 			return this->std::unordered_map<std::string, std::string>::at(var_name);
 		} catch (const std::out_of_range &) {
-			throw templatizer::variable_not_found(var_name);
+			throw templatizer::variable_not_found{var_name};
 		}
 	}
 };	// class model
@@ -34,7 +34,7 @@ int main()
 	model.emplace("key", "value");
 	
 	try {
-		templatizer::var_chunk chunk("key");
+		templatizer::var_chunk chunk{"key"};
 		
 		base::send_buffers_t buffers;
 		base::strings_cache_t cache;

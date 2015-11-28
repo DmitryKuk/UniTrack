@@ -10,10 +10,10 @@
 
 #include <json.hpp>
 
-#include <server/host/file/files_only.h>
+#include <server/host/file_handlers/files_only.h>
 #include <server/protocol/http.h>
 #include <logic/global_instance.h>
-#include <host/file/template_pages_only.h>
+#include <host/file_handlers/template_pages_only.h>
 
 
 namespace server {
@@ -26,12 +26,12 @@ class worker;
 
 
 namespace host {
-namespace file {
+namespace file_handlers {
 
 
 class files_and_template_pages:
-	private server::host::file::files_only,
-	private host::file::template_pages_only
+	private server::host::file_handlers::files_only,
+	private host::file_handlers::template_pages_only
 {
 public:
 	struct parameters
@@ -60,7 +60,7 @@ public:
 	
 	
 	template<class FileHost>
-	std::shared_ptr<server::protocol::http::response>
+	std::unique_ptr<server::protocol::http::response>
 	operator()(const FileHost &host,
 			   const server::worker &worker,
 			   const server::protocol::http::request &request,
@@ -70,10 +70,10 @@ protected:
 };	// files_and_template_pages
 
 
-};	// namespace file
+};	// namespace file_handlers
 };	// namespace host
 
 
-#include <host/file/files_and_template_pages.hpp>
+#include <host/file_handlers/files_and_template_pages.hpp>
 
 #endif	// HOST_FILE_FILES_AND_TEMPLATE_PAGES_H

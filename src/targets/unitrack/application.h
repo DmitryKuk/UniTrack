@@ -5,13 +5,14 @@
 
 #include <string>
 #include <memory>
+#include <stdexcept>
 
 #include <boost/filesystem/path.hpp>
 
-#include <project_config.h>
 #include <logger/logger.h>
 #include <logic/global_instance.h>
 #include <server/server.h>
+#include <project_config.h>
 
 
 class application
@@ -38,12 +39,15 @@ protected:
 private:
 	void stop();
 	
+	void handle_error(const std::exception &e) noexcept;
+	
 	
 	int status_;
 	
 	std::unique_ptr<logger::logger> logger_ptr_;
 	std::unique_ptr<logic::global_instance> logic_ptr_;
-	std::unique_ptr<server::server_http> server_ptr_;
+	std::unique_ptr<server::host::manager> host_manager_ptr_;
+	std::unique_ptr<server::server> server_ptr_;
 };	// class application
 
 

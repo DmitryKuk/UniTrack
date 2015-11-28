@@ -1,67 +1,50 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-namespace logger {
-
 
 template<class T>
 inline
-record_object &
-record_object::operator<<(T data)
+logger::record_object &
+logger::record_object::operator<<(T data) noexcept
 {
-	this->stream_ << data;
+	try {
+		this->stream_ << data;
+	} catch (...) {}
 	return *this;
 }
 
 
 template<>
 inline
-record_object &
-record_object::operator<<(const std::string &data)
+logger::record_object &
+logger::record_object::operator<<(const std::string &data) noexcept
 {
-	this->stream_ << std::regex_replace(data, this->regex_r_, this->replace_r_by_);
+	try {
+		this->stream_ << std::regex_replace(data, this->regex_r_, this->replace_r_by_);
+	} catch (...) {}
 	return *this;
 }
 
 
 template<>
 inline
-record_object &
-record_object::operator<<(std::string &&data)
+logger::record_object &
+logger::record_object::operator<<(char const * const data) noexcept
 {
-	this->stream_ << std::regex_replace(data, this->regex_r_, this->replace_r_by_);
+	try {
+		this->stream_ << std::regex_replace(data, this->regex_r_, this->replace_r_by_);
+	} catch (...) {}
 	return *this;
 }
 
 
 template<>
 inline
-record_object &
-record_object::operator<<(char const * const data)
-{
-	this->stream_ << std::regex_replace(data, this->regex_r_, this->replace_r_by_);
-	return *this;
-}
-
-
-template<>
-inline
-record_object &
-record_object::operator<<(char *data)
-{
-	this->stream_ << std::regex_replace(data, this->regex_r_, this->replace_r_by_);
-	return *this;
-}
-
-
-template<>
-inline
-record_object &
-record_object::operator<<(char data)
+logger::record_object &
+logger::record_object::operator<<(char data) noexcept
 {
 	if (data != '\r')
-		this->stream_ << data;
+		try {
+			this->stream_ << data;
+		} catch (...) {}
 	return *this;
 }
-
-
-};	// namespace logger

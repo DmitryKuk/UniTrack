@@ -2,7 +2,6 @@
 
 #include <server/host/base.h>
 
-#include <chrono>
 #include <mutex>
 #include <numeric>
 
@@ -11,57 +10,56 @@
 #include <server/worker.h>
 
 
-// class server::host::base::parameters
+// class ::server::host::base::parameters
 server::host::base::parameters::parameters(const nlohmann::json &config):
-	name(base::json_utils::get<decltype(this->name)>(config, "name")),
-	ports(base::json_utils::get<decltype(this->ports)>(config, "ports"))
+	name{::base::json_utils::get<decltype(this->name)>(config, "name")},
+	ports{::base::json_utils::get<decltype(this->ports)>(config, "ports")}
 {}
 
 
-// class server::host::base
+// class ::server::host::base
 // static
-std::unique_ptr<server::host::base> server::host::base::error_host_ptr_;
+std::unique_ptr<::server::host::base> server::host::base::error_host_ptr_;
 
 
-server::host::base::base(logger::logger &logger,
-						 const server::host::base::parameters &parameters):
-	logger::enable_logger(logger),
+server::host::base::base(logger::logger &logger, const ::server::host::base::parameters &parameters):
+	logger::enable_logger{logger},
 	
-	parameters_(parameters),
-	
-	server_name_generator_(std::chrono::system_clock::now().time_since_epoch().count())
+	parameters_{parameters}
 {}
 
 
 // Returns true, if host can process requests on specified port, or false otherwise.
 bool
-server::host::base::port_allowed(server::port_type port) const noexcept
+server::host::base::port_allowed(::server::port_type port) const noexcept
 {
-	if (this->parameters_.ports.find(port) == this->parameters_.ports.end())
-		return false;
-	return true;
+	if (this->parameters_.ports.count(port) > 0)
+		return true;
+	return false;
 }
 
 
 // Prepares a correct response to the client.
 // NOTE: By default -- phony "404 Not Found". Redefine this function in child classes.
 // virtual
-std::shared_ptr<server::protocol::http::response>
-server::host::base::response(const server::worker &worker,
-							 const server::protocol::http::request &request)
+std::unique_ptr<::server::protocol::http::response>
+server::host::base::response(const ::server::worker &worker,
+							 const ::server::protocol::http::request &request)
 {
-	return this->phony_response(worker, request, server::http::status::not_found);
+	return this->phony_response(worker, request, ::server::protocol::http::status::not_found);
 }
 
 
 // Prepares a phony response to the client.
 // WARNING: Remember to save anywhere status too (standard statuses are already saved)!
-template<class Headers>
-std::shared_ptr<server::protocol::http::response>
-phony_response(const server::worker &worker,
-			   const server::protocol::http::request &request,
-			   const server::protocol::http::status &status)
+std::unique_ptr<::server::protocol::http::response>
+server::host::base::phony_response(const ::server::worker &worker,
+								   const ::server::protocol::http::request &request,
+								   const ::server::protocol::http::status &status)
 {
+	using namespace ::server::protocol::http;
+	
+	
 	// Body elements
 	static const std::string
 		body_1  =
@@ -94,29 +92,29 @@ phony_response(const server::worker &worker,
 	
 	
 	// Response
-	auto response_ptr = std::make_shared<server::protocol::http::response>(status, request.version);
+	auto response_ptr = std::make_unique<::server::protocol::http::response>(status, request.version);
 	
 	
-	// Server name
-	server::host::base::add_server_name(worker, *response_ptr);
+	// Server name (even, if it is empty)
+	const auto &server_name = *(::server::host::base::add_server_name(worker, *response_ptr).first);
 	
 	
 	// Status strings
 	const std::string &code_str    = status.code_str(),
 					  &description = status.description();
 	
-	std::vector<const std::string *> body_ptrs = { &body_1, &code_str, &body_2, &description,
-												   &body_3, &code_str, &body_4, &description,
-												   &body_5, &server_name, &body_6 };
+	std::vector<const std::string *> body_ptrs{{ &body_1, &code_str, &body_2, &description,
+												 &body_3, &code_str, &body_4, &description,
+												 &body_5, &server_name, &body_6 }};
 	
 	// Calculating content length
 	const std::string *content_len_ptr = nullptr;
 	{
 		size_t content_len = std::accumulate(
 			std::begin(body_ptrs), std::end(body_ptrs), size_t{0},
-			[](size_t current, const std::string &body_element) -> size_t
+			[](size_t current, const std::string *body_element_ptr) -> size_t
 			{
-				return current + body_element.size();
+				return current + body_element_ptr->size();
 			}
 		);
 		
@@ -124,7 +122,7 @@ phony_response(const server::worker &worker,
 	}
 	
 	// Adding content length header
-	response_ptr->add_header(server::protocol::http::header::content_length, *content_len_ptr);
+	response_ptr->add_header(::server::protocol::http::header::content_length, *content_len_ptr);
 	response_ptr->finish_headers();
 	
 	// Adding body
@@ -141,7 +139,7 @@ phony_response(const server::worker &worker,
 server::host::base &
 server::host::base::error_host() const
 {
-	return server::host::base::error_host(this->logger());
+	return ::server::host::base::error_host(this->logger());
 }
 
 
@@ -151,36 +149,37 @@ server::host::base::error_host() const
 server::host::base &
 server::host::base::error_host(logger::logger &logger)
 {
-	if (server::host::base::error_host_ptr_ == nullptr)
-		server::host::base::create_error_host(logger);
-	return *server::host::base::error_host_ptr_;
+	if (::server::host::base::error_host_ptr_ == nullptr)
+		::server::host::base::create_error_host(logger);
+	return *::server::host::base::error_host_ptr_;
 }
 
 
-// Creates error_host if it does not exist. You may call it once from server, if you want.
+// Creates error_host if it does not exist. You may call it once from ::server, if you want.
 // static
 void
 server::host::base::create_error_host(logger::logger &logger)
 {
 	static std::mutex m;
 	
-	std::unique_lock<std::mutex> lock(m);
-	if (server::host::base::error_host_ptr_ == nullptr)
-		server::host::base::error_host_ptr_ = std::make_unique<server::host>(logger, server::host_http_parameters());
+	std::lock_guard<std::mutex> lock(m);
+	if (::server::host::base::error_host_ptr_ == nullptr)
+		::server::host::base::error_host_ptr_
+			= std::make_unique<::server::host::base>(logger, ::server::host::base::parameters{});
 }
 
 
 // Gets server name from worker and adds it to headers in response.
-// Returns true, if name was added. Otherwise, false (if returned server name is empty).
+// Returns pointer to used server name string and true, if name was added.
+// Otherwise, returns pointer to empty string and false (if returned server name is empty).
 // static
-bool
-server::host::base::add_server_name(const server::worker &worker,
-									const server::protocol::http::response &response)
+std::pair<const std::string *, bool>
+server::host::base::add_server_name(const ::server::worker &worker, ::server::protocol::http::response &response)
 {
 	const std::string &server_name = worker.server_name();
 	if (server_name.empty())
-		return false;
+		return {&server_name, false};
 	
-	response.add_header(server::protocol::http::header::server, server_name);
-	return true;
+	response.add_header(::server::protocol::http::header::server, server_name);
+	return {&server_name, true};
 }

@@ -20,6 +20,13 @@ public:
 };
 
 
+class incorrect_config: public error
+{
+public:
+	explicit incorrect_config(const std::string &what_arg);
+};
+
+
 class host_not_found: public error
 {
 public:

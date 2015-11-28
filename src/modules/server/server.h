@@ -12,6 +12,7 @@
 #include <json.hpp>
 
 #include <logger/logger.h>
+#include <system_/process.h>
 #include <server/types.h>
 #include <server/host/manager.h>
 
@@ -45,6 +46,7 @@ public:
 	
 	
 	server(logger::logger &logger,
+		   ::server::host::manager &host_manager,
 		   const parameters &parameters);
 	
 	
@@ -60,24 +62,26 @@ public:
 	void stop() noexcept;
 	
 	
-	inline bool joinable() const noexcept;	// Checks server's thread for joinable
-	inline void join();						// Joins server's thread
-	inline void detach();					// Detaches server's thread
+	// inline bool joinable() const noexcept;	// Checks server's thread for joinable
+	// inline void join();						// Joins server's thread
+	// inline void detach();					// Detaches server's thread
 	
 	// Returns the hosts manager of this server
-	inline server::host::manager & host_manager() noexcept;
-	inline const server::host::manager & host_manager() const noexcept;
+	inline ::server::host::manager & host_manager() noexcept;
+	inline const ::server::host::manager & host_manager() const noexcept;
 	
 	// Returns server names
 	inline const std::vector<std::string> & names() const noexcept;
-private:
-	void run() noexcept;
-	
+protected:
+	friend class worker;
 	
 	// Data
 	parameters parameters_;
+private:
+	// Data
+	::server::host::manager &host_manager_;
 	
-	server::host_manager host_manager_;
+	std::vector<system_::process> worker_processes_;
 };	// class server
 
 

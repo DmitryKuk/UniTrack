@@ -5,7 +5,7 @@
 
 void
 server::protocol::http::response::add_start_string(const server::protocol::http::status &status,
-												   server::protocol::http::version version = v_1_1)
+												   server::protocol::http::version version)
 {
 	using base::buffer;
 	using namespace server::protocol::http;

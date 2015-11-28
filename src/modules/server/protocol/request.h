@@ -5,8 +5,6 @@
 
 #include <boost/asio/ip/address.hpp>
 
-#include <base/buffer.h>
-
 
 namespace server {
 namespace protocol {
@@ -22,18 +20,20 @@ public:
 	// Connection info
 	bool						keep_alive = false;
 	
-	// Request buffer
-	base::streambuf				buffer;
-	
 	
 	inline request(const boost::asio::ip::address &client_address);
 	
 	request() = default;
-	request(const request &other) = default;
 	request(request &&other) = default;
-	
-	request & operator=(const request &other) = default;
 	request & operator=(request &&other) = default;
+	
+	request(const request &other) = delete;
+	request & operator=(const request &other) = delete;
+	
+	
+	// Prepares request for new data from same client
+	// Resets buffer and keep_alive, saving client_address
+	inline void reset() noexcept;
 };	// class request
 
 

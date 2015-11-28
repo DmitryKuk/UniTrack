@@ -3,47 +3,53 @@
 #include <logger/logger.h>
 
 
-logger::logger::logger(std::ostream &log_stream, bool colorize_output):
-	log_stream_(log_stream),
+logger::logger::logger(std::ostream &log_stream, bool colorize_output) noexcept:
+	log_stream_{log_stream},
 	
-	colorize_output_(colorize_output)
+	colorize_output_{colorize_output}
 {
-	this->stream(level::info)
-		<< "Log started...";
+	try {
+		this->stream(level::info)
+			<< "Log started...";
+	} catch (...) {}
 }
 
 
 logger::logger::~logger()
 {
-	this->stream(level::info)
-		<< "End of log.";
-	
-	std::unique_lock<std::mutex> lock(this->log_stream_mutex_);
-	this->log_stream_.flush();
+	try {
+		this->stream(level::info)
+			<< "End of log.";
+		
+		std::lock_guard<std::mutex> lock{this->log_stream_mutex_};
+		this->log_stream_.flush();
+	} catch (...) {}
 }
 
 
 logger::record_object
-logger::logger::stream(level level_) noexcept
+logger::logger::stream(::logger::level level) noexcept
 {
-	return record_object(*this, level_);
+	return ::logger::record_object{*this, level};
 }
 
 
 void
-logger::logger::log_raw(level level_, const std::string &data)
+logger::logger::log_raw(::logger::level level, const std::string &data) noexcept
 {
-	const auto &level_str = level_to_str(level_);
+	const auto &level_str = ::logger::level_to_str(level);
 	
-	std::unique_lock<std::mutex> lock(this->log_stream_mutex_);
-	
-	if (this->colorize_output_)
-		this->log_stream_ << "\033[32m";
-	
-	this->log_stream_ << level_str;
-	
-	if (this->colorize_output_)
-		this->log_stream_ << "\033[0m";
-	
-	this->log_stream_ << ' ' << data << std::endl;
+	try {
+		std::lock_guard<std::mutex> lock{this->log_stream_mutex_};
+		
+		if (this->colorize_output_)
+			this->log_stream_ << "\033[32m";
+		
+		this->log_stream_ << level_str;
+		
+		if (this->colorize_output_)
+			this->log_stream_ << "\033[0m";
+		
+		this->log_stream_ << ' ' << data << std::endl;
+	} catch (...) {}
 }

@@ -38,7 +38,7 @@ templatizer::tolower_chunk::generate(base::send_buffers_insert_functor buffers_i
 	auto tolow = model.variable(this->symbol_);
 	std::transform(tolow.begin(), tolow.end(), tolow.begin(), std::tolower);
 	
-	return buffers_ins_fn(cache_inserter(tolow));
+	return buffers_ins_fn(cache(tolow));
 }
 
 

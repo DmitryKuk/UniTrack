@@ -6,9 +6,9 @@
 
 
 inline
-host::file::files_and_template_pages::files_and_template_pages(
+host::file_handlers::files_and_template_pages::files_and_template_pages(
 	logic::global_instance &logic,
-	const host::file::files_and_template_pages::parameters &parameters
+	const host::file_handlers::files_and_template_pages::parameters &parameters
 ):
 	template_pages_only{logic},
 	
@@ -17,13 +17,13 @@ host::file::files_and_template_pages::files_and_template_pages(
 
 
 template<class FileHost>
-std::shared_ptr<server::protocol::http::response>
-host::file::files_and_template_pages::operator()(const FileHost &host,
+std::unique_ptr<server::protocol::http::response>
+host::file_handlers::files_and_template_pages::operator()(const FileHost &host,
 												 const server::worker &worker,
 												 const server::protocol::http::request &request,
 												 const boost::filesystem::path &path)
 {
-	using behavior = host::file::files_and_template_pages::parameters::behavior;
+	using behavior = host::file_handlers::files_and_template_pages::parameters::behavior;
 	
 	
 	// Checking type of requested file resource
@@ -35,7 +35,7 @@ host::file::files_and_template_pages::operator()(const FileHost &host,
 	
 	// Dispatching work to one of handlers
 	if (is_template_page)
-		return this->host::file::template_pages_only::operator()(host, worker, request, path);
+		return this->host::file_handlers::template_pages_only::operator()(host, worker, request, path);
 	else
-		return this->server::host::file::files_only::operator()(host, worker, request, path);
+		return this->server::host::file_handlers::files_only::operator()(host, worker, request, path);
 }

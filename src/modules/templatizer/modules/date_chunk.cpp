@@ -35,10 +35,10 @@ templatizer::date_chunk::generate(base::send_buffers_insert_functor buffers_ins_
 								  const templatizer::model &model) const
 {
 	std::time_t raw_time;
-	std::::time(&raw_time);
-	auto *time_info = std::::localtime(&raw_time);
+	std::time(&raw_time);
+	auto *time_info = std::localtime(&raw_time);
 	char date_str[11];
-	std::::strftime(date_str, 11, "%d.%m.%Y", time_info);
+	std::strftime(date_str, 11, "%d.%m.%Y", time_info);
 	
 	return buffers_ins_fn(cache(date_str));
 }

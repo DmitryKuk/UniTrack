@@ -15,20 +15,24 @@ namespace protocol {
 namespace http {
 
 
-extern const server::port_type
-	default_port;
+extern const ::server::port_type
+	default_port;			// 80
 
 
 namespace str {
 
 extern const std::string
-	default_port,
+	default_port,			// "80"
 	
-	space,
-	newline,
-	HTTP,
-	slash,
-	header_separator;
+	space,					// " "
+	newline,				// "\r\n"
+	HTTP,					// "HTTP"
+	slash,					// "/"
+	header_separator;		// ": "
+
+extern const std::string
+	header_body_separator;	// "\r\n\r\n"
+
 
 };	// namespace str
 
@@ -57,7 +61,7 @@ enum class method
 };	// enum class method
 
 const std::string & method_to_str(method method_) noexcept;
-method method_to_str(const std::string &str) noexcept;
+method str_to_method(const std::string &str) noexcept;
 
 
 enum class version
@@ -68,7 +72,7 @@ enum class version
 };	// enum class version
 
 const std::string & version_to_str(version version_) noexcept;
-version version_to_str(const std::string &str) noexcept;
+version str_to_version(const std::string &str) noexcept;
 
 
 

@@ -15,10 +15,10 @@ namespace host {
 using server::host::error;
 
 
-class incorrect_config: public error
+class template_pages_cache_error: public error
 {
 public:
-	explicit incorrect_config(const std::string &message);
+	explicit template_pages_cache_error(const std::string &path);
 };
 
 

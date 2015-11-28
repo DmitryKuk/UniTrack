@@ -2,8 +2,8 @@
 
 
 inline
-server::protocol::http::response::response(const server::protocol::http::status &status,
-										   server::protocol::http::version version)
+server::protocol::http::response::response(const ::server::protocol::http::status &status,
+										   ::server::protocol::http::version version)
 {
 	this->add_start_string(status, version);
 }
@@ -25,7 +25,7 @@ void
 server::protocol::http::response::finish_headers()
 {
 	using base::buffer;
-	using namespace server::protocol::http;
+	using namespace ::server::protocol::http;
 	
 	this->buffers.push_back(buffer(str::newline));
 }

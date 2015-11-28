@@ -2,48 +2,43 @@
 
 #include <logger/level.h>
 
+#include <vector>
+
 
 namespace {
 
 
-const std::string
-	// Base levels
-	level_info			= "info        ",
-	level_warning		= "warning     ",
-	level_error			= "error       ",
-	level_critical		= "critical    ",
-	level_other			= "other       ",
-	
-	// Security levels
-	level_sec_info		= "sec_info    ",
-	level_sec_warning	= "sec_warning ",
-	level_sec_error		= "sec_error   ",
-	level_sec_critical	= "sec_critical",
-	level_sec_other		= "sec_other   ",
-	
-	// Unknown level
-	level_unknown		= "unknown     ";
-
-
+const std::vector<std::string> level_strings{
+	{
+		// Base levels
+		"info        ",	// 0
+		"warning     ",	// 1
+		"error       ",	// 2
+		"critical    ",	// 3
+		"other       ",	// 4
+		
+		// Security levels
+		"sec_info    ",	// 5
+		"sec_warning ",	// 6
+		"sec_error   ",	// 7
+		"sec_critical",	// 8
+		"sec_other   "	// 9
+	}
 };
+
+
+const std::string level_unknown
+	=	"unknown     ";
+
+
+};	// namespace
 
 
 const std::string &
 logger::level_to_str(logger::level level_) noexcept
 {
-	switch (level_) {
-		case logger::level::info:			return level_info;
-		case logger::level::warning:		return level_warning;
-		case logger::level::error:			return level_error;
-		case logger::level::critical:		return level_critical;
-		
-		case logger::level::sec_info:		return level_sec_info;
-		case logger::level::sec_warning:	return level_sec_warning;
-		case logger::level::sec_error:		return level_sec_error;
-		case logger::level::sec_critical:	return level_sec_critical;
-		
-		case logger::level::other:			return level_other;
-		
-		default:							return level_unknown;
-	}
+	auto level_val = static_cast<unsigned int>(level_);
+	if (level_val < level_strings.size())
+		return level_strings[level_val];
+	return level_unknown;
 }

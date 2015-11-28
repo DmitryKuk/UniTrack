@@ -16,7 +16,7 @@ namespace logger {
 class logger
 {
 public:
-	logger(std::ostream &log_stream, bool colorize_output = false);
+	logger(std::ostream &log_stream, bool colorize_output = false) noexcept;
 	~logger();
 	
 	
@@ -30,7 +30,7 @@ public:
 	
 	record_object stream(level level_) noexcept;
 	
-	void log_raw(level level_, const std::string &data);
+	void log_raw(level level_, const std::string &data) noexcept;
 private:
 	std::ostream &log_stream_;
 	std::mutex log_stream_mutex_;

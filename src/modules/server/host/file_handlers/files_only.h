@@ -20,19 +20,19 @@ class worker;
 
 
 namespace host {
-namespace file {
+namespace file_handlers {
 
 
 class files_only
 {
 public:
 	class response:
-		public server::protocol::http::response
+		public ::server::protocol::http::response
 	{
 	public:
 		inline response(::base::mapped_file &&mapped_file,
-						const server::protocol::http::status &status,
-						server::protocol::http::version version = server::protocol::http::version::v_1_1);
+						const ::server::protocol::http::status &status,
+						::server::protocol::http::version version = ::server::protocol::http::version::v_1_1);
 	private:
 		friend class files_only;
 		
@@ -42,19 +42,19 @@ public:
 	
 	
 	template<class FileHost>
-	std::shared_ptr<server::protocol::http::response>
+	std::unique_ptr<::server::protocol::http::response>
 	operator()(const FileHost &host,
 			   const worker &worker,
-			   const server::protocol::http::request &request,
-			   const boost::filesystem::path &path);
+			   const ::server::protocol::http::request &request,
+			   const ::boost::filesystem::path &path);
 };	// class files_only
 
 
-};	// namespace file
+};	// namespace file_handlers
 };	// namespace host
 };	// namespace server
 
 
-#include <server/host/file/files_only.hpp>
+#include <server/host/file_handlers/files_only.hpp>
 
 #endif	// SERVER_HOST_FILE_FILES_ONLY_H

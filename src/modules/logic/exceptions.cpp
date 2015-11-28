@@ -3,7 +3,7 @@
 #include <logic/exceptions.h>
 
 
-logic::error::logic_error(const std::string &what_arg):
+logic::error::error(const std::string &what_arg):
 	std::logic_error("Logic: " + what_arg)
 {}
 

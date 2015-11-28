@@ -23,7 +23,7 @@ public:
 	record_object(record_object &&other) noexcept;
 	~record_object();
 	
-	record_object & operator=(record_object &&other);
+	record_object & operator=(record_object &&other) noexcept;
 	
 	
 	// Non-copy constructable/assignable.
@@ -32,9 +32,9 @@ public:
 	
 	
 	template<class T>
-	inline record_object & operator<<(T data);
+	inline record_object & operator<<(T data) noexcept;
 private:
-	// Nedd for replacing "\r" symbols
+	// Need for replacing "\r" symbols (by empty string)
 	static const std::regex regex_r_;
 	static const std::string replace_r_by_;
 	

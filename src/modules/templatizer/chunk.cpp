@@ -5,8 +5,8 @@
 
 // class raw_chunk
 templatizer::raw_chunk::raw_chunk(const char *data, size_t size) noexcept:
-	data_(data),
-	size_(size)
+	data_{data},
+	size_{size}
 {}
 
 

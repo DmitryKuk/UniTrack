@@ -27,4 +27,4 @@ public:
 };	// namespace templatizer
 
 
-#endif // TEMPLATIZER_MODEL_EXCEPTIONS_H
+#endif	// TEMPLATIZER_MODEL_EXCEPTIONS_H

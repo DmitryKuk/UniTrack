@@ -1,9 +1,10 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#ifndef SYTEM_PROCESS_H
-#define SYTEM_PROCESS_H
+#ifndef SYSTEM__PROCESS_H
+#define SYSTEM__PROCESS_H
 
 #include <unistd.h>
+#include <signal.h>
 
 
 namespace system_ {
@@ -25,12 +26,21 @@ public:
 	template<class Fn, class... Args>
 	process(Fn &&fn, Args &&... args);
 	
-	inline process(process &&other) noexcept;	// Move-constructable
+	// Move-constructible/assignable
+	inline process(process &&other) noexcept;
+	inline process & operator=(process &&other) noexcept;
 	
-	process(const process &other) = delete;		// But non-copy-constructable
+	// But non-copy-constructible/assignable
+	process(const process &other) = delete;
+	process & operator=(const process &other) = delete;
 	
 	
+	// In parent process: returns process id, given to child process.
+	// In child process: returns 0. Call getpid() manually.
 	inline id get_id() const noexcept;
+	
+	
+	void kill(int signal = SIGTERM);
 private:
 	id id_ = 0;
 };	// class process
@@ -41,4 +51,4 @@ private:
 
 #include <system_/process.hpp>
 
-#endif	// SYTEM_PROCESS_H
+#endif	// SYSTEM__PROCESS_H

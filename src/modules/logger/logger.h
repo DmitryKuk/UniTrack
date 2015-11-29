@@ -4,7 +4,6 @@
 #define LOGGER_LOGGER_H
 
 #include <iostream>
-#include <mutex>
 
 #include <logger/level.h>
 #include <logger/record_object.h>
@@ -33,7 +32,6 @@ public:
 	void log_raw(level level_, const std::string &data) noexcept;
 private:
 	std::ostream &log_stream_;
-	std::mutex log_stream_mutex_;
 	
 	bool colorize_output_;
 };	// class logger
@@ -65,4 +63,4 @@ private:
 };	// namespace logger
 
 
-#endif // LOGGER_LOGGER_H
+#endif	// LOGGER_LOGGER_H

@@ -21,7 +21,6 @@ logger::logger::~logger()
 		this->stream(level::info)
 			<< "End of log.";
 		
-		std::lock_guard<std::mutex> lock{this->log_stream_mutex_};
 		this->log_stream_.flush();
 	} catch (...) {}
 }
@@ -40,8 +39,6 @@ logger::logger::log_raw(::logger::level level, const std::string &data) noexcept
 	const auto &level_str = ::logger::level_to_str(level);
 	
 	try {
-		std::lock_guard<std::mutex> lock{this->log_stream_mutex_};
-		
 		if (this->colorize_output_)
 			this->log_stream_ << "\033[32m";
 		

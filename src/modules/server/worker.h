@@ -5,8 +5,10 @@
 
 #include <memory>
 #include <random>
+#include <unordered_map>
 
 #include <boost/asio/io_service.hpp>
+#include <boost/asio/signal_set.hpp>
 
 #include <logger/logger.h>
 #include <system_/process.h>
@@ -59,16 +61,35 @@ private:
 	// Returns exit status for current process
 	int run() noexcept;
 	
+	// Stops io_service
+	void stop() noexcept;
+	
+	
+	// Handles signals and dispatch them to primitive handlers
+	void handle_signal(const boost::system::error_code &err, int signal) noexcept;
+	
+	// Signal handlers
+	void exit(int signal, const char *signal_str) noexcept;
+	void ignore(int signal, const char *signal_str) noexcept;
+	
+	// Signal handlers map
+	static
+	const std::unordered_map<int, std::pair<const char *, void (::server::worker::*)(int, const char *)>>
+		signal_handlers_;
+	
 	
 	// Data
 	server &server_;
 	
+	int status_ = 0;	// Execution status (returned by run())
 	
-	boost::asio::io_service io_service_;
-	boost::asio::io_service::work empty_work_;
-	std::vector<::server::acceptor> acceptors_;
+	boost::asio::io_service			io_service_;
+	boost::asio::io_service::work	empty_work_;	// Forces io_service do not stop, when no clients in process
+	boost::asio::signal_set			signal_set_;	// Need for handle SIGTERM, SIGINT, SIGHUP
+	std::vector<::server::acceptor>	acceptors_;		// Need for accepting clients on ports
 	
-	
+	// Used to choose random server name number
+	// /dev/urandom used as seed generator
 	mutable std::minstd_rand0 server_name_generator_;
 };	// class worker
 

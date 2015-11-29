@@ -2,9 +2,30 @@
 
 #include <server/worker.h>
 
+#include <functional>
+
 #include <server/server.h>
 #include <server/acceptor.h>
 #include <server/session.h>
+
+
+#define SIGNAL_REACTION(signal, reaction)	\
+	std::make_pair(signal, std::make_pair(#signal, &::server::worker::reaction))
+
+// Signal handlers map
+// static
+const std::unordered_map<int, std::pair<const char *, void (server::worker::*)(int, const char *)>>
+	server::worker::signal_handlers_ =
+		{
+			SIGNAL_REACTION(SIGHUP,		ignore),
+#ifdef SIGQUIT
+			SIGNAL_REACTION(SIGQUIT,	exit),
+#endif	// SIGQUIT
+			SIGNAL_REACTION(SIGTERM,	exit),
+			SIGNAL_REACTION(SIGINT,		exit)
+		};
+
+#undef SIGNAL_REACTION
 
 
 // Creates and runs new worker in separate process
@@ -68,10 +89,13 @@ server::worker::worker(logger::logger &logger, ::server::server &server):
 	server_{server},
 	
 	empty_work_{this->io_service_},
+	signal_set_{this->io_service_, SIGTERM, SIGINT},
 	
 	server_name_generator_{std::random_device{}()}	// /dev/urandom used as seed generator
-	// static_cast<unsigned int>(std::chrono::system_clock::now().time_since_epoch().count())
 {
+	using namespace std::placeholders;
+	this->signal_set_.async_wait(std::bind(&::server::worker::handle_signal, this, _1, _2));
+	
 	this->acceptors_.reserve(this->server_.parameters_.ports.size());
 	for (auto port: this->server_.parameters_.ports)
 		this->acceptors_.emplace_back(*this, port);
@@ -82,6 +106,8 @@ server::worker::worker(logger::logger &logger, ::server::server &server):
 int
 server::worker::run() noexcept
 {
+	this->status_ = 0;
+	
 	this->logger().stream(logger::level::info)
 		<< "Worker started.";
 	
@@ -92,7 +118,7 @@ server::worker::run() noexcept
 		this->logger().stream(logger::level::error)
 			<< "Worker failed: " << e.what();
 		
-		return 1;
+		this->status_ = 1;
 	}
 	
 	
@@ -100,5 +126,44 @@ server::worker::run() noexcept
 		<< "Worker stopped.";
 	
 	
-	return 0;
+	return this->status_;
+}
+
+
+// Handles signals and dispatch them to primitive handlers
+void
+server::worker::handle_signal(const boost::system::error_code &err, int signal) noexcept
+{
+	if (err) {
+		this->logger().stream(logger::level::critical)
+			<< "Worker process signal handle error: " << err.message() << '.';
+		
+		this->status_ = 1;
+		this->io_service_.stop();
+	} else {
+		auto it = worker::signal_handlers_.find(signal);
+		if (it == worker::signal_handlers_.end())
+			this->exit(signal, "Unknown");
+		else
+			std::bind(it->second.second, this, it->first, it->second.first)();
+	}
+}
+
+
+// Signal handlers
+void
+server::worker::exit(int signal, const char *signal_str) noexcept
+{
+	this->logger().stream(logger::level::info)
+		<< "Worker: Recieved signal: " << signal_str << " (" << signal << "). Stopping...";
+	
+	this->io_service_.stop();
+}
+
+
+void
+server::worker::ignore(int signal, const char *signal_str) noexcept
+{
+	this->logger().stream(logger::level::info)
+		<< "Worker: Recieved signal: " << signal_str << " (" << signal << "). Ignore.";
 }

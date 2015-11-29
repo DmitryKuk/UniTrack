@@ -3,6 +3,7 @@
 #include <functional>
 #include <system_error>
 #include <cstring>
+#include <cstdlib>
 
 
 // Executes fn(args...) in separate process. fn should return int, that will be process exit status
@@ -31,7 +32,7 @@ system_::process::process(Fn &&fn, Args &&... args)
 		status = 1;
 	}
 	
-	exit(status);
+	std::exit(status);
 }
 
 
@@ -43,6 +44,18 @@ system_::process::process(system_::process &&other) noexcept:
 }
 
 
+inline
+system_::process &
+system_::process::operator=(system_::process &&other) noexcept
+{
+	this->id_ = other.id_;
+	other.id_ = 0;
+	return *this;
+}
+
+
+// In parent process: returns process id, given to child process.
+// In child process: returns 0. Call getpid() manually.
 inline
 system_::process::id
 system_::process::get_id() const noexcept

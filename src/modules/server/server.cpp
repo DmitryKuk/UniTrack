@@ -33,11 +33,18 @@ server::server::server(logger::logger &logger,
 		// Workers creation
 		this->worker_processes_.reserve(this->parameters_.workers);
 		
-		for (unsigned int i = 0; i < this->parameters_.workers; ++i)
+		for (unsigned int i = 0; i < this->parameters_.workers; ++i) {
+			this->logger().stream(logger::level::info)
+				<< "Creating worker...";
+			
 			this->worker_processes_.emplace_back(::server::worker::run(this->logger(), *this));
+			
+			this->logger().stream(logger::level::info)
+				<< "Worker created: " << this->worker_processes_.back().get_id() << "...";
+		}
 		
 		this->logger().stream(logger::level::info)
-			<< "Server: " << this->parameters_.workers << " workers created.";
+			<< "Server: Workers created: " << this->parameters_.workers << '.';
 	} catch (const std::exception &e) {
 		this->logger().stream(logger::level::critical)
 			<< "Server: Caught exception: " << e.what() << '.';
@@ -46,8 +53,7 @@ server::server::server(logger::logger &logger,
 			<< "Server: NOT started.";
 		
 		// Stopping running workers
-		// for (auto &process: this->worker_processes_)
-		// 	process.kill();
+		this->stop();
 	}
 }
 
@@ -59,8 +65,15 @@ server::server::stop() noexcept
 		<< "Server: Stopping...";
 	
 	// Stopping running workers
-	// for (auto &process: this->worker_processes_)
-	// 	process.kill();
+	for (auto &process: this->worker_processes_) {
+		try {
+			process.kill();
+		} catch (const std::exception &e) {
+			this->logger().stream(logger::level::error)
+				<< "Server: Worker stopping error: " << e.what();
+		}
+	}
+	this->worker_processes_.clear();
 	
 	this->logger().stream(logger::level::info)
 		<< "Server: Stopped.";

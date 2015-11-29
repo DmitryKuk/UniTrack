@@ -25,20 +25,38 @@ at<>(nlohmann::json &json)
 }
 
 
-template<class Key, class ...Keys>
+template<class Key, class... Keys>
 inline
 nlohmann::json::const_reference
-at(const nlohmann::json &json, const Key &key, const Keys &...keys)
+at(const nlohmann::json &json, const Key &key, const Keys &... keys)
 {
-	return base::json_utils::at<Keys...>(json.at(key), keys...);
+	using namespace std::literals;
+	
+	const nlohmann::json *sub_json_ptr;
+	try {
+		sub_json_ptr = &json.at(key);
+	} catch (const std::out_of_range &e) {
+		throw std::out_of_range{"JSON key not found: \""s + key + '\"'};
+	}
+	
+	return base::json_utils::at<Keys...>(*sub_json_ptr, keys...);
 }
 
-template<class Key, class ...Keys>
+template<class Key, class... Keys>
 inline
 nlohmann::json::reference
-at(nlohmann::json &json, const Key &key, const Keys &...keys)
+at(nlohmann::json &json, const Key &key, const Keys &... keys)
 {
-	return base::json_utils::at<Keys...>(json.at(key), keys...);
+	using namespace std::literals;
+	
+	nlohmann::json *sub_json_ptr;
+	try {
+		sub_json_ptr = &json.at(key);
+	} catch (const std::out_of_range &e) {
+		throw std::out_of_range{"JSON key not found: \""s + key + '\"'};
+	}
+	
+	return base::json_utils::at<Keys...>(*sub_json_ptr, keys...);
 }
 
 
@@ -64,19 +82,19 @@ get(const nlohmann::json &json)
 }
 
 
-template<class T, class Key, class ...Keys>
+template<class T, class Key, class... Keys>
 inline
 typename std::enable_if<!std::is_same<T, const nlohmann::json &>::value, T>::type
-get(const nlohmann::json &json, const Key &key, const Keys &...keys)
+get(const nlohmann::json &json, const Key &key, const Keys &... keys)
 {
 	return base::json_utils::get<T>(base::json_utils::at<Key, Keys...>(json, key, keys...));
 }
 
 
-template<class T, class Key, class ...Keys>
+template<class T, class Key, class... Keys>
 inline
 typename std::enable_if<std::is_same<T, const nlohmann::json &>::value, T>::type
-get(const nlohmann::json &json, const Key &key, const Keys &...keys)
+get(const nlohmann::json &json, const Key &key, const Keys &... keys)
 {
 	return base::json_utils::at<Key, Keys...>(json, key, keys...);
 }
@@ -85,10 +103,10 @@ get(const nlohmann::json &json, const Key &key, const Keys &...keys)
 
 // Same as get<...>(...), but saves (by moving) result into value.
 // Returns true, if result was saved. Otherwise returns false.
-template<class T, class ...Keys>
+template<class T, class... Keys>
 inline
 bool
-extract(const nlohmann::json &json, T &val, const Keys &...keys)
+extract(const nlohmann::json &json, T &val, const Keys &... keys)
 {
 	try {
 		val = std::move(base::json_utils::get<T, Keys...>(json, keys...));
@@ -113,12 +131,12 @@ get_variant<>(const nlohmann::json &json)
 }
 
 
-template<class T, class ...Ts>
+template<class T, class... Ts>
 inline
 bool
 get_variant(const nlohmann::json &json,
 			std::function<void (T)> &&func,
-			std::function<void (Ts)> &&...funcs)
+			std::function<void (Ts)> &&... funcs)
 {
 	try {
 		func(json_utils::get<T>(json));

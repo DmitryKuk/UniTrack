@@ -220,8 +220,9 @@ server::session::add_response_handler(std::shared_ptr<::server::session> this_, 
 		return;
 	
 	using namespace std::placeholders;
-	this_->socket_.async_send(this_->responses_queue_.front()->buffers,
-							  std::bind(&session::response_handler, this_, _1, _2));
+	boost::asio::async_write(this_->socket_,
+							 this_->responses_queue_.front()->buffers,
+							 std::bind(&session::response_handler, this_, _1, _2));
 }
 
 

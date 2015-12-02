@@ -90,7 +90,7 @@ private:
 	
 	boost::filesystem::path current_file_path_;
 	
-	boost::asio::posix::stream_descriptor stream_;
+	std::unique_ptr<boost::asio::posix::stream_descriptor> stream_;
 	
 	std::queue<std::string> log_queue_;
 	bool sending_ = false;

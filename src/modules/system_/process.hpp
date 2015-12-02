@@ -6,6 +6,8 @@
 #include <cstdlib>
 
 
+
+
 // Executes fn(args...) in separate process. fn should return int, that will be process exit status
 // Constructs correct child process object (only in parent process!)
 // Throws: std::system_error, if it's impossible to create process (only in parent process!)
@@ -13,22 +15,26 @@
 template<class Fn, class... Args>
 system_::process::process(Fn &&fn, Args &&... args)
 {
-	this->id_ = fork();
-	if (this->id_ != 0) {
-		// Parent process
-		if (this->id_ > 0)	// Normal
-			return;	// Return only in parent process!
+	// this->id_ = fork();
+	// if (this->id_ != 0) {
+	// 	// Parent process
+	// 	if (this->id_ > 0)	// Normal
+	// 		return;	// Return only in parent process!
 		
-		throw std::system_error{errno, std::system_category(), std::strerror(errno)};
-	}
+	// 	throw std::system_error{errno, std::system_category(), std::strerror(errno)};
+	// }
 	
 	
 	// Child process
 	int status = 0;
 	
 	try {
-		status = std::bind<int>(std::move(fn), std::move(args)...)();
+		status = std::bind<int>(std::forward<Fn>(fn), std::forward<Args>(args)...)();
+	} catch (const std::exception &e) {
+		std::cerr << "CRITICAL [" << ::getpid() << "]: Uncaught exception: " << e.what() << '.' << std::endl;
+		std::abort();
 	} catch (...) {
+		std::cerr << "CRITICAL [" << ::getpid() << "]: Uncaught exception (not std::exception)." << std::endl;
 		std::abort();
 	}
 	

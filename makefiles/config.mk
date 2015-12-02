@@ -35,4 +35,7 @@ PREFIX_CONFIG		= /etc/$(PROJECT_NAME_LOW)
 # WWW data
 PREFIX_WWW			= /var/$(PROJECT_NAME_LOW)
 
+# Logs
+PREFIX_LOG			= /var/log/$(PROJECT_NAME_LOW)
+
 # ---===  End of project installation properties  ===---

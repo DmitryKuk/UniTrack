@@ -83,7 +83,7 @@ application::application(int argc, char **argv) noexcept:
 	
 	// Creating logger
 	try {
-		this->logger_ptr_ = std::make_unique<logger::logger>(std::clog, true);
+		this->logger_ptr_ = std::make_unique<logger::logger>(std::cerr, true);
 	} catch (const std::exception &e) {
 		this->handle_error(std::runtime_error{"Can\'t create logger: "s + e.what()});
 		return;

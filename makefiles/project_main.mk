@@ -160,6 +160,12 @@ install-www:
 	@echo "$(COLOR_PASS)==> WWW data installed.$(COLOR_RESET)"
 
 
+install-log:
+	@echo "$(COLOR_RUN)Creating directory: \"$(PREFIX_LOG)\"...$(COLOR_RESET)"
+	install -d '$(PREFIX_LOG)'
+	@echo "$(COLOR_PASS)==> Log directory installed.$(COLOR_RESET)"
+
+
 
 # Uninstalling
 uninstall: uninstall-bin uninstall-www
@@ -172,7 +178,7 @@ uninstall-bin:
 
 
 uninstall-third-party:
-	$(MAKE) -C "$(THIRDPARTY_DIR)" uninstall
+	$(MAKE) -C '$(THIRDPARTY_DIR)' uninstall
 
 
 uninstall-config:
@@ -185,8 +191,13 @@ uninstall-www:
 	@echo "$(COLOR_PASS)==> WWW data removed.$(COLOR_RESET)"
 
 
+uninstall-log:
+	rm -r '$(PREFIX_LOG)'
+	@echo "$(COLOR_PASS)==> Log directory removed.$(COLOR_RESET)"
 
-uninstall-all: uninstall-bin uninstall-www uninstall-third-party uninstall-config
+
+
+uninstall-all: uninstall-bin uninstall-www uninstall-third-party uninstall-config uninstall-log
 
 
 

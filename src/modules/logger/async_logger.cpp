@@ -2,6 +2,7 @@
 
 #include <logger/async_logger.h>
 
+#include <iostream>
 #include <cstdlib>
 #include <cstring>
 #include <cerrno>
@@ -61,12 +62,15 @@ logger::async_logger::async_logger(boost::asio::io_service &io_service,
 	log_file_number_{0},
 	messages_logged_{0},
 	
-	stream_{io_service},
+	// stream_{io_service},
 	
 	sending_{false}
 {
 	using namespace std::literals;
 	
+	std::cerr << "Here: " << __FILE__ << ": " << __LINE__ << std::endl;
+	this->stream_ = std::make_unique<boost::asio::posix::stream_descriptor>(io_service);
+	std::cerr << "Here: " << __FILE__ << ": " << __LINE__ << std::endl;
 	
 	if (!boost::filesystem::exists(this->parameters_.root))
 		throw ::logger::incorrect_config{"Root directory not exists: \""s
@@ -96,7 +100,7 @@ logger::async_logger::async_logger(boost::asio::io_service &io_service,
 			throw ::logger::cant_open_fifo{'\"' + this->current_file_path_.string()
 										   + "\": "s + std::strerror(errno)};
 		
-		this->stream_ = boost::asio::posix::stream_descriptor{this->stream_.get_io_service(), fd};
+		(*this->stream_) = boost::asio::posix::stream_descriptor{(*this->stream_).get_io_service(), fd};
 	} else {
 		this->start_next_file();
 	}
@@ -111,7 +115,7 @@ logger::async_logger::~async_logger()
 	} catch (...) {}
 	
 	this->try_flush();
-	this->stream_.close();
+	(*this->stream_).close();
 	
 	if (this->parameters_.file_type == parameters::file_type::fifo) {
 		boost::system::error_code err;
@@ -172,7 +176,7 @@ logger::async_logger::force_flush_first() noexcept
 	
 	auto buffer = boost::asio::buffer(this->log_queue_.front());
 	boost::system::error_code err;
-	boost::asio::write(this->stream_, buffer, err);	// Ignore errors: logging is impossible
+	boost::asio::write((*this->stream_), buffer, err);	// Ignore errors: logging is impossible
 	
 	this->log_queue_.pop();
 	
@@ -199,7 +203,7 @@ logger::async_logger::start_next_file() noexcept
 		// Try to open chosen file
 		int fd = ::open(this->current_file_path_.c_str(), regular_file_open_flags, regular_file_open_mode);
 		if (fd > 0) {	// Normal
-			this->stream_ = boost::asio::posix::stream_descriptor{this->stream_.get_io_service(), fd};
+			(*this->stream_) = boost::asio::posix::stream_descriptor{(*this->stream_).get_io_service(), fd};
 			break;
 		}
 		
@@ -207,14 +211,14 @@ logger::async_logger::start_next_file() noexcept
 		if (this->log_file_number_ != old_log_file_number) {	// Try open one of next files
 			continue;
 		} else {												// All files tested :(
-			if (this->stream_.is_open()) {
+			if ((*this->stream_).is_open()) {
 				const std::string last_message = "Unable to open any of next (and previous) log files. It is "
 												 "the worst scenario. I don\'t know, what to, it\'s really "
 												 "terrible. Good bye!"s;
 				
 				auto buffer = boost::asio::buffer(last_message);
 				boost::system::error_code err;
-				boost::asio::write(this->stream_, buffer, err);	// Ignore errors: logging is impossible
+				boost::asio::write((*this->stream_), buffer, err);	// Ignore errors: logging is impossible
 			}
 			
 			std::abort();
@@ -233,14 +237,14 @@ logger::async_logger::start_next_file() noexcept
 void
 logger::async_logger::add_write_handler_or_write()
 {
-	if (this->sending_ || this->log_queue_.empty() || !this->stream_.is_open())
+	if (this->sending_ || this->log_queue_.empty() || !(*this->stream_).is_open())
 		return;
 	
 	if (this->log_queue_.size() < this->parameters_.max_queue_size) {	// Normal
 		auto buffer = boost::asio::buffer(this->log_queue_.front());
 		
 		using namespace std::placeholders;
-		boost::asio::async_write(this->stream_, buffer,
+		boost::asio::async_write((*this->stream_), buffer,
 								 std::bind(&::logger::async_logger::write_handler, this, _1, _2));
 		
 		this->sending_ = true;

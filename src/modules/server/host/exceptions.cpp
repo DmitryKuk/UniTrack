@@ -13,8 +13,23 @@ server::host::incorrect_config::incorrect_config(const std::string &what_arg):
 {}
 
 
+server::host::host_exists::host_exists(const std::string &name):
+	server::host::error("Host already exists: \"" + name + '\"')
+{}
+
+
+server::host::host_not_exists::host_not_exists():
+	server::host::error("Host not exists. Are you kidding?")
+{}
+
+
 server::host::host_not_found::host_not_found(const std::string &name):
 	server::host::error("Host not found: \"" + name + '\"')
+{}
+
+
+server::host::host_manager_not_constructed::host_manager_not_constructed():
+	server::host::error("Host manager not constructed")
 {}
 
 

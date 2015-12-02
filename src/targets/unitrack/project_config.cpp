@@ -9,7 +9,8 @@ namespace {
 
 const std::string
 	server_json_file	= "server.json",
-	logic_json_file		= "logic.json";
+	logic_json_file		= "logic.json",
+	logger_json_file	= "logger.json";
 
 };	// namespace
 
@@ -17,4 +18,5 @@ const std::string
 const boost::filesystem::path
 	project_config::dir		= PATH_CONFIG,
 	project_config::server	= project_config::dir / server_json_file,
-	project_config::logic	= project_config::dir / logic_json_file;
+	project_config::logic	= project_config::dir / logic_json_file,
+	project_config::logger	= project_config::dir / logger_json_file;

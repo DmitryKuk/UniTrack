@@ -4,8 +4,8 @@
 
 #include <functional>
 
+#include <logger/level.h>
 #include <server/server.h>
-#include <server/acceptor.h>
 #include <server/session.h>
 
 
@@ -26,18 +26,6 @@ const std::unordered_map<int, std::pair<const char *, void (server::worker::*)(i
 		};
 
 #undef SIGNAL_REACTION
-
-
-// Creates and runs new worker in separate process
-// Returns correct child process object (only in parent process!)
-// Throws: std::system_error, if it's impossible to create process (only in parent process!)
-// NEVER returns in child process!
-// static
-system_::process
-server::worker::run(logger::logger &logger, ::server::server &server)
-{
-	return system_::process{[&] { return ::server::worker{logger, server}.run(); }};
-}
 
 
 // Returns server name (random!)
@@ -82,26 +70,6 @@ server::worker::add_client(::server::socket &&socket) noexcept
 
 
 // private
-// Constructor
-server::worker::worker(logger::logger &logger, ::server::server &server):
-	logger::enable_logger{logger},
-	
-	server_{server},
-	
-	empty_work_{this->io_service_},
-	signal_set_{this->io_service_, SIGTERM, SIGINT},
-	
-	server_name_generator_{std::random_device{}()}	// /dev/urandom used as seed generator
-{
-	using namespace std::placeholders;
-	this->signal_set_.async_wait(std::bind(&::server::worker::handle_signal, this, _1, _2));
-	
-	this->acceptors_.reserve(this->server_.parameters_.ports.size());
-	for (auto port: this->server_.parameters_.ports)
-		this->acceptors_.emplace_back(*this, port);
-}
-
-
 // Returns exit status for current process
 int
 server::worker::run() noexcept

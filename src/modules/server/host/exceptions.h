@@ -27,10 +27,31 @@ public:
 };
 
 
+class host_exists: public error
+{
+public:
+	explicit host_exists(const std::string &name);
+};
+
+
+class host_not_exists: public error
+{
+public:
+	explicit host_not_exists();
+};
+
+
 class host_not_found: public error
 {
 public:
 	explicit host_not_found(const std::string &name);
+};
+
+
+class host_manager_not_constructed: public error
+{
+public:
+	explicit host_manager_not_constructed();
 };
 
 

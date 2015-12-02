@@ -12,6 +12,7 @@
 #include <json.hpp>
 
 #include <logger/logger.h>
+#include <logger/async_logger.h>
 #include <system_/process.h>
 #include <server/types.h>
 #include <server/host/manager.h>
@@ -24,7 +25,7 @@ class worker;
 
 
 class server:
-	protected logger::enable_logger
+	protected logger::enable_logger_ref
 {
 public:
 	struct parameters
@@ -45,12 +46,14 @@ public:
 	
 	
 	
+	template<class HMGen, class... HMGenArgs>
 	server(logger::logger &logger,
-		   ::server::host::manager &host_manager,
-		   const parameters &parameters);
+		   const parameters &parameters,
+		   const logger::async_logger::parameters &async_logger_parameters,
+		   HMGen &&hm_gen, HMGenArgs &&... hm_gen_args);	// Host manager generator with args
 	
 	
-	// Non-copy/-move constructable/assignable. Use ptrs.
+	// Non-copy/-move constructible/assignable. Use ptrs.
 	server(const server &other) = delete;
 	server(server &&other) = delete;
 	
@@ -58,7 +61,7 @@ public:
 	server & operator=(server &&other) = delete;
 	
 	
-	// Stops the server (waiting for server thread and workers threads)
+	// Stops the server
 	void stop() noexcept;
 	
 	
@@ -66,9 +69,6 @@ public:
 	// inline void join();						// Joins server's thread
 	// inline void detach();					// Detaches server's thread
 	
-	// Returns the hosts manager of this server
-	inline ::server::host::manager & host_manager() noexcept;
-	inline const ::server::host::manager & host_manager() const noexcept;
 	
 	// Returns server names
 	inline const std::vector<std::string> & names() const noexcept;
@@ -79,8 +79,6 @@ protected:
 	parameters parameters_;
 private:
 	// Data
-	::server::host::manager &host_manager_;
-	
 	std::vector<system_::process> worker_processes_;
 };	// class server
 

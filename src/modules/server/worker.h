@@ -10,7 +10,7 @@
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/signal_set.hpp>
 
-#include <logger/logger.h>
+#include <logger/async_logger.h>
 #include <system_/process.h>
 #include <server/types.h>
 
@@ -31,15 +31,24 @@ class manager;
 };	// namespace host
 
 
-class worker:
-	public logger::enable_logger
+class worker
 {
 public:
 	// Creates and runs new worker in separate process
 	// Returns correct child process object (only in parent process!)
 	// Throws: std::system_error, if it's impossible to create process (only in parent process!)
 	// NEVER returns in child process!
-	static system_::process run(logger::logger &logger, server &server);
+	
+	// NOTE: Host manager generator should return std::unique_ptr<server::host::manager> to correct
+	// and ready-to-response host manager. If it is impossible, please, throw!
+	template<class HMGen, class... HMGenArgs>
+	static system_::process run(server &server,
+								const logger::async_logger::parameters &logger_parameters,
+								HMGen &&hm_gen, HMGenArgs &&... hm_gen_args);	// Host manager generator with args
+	
+	
+	// Returns logger for current process
+	inline logger::async_logger & logger() const noexcept;
 	
 	
 	// Returns server name (random!)
@@ -55,7 +64,12 @@ public:
 	void add_client(::server::socket &&socket) noexcept;
 private:
 	// Constructor
-	worker(logger::logger &logger, server &server);
+	// NOTE: Host manager generator should return std::unique_ptr<server::host::manager> to correct
+	// and ready-to-response host manager. If it is impossible, please, throw!
+	template<class HMGen, class... HMGenArgs>
+	worker(server &server,
+		   const logger::async_logger::parameters &logger_parameters,
+		   HMGen &&hm_gen, HMGenArgs &&... hm_gen_args);	// Host manager generator with args
 	
 	
 	// Returns exit status for current process
@@ -82,6 +96,10 @@ private:
 	server &server_;
 	
 	int status_ = 0;	// Execution status (returned by run())
+	
+	mutable logger::async_logger logger_;
+	
+	std::unique_ptr<::server::host::manager> host_manager_ptr_;
 	
 	boost::asio::io_service			io_service_;
 	boost::asio::io_service::work	empty_work_;	// Forces io_service do not stop, when no clients in process

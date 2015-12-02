@@ -16,8 +16,7 @@ class worker;
 
 
 class acceptor:
-	protected boost::asio::ip::tcp::acceptor,
-	public logger::enable_logger
+	protected boost::asio::ip::tcp::acceptor
 {
 public:
 	acceptor(worker &worker, ::server::port_type port);
@@ -39,7 +38,7 @@ private:
 	
 	
 	// Data
-	worker &worker_;
+	worker *worker_ptr_;
 	
 	::server::socket socket_;
 };

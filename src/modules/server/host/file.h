@@ -8,7 +8,6 @@
 
 #include <boost/filesystem/path.hpp>
 
-#include <logger/logger.h>
 #include <server/host/base.h>
 
 
@@ -72,16 +71,14 @@ class file:
 	public ::server::host::base
 {
 public:
-	file(logger::logger &logger,
-		 const file_parameters &parameters,
+	file(const file_parameters &parameters,
 		 HostType &&handler = std::move(HostType()));
 	
-	file(logger::logger &logger,
-		 const file_parameters &parameters,
+	file(const file_parameters &parameters,
 		 const HostType &handler);
 	
 	
-	// Non-copy/-move constructable/assignable. Use ptrs.
+	// Non-copy/-move constructible/assignable. Use ptrs.
 	template<class HostType1>
 	file(const file<HostType1> &other) = delete;
 	
@@ -98,7 +95,7 @@ public:
 	virtual
 	std::unique_ptr<::server::protocol::http::response>
 	response(const worker &worker,
-			 const ::server::protocol::http::request &request) override;
+			 const ::server::protocol::http::request &request) const override;
 protected:
 	// Validators
 	inline
@@ -112,14 +109,14 @@ protected:
 	handle_error(const worker &worker,
 				 const ::server::protocol::http::request &request,
 				 const char *what,
-				 const ::server::protocol::http::status &status);
+				 const ::server::protocol::http::status &status) const;
 	
 	inline
 	std::unique_ptr<::server::protocol::http::response>
 	handle_error(const worker &worker,
 				 const ::server::protocol::http::request &request,
 				 const std::exception &e,
-				 const ::server::protocol::http::status &status);
+				 const ::server::protocol::http::status &status) const;
 	
 	
 	// Data

@@ -46,7 +46,7 @@ public:
 	operator()(const FileHost &host,
 			   const worker &worker,
 			   const ::server::protocol::http::request &request,
-			   const ::boost::filesystem::path &path);
+			   const ::boost::filesystem::path &path) const;
 };	// class files_only
 
 

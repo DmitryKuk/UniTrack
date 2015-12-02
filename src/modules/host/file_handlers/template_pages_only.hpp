@@ -7,9 +7,9 @@
 // class host::file_handlers::template_pages_only::response
 inline
 host::file_handlers::template_pages_only::response::response(const templatizer::page &page,
-													logic::page_model &&model,
-													const server::protocol::http::status &status,
-													server::protocol::http::version version):
+															 logic::page_model &&model,
+															 const server::protocol::http::status &status,
+															 server::protocol::http::version version):
 	server::protocol::http::response{status, version},
 	
 	page_{page},
@@ -28,9 +28,9 @@ host::file_handlers::template_pages_only::template_pages_only(logic::global_inst
 template<class FileHost>
 std::unique_ptr<server::protocol::http::response>
 host::file_handlers::template_pages_only::operator()(const FileHost &host,
-											const server::worker &worker,
-											const server::protocol::http::request &request,
-											const boost::filesystem::path &path)
+													 const server::worker &worker,
+													 const server::protocol::http::request &request,
+													 const boost::filesystem::path &path) const
 {
 	using namespace std::literals;
 	

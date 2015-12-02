@@ -14,7 +14,6 @@
 #include <boost/asio/ip/address.hpp>
 #include <boost/asio/streambuf.hpp>
 
-#include <logger/logger.h>
 #include <server/types.h>
 #include <server/protocol/http.h>
 #include <server/host/base.h>
@@ -28,8 +27,7 @@ class worker;
 
 
 class session:
-	public std::enable_shared_from_this<session>,
-	protected logger::enable_logger
+	public std::enable_shared_from_this<session>
 {
 public:
 	// Use this method for creating session objects. You should NOT manage objects of this class -- they do it.
@@ -38,15 +36,15 @@ public:
 	
 	session(worker &w, ::server::socket &&socket);
 	~session();
-private:
-	// Non-copy/-move constructable/assignable. Why? Because of implicit async execution flow (see below).
+	
+	
+	// Non-copy/-move constructible/assignable. Why? Because of implicit async execution flow (see below).
 	session(const session &other) = delete;
 	session(session &&other) = delete;
 	
 	session & operator=(const session &other) = delete;
 	session & operator=(session &&other) = delete;
-	
-	
+private:
 	// Client and ::server connection info
 	inline const boost::asio::ip::address &client_address() const noexcept;
 	inline ::server::port_type server_port() const noexcept;

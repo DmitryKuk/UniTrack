@@ -15,7 +15,7 @@ class strings_cache
 public:
 	explicit strings_cache() = default;
 	
-	// Non-copy/move constructable/assignable
+	// Non-copy/move constructible/assignable
 	strings_cache(const strings_cache &other) = delete;
 	strings_cache(strings_cache &&other) = delete;
 	

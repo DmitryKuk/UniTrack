@@ -12,14 +12,12 @@ server::acceptor::acceptor(::server::worker &worker, ::server::port_type port):
 								   {boost::asio::ip::tcp::v4(), port},	// Local endpoint
 								   true},								// Reuse address
 	
-	logger::enable_logger{worker.logger()},
-	
-	worker_{worker},
-	socket_{this->worker_.io_service()}
+	worker_ptr_{&worker},
+	socket_{this->worker_ptr_->io_service()}
 {
 	this->add_accept_handler();
 	
-	this->logger().stream(logger::level::info)
+	this->worker_ptr_->logger().stream(logger::level::info)
 		<< "Accepting on port: " << this->local_endpoint().port() << ": started.";
 }
 
@@ -46,10 +44,10 @@ void
 server::acceptor::accept_handler(const boost::system::error_code &err)
 {
 	if (err) {
-		this->logger().stream(logger::level::error)
+		this->worker_ptr_->logger().stream(logger::level::error)
 			<< "Accepting on port: " << this->local_endpoint().port() << ": " << err.message() << '.';
 	} else {
-		this->worker_.add_client(std::move(this->socket_));
+		this->worker_ptr_->add_client(std::move(this->socket_));
 		
 		this->add_accept_handler();	// Continue accepting
 	}

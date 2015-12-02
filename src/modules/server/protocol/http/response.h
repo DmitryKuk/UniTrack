@@ -26,7 +26,7 @@ public:
 	response() = default;
 	
 	
-	// Non-copy/move constructable/assignable
+	// Non-copy/move constructible/assignable
 	response(const response &other) = delete;
 	response(response &&other) = delete;
 	

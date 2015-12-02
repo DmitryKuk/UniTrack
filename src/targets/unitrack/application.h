@@ -20,7 +20,7 @@ class application
 public:
 	application(int argc, char **argv) noexcept;
 	
-	// Non-copy/move constructable/assignable.
+	// Non-copy/move constructible/assignable
 	application(const application &other) = delete;
 	application(application &&other) = delete;
 	application & operator=(const application &other) = delete;

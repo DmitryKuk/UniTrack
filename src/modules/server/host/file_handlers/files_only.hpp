@@ -22,7 +22,7 @@ std::unique_ptr<::server::protocol::http::response>
 server::host::file_handlers::files_only::operator()(const FileHost &host,
 													const ::server::worker &worker,
 													const ::server::protocol::http::request &request,
-													const boost::filesystem::path &path)
+													const boost::filesystem::path &path) const
 {
 	using namespace boost::interprocess;
 	

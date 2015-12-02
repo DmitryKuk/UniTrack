@@ -58,7 +58,7 @@ public:
 	operator()(const FileHost &host,
 			   const server::worker &worker,
 			   const server::protocol::http::request &request,
-			   const boost::filesystem::path &path);
+			   const boost::filesystem::path &path) const;
 private:
 	class pages_cache
 	{
@@ -71,7 +71,7 @@ private:
 	
 	
 	// Data
-	pages_cache pages_cache_;
+	mutable pages_cache pages_cache_;
 	
 	logic::global_instance &logic_;
 };	// template_pages_only

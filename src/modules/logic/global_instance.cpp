@@ -29,10 +29,10 @@ logic::global_instance::parameters::parameters(const nlohmann::json &config)
 
 
 // class logic::global_instance
-logic::global_instance::global_instance(logger::logger &logger,
+logic::global_instance::global_instance(logger::async_logger &logger,
 										const logic::global_instance::parameters &parameters,
 										const mongo::client::Options &options):
-	logger::enable_logger{logger},
+	logger::enable_async_logger_ref{logger},
 	
 	mongo_client_global_instance_{options},
 	

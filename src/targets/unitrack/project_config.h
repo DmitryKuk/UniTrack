@@ -12,7 +12,8 @@ namespace project_config {
 extern const boost::filesystem::path
 	dir,
 	server,
-	logic;
+	logic,
+	logger;
 
 
 };	// namespace project_config

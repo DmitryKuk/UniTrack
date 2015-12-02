@@ -23,7 +23,7 @@ public:
 	response() = default;
 	
 	
-	// Non-copy/move constructable/assignable (because of strings cache)
+	// Non-copy/move constructible/assignable (because of strings cache)
 	response(const response &other) = delete;
 	response(response &&other) = delete;
 	

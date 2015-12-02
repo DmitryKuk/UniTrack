@@ -7,6 +7,7 @@
 #include <json.hpp>
 
 #include <base/json_utils.h>
+#include <logger/async_logger.h>
 #include <templatizer/page.h>
 #include <server/server.h>
 #include <server/host/file.h>
@@ -24,6 +25,62 @@ application::application(int argc, char **argv) noexcept:
 	std::ios::sync_with_stdio(false);
 	
 	
+	const auto host_manager_generator =
+		[&](const nlohmann::json &config, logger::async_logger &logger)
+			-> std::unique_ptr<server::host::manager>
+		{
+			// Logic and logic config
+			auto logic_ptr = std::make_unique<logic::global_instance>(
+				logger,
+				logic::global_instance::parameters{
+					base::json_utils::json_from_file(project_config::logic)
+				}
+			);
+			
+			
+			// Hosts
+			auto host_manager_ptr = std::make_unique<server::host::manager>();
+			for (const auto &host_config: base::json_utils::at(config, "hosts")) {
+				server::host::file_parameters file_host_parameters{host_config};
+				const auto type = base::json_utils::get<std::string>(host_config, "type");
+				
+				if (type == "files_only") {
+					host_manager_ptr->add_host(
+						std::make_shared<server::host::file<server::host::file_handlers::files_only>>(
+							file_host_parameters
+						)
+					);
+				} else if (type == "template_pages_only") {
+					host_manager_ptr->add_host(
+						std::make_shared<server::host::file<host::file_handlers::template_pages_only>>(
+							file_host_parameters,
+							host::file_handlers::template_pages_only{
+								*logic_ptr
+							}
+						)
+					);
+				} else if (type == "files_and_template_pages") {
+					host_manager_ptr->add_host(
+						std::make_shared<server::host::file<host::file_handlers::files_and_template_pages>>(
+							file_host_parameters,
+							host::file_handlers::files_and_template_pages{
+								*logic_ptr,
+								host::file_handlers::files_and_template_pages::parameters{host_config}
+							}
+						)
+					);
+				} else {
+					throw server::host::incorrect_config{"Unknown host type: \"" + type
+														 + "\", correct values are: \"files_only\", "
+														   "\"template_pages_only\", \"files_and_template_pages\""};
+				}
+			}
+			
+			
+			return host_manager_ptr;
+		};
+	
+	
 	// Creating logger
 	try {
 		this->logger_ptr_ = std::make_unique<logger::logger>(std::clog, true);
@@ -34,68 +91,23 @@ application::application(int argc, char **argv) noexcept:
 	
 	
 	try {
-		// Logic and logic config
-		this->logic_ptr_ = std::make_unique<logic::global_instance>(
-			this->logger(),
-			logic::global_instance::parameters{
-				base::json_utils::json_from_file(project_config::logic)
-			}
-		);
-		
-		
 		// Server and hosts config
 		auto config = base::json_utils::json_from_file(project_config::server);
-		
-		
-		// Hosts
-		this->host_manager_ptr_ = std::make_unique<server::host::manager>(this->logger());
-		for (const auto &host_config: base::json_utils::at(config, "hosts")) {
-			server::host::file_parameters file_host_parameters{host_config};
-			const auto type = base::json_utils::get<std::string>(host_config, "type");
-			
-			if (type == "files_only") {
-				this->host_manager_ptr_->add_host(
-					std::make_shared<server::host::file<server::host::file_handlers::files_only>>(
-						this->logger(),
-						file_host_parameters
-					)
-				);
-			} else if (type == "template_pages_only") {
-				this->host_manager_ptr_->add_host(
-					std::make_shared<server::host::file<host::file_handlers::template_pages_only>>(
-						this->logger(),
-						file_host_parameters,
-						host::file_handlers::template_pages_only{
-							*this->logic_ptr_
-						}
-					)
-				);
-			} else if (type == "files_and_template_pages") {
-				this->host_manager_ptr_->add_host(
-					std::make_shared<server::host::file<host::file_handlers::files_and_template_pages>>(
-						this->logger(),
-						file_host_parameters,
-						host::file_handlers::files_and_template_pages{
-							*this->logic_ptr_,
-							host::file_handlers::files_and_template_pages::parameters{host_config}
-						}
-					)
-				);
-			} else {
-				throw server::host::incorrect_config{"Unknown host type: \"" + type
-													 + "\", correct values are: \"files_only\", "
-													   "\"template_pages_only\", \"files_and_template_pages\""};
-			}
-		}
 		
 		
 		// Server
 		this->server_ptr_ = std::make_unique<server::server>(
 			this->logger(),
-			*this->host_manager_ptr_,
 			server::server::parameters{
 				base::json_utils::at(config, "server")
-			}
+			},
+			
+			logger::async_logger::parameters{
+				base::json_utils::json_from_file(project_config::logger)
+			},
+			
+			host_manager_generator,
+			std::ref(config)
 		);
 	} catch (const std::exception &e) {
 		this->handle_error(e);

@@ -18,13 +18,7 @@ server::host::base::parameters::parameters(const nlohmann::json &config):
 
 
 // class ::server::host::base
-// static
-std::unique_ptr<::server::host::base> server::host::base::error_host_ptr_;
-
-
-server::host::base::base(logger::logger &logger, const ::server::host::base::parameters &parameters):
-	logger::enable_logger{logger},
-	
+server::host::base::base(const ::server::host::base::parameters &parameters):
 	parameters_{parameters}
 {}
 
@@ -44,7 +38,7 @@ server::host::base::port_allowed(::server::port_type port) const noexcept
 // virtual
 std::unique_ptr<::server::protocol::http::response>
 server::host::base::response(const ::server::worker &worker,
-							 const ::server::protocol::http::request &request)
+							 const ::server::protocol::http::request &request) const
 {
 	return this->phony_response(worker, request, ::server::protocol::http::status::not_found);
 }
@@ -55,7 +49,7 @@ server::host::base::response(const ::server::worker &worker,
 std::unique_ptr<::server::protocol::http::response>
 server::host::base::phony_response(const ::server::worker &worker,
 								   const ::server::protocol::http::request &request,
-								   const ::server::protocol::http::status &status)
+								   const ::server::protocol::http::status &status) const
 {
 	using namespace ::server::protocol::http;
 	
@@ -131,41 +125,6 @@ server::host::base::phony_response(const ::server::worker &worker,
 	
 	
 	return response_ptr;
-}
-
-
-// Returns reference to error host object, creating it, if does not exist.
-// If it didn't exist, it will be binded to logger of object's, whoose method was called.
-server::host::base &
-server::host::base::error_host() const
-{
-	return ::server::host::base::error_host(this->logger());
-}
-
-
-// Returns reference to error host object, creating it, if does not exist.
-// If it didn't exist, it will be binded to logger.
-// static
-server::host::base &
-server::host::base::error_host(logger::logger &logger)
-{
-	if (::server::host::base::error_host_ptr_ == nullptr)
-		::server::host::base::create_error_host(logger);
-	return *::server::host::base::error_host_ptr_;
-}
-
-
-// Creates error_host if it does not exist. You may call it once from ::server, if you want.
-// static
-void
-server::host::base::create_error_host(logger::logger &logger)
-{
-	static std::mutex m;
-	
-	std::lock_guard<std::mutex> lock(m);
-	if (::server::host::base::error_host_ptr_ == nullptr)
-		::server::host::base::error_host_ptr_
-			= std::make_unique<::server::host::base>(logger, ::server::host::base::parameters{});
 }
 
 

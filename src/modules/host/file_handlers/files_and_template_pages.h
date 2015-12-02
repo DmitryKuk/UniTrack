@@ -64,7 +64,7 @@ public:
 	operator()(const FileHost &host,
 			   const server::worker &worker,
 			   const server::protocol::http::request &request,
-			   const boost::filesystem::path &path);
+			   const boost::filesystem::path &path) const;
 protected:
 	parameters parameters_;
 };	// files_and_template_pages

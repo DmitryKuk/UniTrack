@@ -20,33 +20,32 @@ logger::logger::~logger()
 	try {
 		this->stream(level::info)
 			<< "End of log.";
-		
-		this->log_stream_.flush();
 	} catch (...) {}
+	
+	this->flush();
 }
 
 
-logger::record_object
-logger::logger::stream(::logger::level level) noexcept
+logger::stream<::logger::logger>
+logger::logger::stream(::logger::level level, bool add_level_prefix) noexcept
 {
-	return ::logger::record_object{*this, level};
+	return {*this, level, add_level_prefix};
 }
 
 
 void
-logger::logger::log_raw(::logger::level level, const std::string &data) noexcept
+logger::logger::log_raw(::logger::level /* level */, const std::string &data) noexcept
 {
-	const auto &level_str = ::logger::level_to_str(level);
-	
 	try {
-		if (this->colorize_output_)
-			this->log_stream_ << "\033[32m";
-		
-		this->log_stream_ << level_str;
-		
-		if (this->colorize_output_)
-			this->log_stream_ << "\033[0m";
-		
-		this->log_stream_ << ' ' << data << std::endl;
+		this->log_stream_ << data << std::endl;
+	} catch (...) {}
+}
+
+
+void
+logger::logger::flush() noexcept
+{
+	try {
+		this->log_stream_.flush();
 	} catch (...) {}
 }

@@ -3,7 +3,9 @@
 #ifndef LOGGER_LEVEL_H
 #define LOGGER_LEVEL_H
 
+#include <ostream>
 #include <string>
+#include <utility>
 
 
 namespace logger {
@@ -27,7 +29,9 @@ enum class level
 };
 
 
-const std::string & level_to_str(level level_) noexcept;
+const std::pair<std::string, std::string> & level_data(level level) noexcept;
+
+std::ostream & print_level_str(std::ostream &stream, level level, bool colorize_output) noexcept;
 
 
 };	// logger

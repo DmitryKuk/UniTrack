@@ -6,7 +6,9 @@
 #include <iostream>
 
 #include <logger/level.h>
-#include <logger/record_object.h>
+#include <logger/stream.h>
+#include <logger/enable_logger_impl.h>
+#include <logger/enable_logger_ref_impl.h>
 
 
 namespace logger {
@@ -19,7 +21,7 @@ public:
 	~logger();
 	
 	
-	// Non-copy/-move constructable/assignable. Use ptrs.
+	// Non-copy/-move constructible/assignable. Use ptrs.
 	logger(const logger &other) = delete;
 	logger(logger &&other) = delete;
 	
@@ -27,9 +29,14 @@ public:
 	logger & operator=(logger &&other) = delete;
 	
 	
-	record_object stream(level level_) noexcept;
+	inline bool colorize_output() const noexcept;
+	
+	
+	stream<logger> stream(level level, bool add_level_prefix = true) noexcept;
 	
 	void log_raw(level level_, const std::string &data) noexcept;
+	
+	void flush() noexcept;
 private:
 	std::ostream &log_stream_;
 	
@@ -37,30 +44,13 @@ private:
 };	// class logger
 
 
-class enable_logger
-{
-public:
-	enable_logger(class logger &logger) noexcept:
-		logger_ptr_(&logger)
-	{}
-	
-	enable_logger(const enable_logger &other) = default;
-	enable_logger(enable_logger &&other) = default;
-	
-	enable_logger & operator=(const enable_logger &other) = default;
-	enable_logger & operator=(enable_logger &&other) = default;
-	
-	
-	inline class logger & logger() const noexcept
-	{
-		return *this->logger_ptr_;
-	}
-private:
-	class logger *logger_ptr_;
-};	// class enable_logger
+typedef ::logger::enable_logger_impl<logger> enable_logger;
+typedef ::logger::enable_logger_ref_impl<logger> enable_logger_ref;
 
 
 };	// namespace logger
 
+
+#include <logger/logger.hpp>
 
 #endif	// LOGGER_LOGGER_H

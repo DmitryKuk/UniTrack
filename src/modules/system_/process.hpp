@@ -29,7 +29,7 @@ system_::process::process(Fn &&fn, Args &&... args)
 	try {
 		status = std::bind<int>(std::move(fn), std::move(args)...)();
 	} catch (...) {
-		status = 1;
+		std::abort();
 	}
 	
 	std::exit(status);

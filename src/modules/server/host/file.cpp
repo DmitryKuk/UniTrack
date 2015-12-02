@@ -25,8 +25,8 @@ server::host::file_only_parameters::file_only_parameters(const nlohmann::json &c
 		} else if (mode == "all") {
 			this->mode = file_parameters::allow_match_mode::all;
 		} else {
-			throw server::host::incorrect_config{"Incorrect allow_match_mode: \"" + mode
-												 + "\", correct values are: \"any\", \"all\""};
+			throw ::server::host::incorrect_config{"Incorrect allow_match_mode: \"" + mode
+												   + "\", correct values are: \"any\", \"all\""};
 		}
 	}
 	

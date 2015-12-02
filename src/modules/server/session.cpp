@@ -26,8 +26,6 @@ server::session::run(worker &worker, ::server::socket &&socket)
 
 
 server::session::session(worker &worker, ::server::socket &&socket):
-	logger::enable_logger{worker.logger()},
-	
 	worker_{worker},
 	
 	socket_{std::move(socket)},
@@ -35,7 +33,7 @@ server::session::session(worker &worker, ::server::socket &&socket):
 	client_address_{this->socket_.remote_endpoint().address()},
 	server_port_{this->socket_.local_endpoint().port()}
 {
-	this->logger().stream(logger::level::info)
+	this->worker_.logger().stream(logger::level::info)
 		<< "Client connected: " << this->client_address() << '.';
 }
 
@@ -54,7 +52,7 @@ server::session::~session()
 void
 server::session::handle_error(const char *what, const ::server::protocol::http::status &status)
 {
-	this->logger().stream(logger::level::error)
+	this->worker_.logger().stream(logger::level::error)
 		<< "Client: " << this->request_.client_address << ": " << what << " => " << status.code() << '.';
 	
 	this->send_phony(status);
@@ -90,7 +88,7 @@ server::session::process_request() noexcept
 	const auto log_request =
 		[&]()
 		{
-			auto stream = this->logger().stream(logger::level::info);
+			auto stream = this->worker_.logger().stream(logger::level::info);
 			stream
 				<< "Client: " << this->request_.client_address
 				<< ": HTTP/" << ::server::protocol::http::version_to_str(this->request_.version)
@@ -118,14 +116,14 @@ server::session::process_request() noexcept
 			if (port != this->server_port())
 				throw ::server::protocol::http::incorrect_port{std::to_string(port)};
 		} catch (const ::server::protocol::http::incorrect_port &e) {
-			this->logger().stream(logger::level::sec_warning)
+			this->worker_.logger().stream(logger::level::sec_warning)
 				<< "Client: " << this->request_.client_address << ": " << e.what() << '.';
 			throw;
 		}
 		
 		
 		// NOTE: BEFORE get response and add it to the queue
-		auto host_ptr = this->worker_.host_manager().host(host, port);
+		auto host_ptr = this->worker_.host_manager().host(this->worker_, host, port);
 		this->send_response(host_ptr->response(this->worker_, this->request_));
 		
 		
@@ -191,7 +189,7 @@ server::session::add_request_handler(std::shared_ptr<::server::session> this_)
 void
 server::session::request_handler(std::shared_ptr<::server::session> this_,
 								 const boost::system::error_code &err,
-								 size_t bytes_transferred)
+								 size_t /* bytes_transferred */)
 {
 	// Normal
 	if (!err) {
@@ -201,10 +199,10 @@ server::session::request_handler(std::shared_ptr<::server::session> this_,
 	
 	// Error
 	if (err == boost::asio::error::misc_errors::eof) {
-		this_->logger().stream(logger::level::info)
+		this_->worker_.logger().stream(logger::level::info)
 			<< "Client: " << this_->client_address() << ": Client disconnected.";
 	} else {
-		this_->logger().stream(logger::level::error)
+		this_->worker_.logger().stream(logger::level::error)
 			<< "Client: " << this_->client_address() << ": " << err.message() << '.';
 	}
 }
@@ -230,17 +228,17 @@ server::session::add_response_handler(std::shared_ptr<::server::session> this_, 
 void
 server::session::response_handler(std::shared_ptr<::server::session> this_,
 								  const boost::system::error_code &err,
-								  size_t bytes_transferred)
+								  size_t /* bytes_transferred */)
 {
 	this_->responses_queue_.pop();	// Deleting current (sent) response
 	this_->add_response_handler(this_, false);
 	
 	
 	if (err) {
-		this_->logger().stream(logger::level::error)
+		this_->worker_.logger().stream(logger::level::error)
 			<< "Client: " << this_->client_address() << ": Error sending response: " << err.message() << '.';
 	} else {
-		this_->logger().stream(logger::level::info)
+		this_->worker_.logger().stream(logger::level::info)
 			<< "Client: " << this_->client_address() << ": Response sent.";
 	}
 }

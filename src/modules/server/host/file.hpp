@@ -2,27 +2,23 @@
 
 #include <boost/filesystem.hpp>
 
+#include <logger/async_logger.h>
+#include <server/worker.h>
 #include <server/host/exceptions.h>
 
 
 // class server::host::file<HostType>
 template<class HostType>
-server::host::file<HostType>::file(logger::logger &logger,
-								   const ::server::host::file_parameters &parameters,
+server::host::file<HostType>::file(const ::server::host::file_parameters &parameters,
 								   HostType &&handler):
-	::server::host::base{logger, parameters},
-	
 	parameters_{parameters},
 	handler_{std::move(handler)}
 {}
 
 
 template<class HostType>
-server::host::file<HostType>::file(logger::logger &logger,
-								   const ::server::host::file_parameters &parameters,
+server::host::file<HostType>::file(const ::server::host::file_parameters &parameters,
 								   const HostType &handler):
-	::server::host::base{logger, parameters},
-	
 	parameters_{parameters},
 	handler_{handler}
 {}
@@ -32,7 +28,7 @@ template<class HostType>
 // virtual
 std::unique_ptr<::server::protocol::http::response>
 server::host::file<HostType>::response(const worker &worker,
-									   const ::server::protocol::http::request &request)
+									   const ::server::protocol::http::request &request) const
 {
 	using ::server::protocol::http::status;
 	
@@ -159,9 +155,9 @@ std::unique_ptr<::server::protocol::http::response>
 server::host::file<HostType>::handle_error(const worker &worker,
 										   const ::server::protocol::http::request &request,
 										   const char *what,
-										   const ::server::protocol::http::status &status)
+										   const ::server::protocol::http::status &status) const
 {
-	this->logger().stream(logger::level::error)
+	worker.logger().stream(logger::level::error)
 		<< "File host: \"" << this->name()
 		<< "\" (client: " << request.client_address
 		<< "): " << what
@@ -177,7 +173,7 @@ std::unique_ptr<::server::protocol::http::response>
 server::host::file<HostType>::handle_error(const worker &worker,
 										   const ::server::protocol::http::request &request,
 										   const std::exception &e,
-										   const ::server::protocol::http::status &status)
+										   const ::server::protocol::http::status &status) const
 {
 	return this->handle_error(worker, request, e.what(), status);
 }

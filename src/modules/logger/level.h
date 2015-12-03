@@ -3,37 +3,47 @@
 #ifndef LOGGER_LEVEL_H
 #define LOGGER_LEVEL_H
 
-#include <ostream>
-#include <string>
-#include <utility>
+#include <syslog.h>
 
 
 namespace logger {
+namespace level {
 
 
-enum class level
+// Regular levels
+template<int Level>
+struct regular
 {
-	// Base levels
-	info			= 0,
-	warning			= 1,
-	error			= 2,
-	critical		= 3,
-	other			= 4,
-	
-	// Security levels
-	sec_info		= 5,
-	sec_warning		= 6,
-	sec_error		= 7,
-	sec_critical	= 8,
-	sec_other		= 9
-};
+	enum { value = Level };
+};	// struct regular
 
 
-const std::pair<std::string, std::string> & level_data(level level) noexcept;
+constexpr regular<LOG_DEBUG  > debug		{};
+constexpr regular<LOG_INFO   > info			{};
+constexpr regular<LOG_WARNING> warning		{};
+constexpr regular<LOG_ERR    > error		{};
+constexpr regular<LOG_CRIT   > critical		{};
+constexpr regular<LOG_NOTICE > other		{};
 
-std::ostream & print_level_str(std::ostream &stream, level level, bool colorize_output) noexcept;
 
 
+// Security levels
+template<int Level>
+struct security
+{
+	enum { value = Level };
+};	// struct security
+
+
+constexpr security<LOG_DEBUG  > sec_debug	{};
+constexpr security<LOG_INFO   > sec_info	{};
+constexpr security<LOG_WARNING> sec_warning	{};
+constexpr security<LOG_ERR    > sec_error	{};
+constexpr security<LOG_CRIT   > sec_critical{};
+constexpr security<LOG_NOTICE > sec_other	{};
+
+
+};	// namespace level
 };	// logger
 
 

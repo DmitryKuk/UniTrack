@@ -15,7 +15,8 @@
 #include <project_config.h>
 
 
-class application
+class application:
+	protected logger::enable_logger
 {
 public:
 	application(int argc, char **argv) noexcept;
@@ -34,7 +35,6 @@ public:
 	// Run application in interactive mode (reading std::cid and waiting until it will be closed)
 	int run_interactive() noexcept;
 protected:
-	inline logger::logger & logger();
 	inline logic::global_instance & logic();
 private:
 	void stop();

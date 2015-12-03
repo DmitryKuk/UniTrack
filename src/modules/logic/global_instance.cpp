@@ -29,10 +29,10 @@ logic::global_instance::parameters::parameters(const nlohmann::json &config)
 
 
 // class logic::global_instance
-logic::global_instance::global_instance(logger::async_logger &logger,
+logic::global_instance::global_instance(logger::logger &logger,
 										const logic::global_instance::parameters &parameters,
 										const mongo::client::Options &options):
-	logger::enable_async_logger_ref{logger},
+	logger::enable_logger_ref{logger},
 	
 	mongo_client_global_instance_{options},
 	
@@ -64,7 +64,7 @@ logic::page_model
 logic::global_instance::generate(const server::protocol::http::request &request,
 								 const boost::filesystem::path &path) const
 {
-	auto stream = this->logger().stream(logger::level::info);
+	auto &&stream = this->logger().stream(logger::level::info);
 	stream << "Here! " << request.path;
 	
 	

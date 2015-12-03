@@ -13,7 +13,7 @@
 #include <mongo/client/options.h>
 #include <mongo/client/dbclient.h>
 
-#include <logger/async_logger.h>
+#include <logger/logger.h>
 #include <server/types.h>
 #include <server/protocol/http/request.h>
 #include <logic/page_model.h>
@@ -23,7 +23,7 @@ namespace logic {
 
 
 class global_instance:
-	protected logger::enable_async_logger_ref
+	protected logger::enable_logger_ref
 {
 public:
 	struct mongo_parameters
@@ -59,7 +59,7 @@ public:
 	
 	
 	
-	explicit global_instance(logger::async_logger &logger,
+	explicit global_instance(logger::logger &logger,
 							 const parameters &parameters,
 							 const mongo::client::Options &options = mongo::client::Options());
 	

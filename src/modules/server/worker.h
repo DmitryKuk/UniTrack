@@ -10,7 +10,7 @@
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/signal_set.hpp>
 
-#include <logger/async_logger.h>
+#include <logger/logger.h>
 #include <system_/process.h>
 #include <server/types.h>
 
@@ -31,7 +31,8 @@ class manager;
 };	// namespace host
 
 
-class worker
+class worker:
+	public logger::enable_logger
 {
 public:
 	// Creates and runs new worker in separate process
@@ -41,14 +42,9 @@ public:
 	
 	// NOTE: Host manager generator should return std::unique_ptr<server::host::manager> to correct
 	// and ready-to-response host manager. If it is impossible, please, throw!
-	template<class HMGen, class... HMGenArgs>
+	template<class HMGen>
 	static system_::process run(server &server,
-								const logger::async_logger::parameters &logger_parameters,
-								HMGen &&hm_gen, HMGenArgs &&... hm_gen_args);	// Host manager generator with args
-	
-	
-	// Returns logger for current process
-	inline logger::async_logger & logger() const noexcept;
+								HMGen &&hm_gen);	// Host manager generator
 	
 	
 	// Returns server name (random!)
@@ -66,10 +62,9 @@ private:
 	// Constructor
 	// NOTE: Host manager generator should return std::unique_ptr<server::host::manager> to correct
 	// and ready-to-response host manager. If it is impossible, please, throw!
-	template<class HMGen, class... HMGenArgs>
+	template<class HMGen>
 	worker(server &server,
-		   const logger::async_logger::parameters &logger_parameters,
-		   HMGen &&hm_gen, HMGenArgs &&... hm_gen_args);	// Host manager generator with args
+		   HMGen &&hm_gen);	// Host manager generator
 	
 	
 	// Returns exit status for current process
@@ -96,8 +91,6 @@ private:
 	server &server_;
 	
 	int status_ = 0;	// Execution status (returned by run())
-	
-	mutable logger::async_logger logger_;
 	
 	std::unique_ptr<::server::host::manager> host_manager_ptr_;
 	

@@ -2,50 +2,39 @@
 
 #include <logger/logger.h>
 
+#include <syslog.h>
 
-logger::logger::logger(std::ostream &log_stream, bool colorize_output) noexcept:
-	log_stream_{log_stream},
-	
-	colorize_output_{colorize_output}
+
+logger::logger::logger(const std::string &log_name):
+	log_name_{log_name}
 {
-	try {
-		this->stream(level::info)
-			<< "Log started...";
-	} catch (...) {}
+	this->start_log();
+}
+
+
+logger::logger::logger(std::string &&log_name) noexcept:
+	log_name_{std::move(log_name)}
+{
+	this->start_log();
 }
 
 
 logger::logger::~logger()
 {
-	try {
-		this->stream(level::info)
-			<< "End of log.";
-	} catch (...) {}
+	using namespace std::literals;
+	this->log_raw(level::info, "End of log."s);
 	
-	this->flush();
+	::closelog();
 }
 
 
-logger::stream<::logger::logger>
-logger::logger::stream(::logger::level level, bool add_level_prefix) noexcept
-{
-	return {*this, level, add_level_prefix};
-}
-
-
+// private
 void
-logger::logger::log_raw(::logger::level /* level */, const std::string &data) noexcept
+logger::logger::start_log() noexcept
 {
-	try {
-		this->log_stream_ << data << std::endl;
-	} catch (...) {}
-}
-
-
-void
-logger::logger::flush() noexcept
-{
-	try {
-		this->log_stream_.flush();
-	} catch (...) {}
+	::openlog(this->log_name_.c_str(), LOG_PID | LOG_CONS | LOG_PERROR, LOG_USER);
+	// ::setlogmask(LOG_UPTO(LOG_WARNING));
+	
+	using namespace std::literals;
+	this->log_raw(level::info, "Log started..."s);
 }

@@ -3,21 +3,23 @@
 #ifndef LOGGER_LOGGER_H
 #define LOGGER_LOGGER_H
 
-#include <iostream>
+#include <sstream>
 
 #include <logger/level.h>
-#include <logger/stream.h>
-#include <logger/enable_logger_impl.h>
-#include <logger/enable_logger_ref_impl.h>
 
 
 namespace logger {
 
 
+template<class Level>
+class stream;
+
+
 class logger
 {
 public:
-	logger(std::ostream &log_stream, bool colorize_output = false) noexcept;
+	logger(const std::string &log_name);
+	logger(std::string &&log_name) noexcept;
 	~logger();
 	
 	
@@ -29,23 +31,92 @@ public:
 	logger & operator=(logger &&other) = delete;
 	
 	
-	inline bool colorize_output() const noexcept;
+	// Returns current log name
+	inline const std::string & log_name() const noexcept;
 	
 	
-	stream<logger> stream(level level, bool add_level_prefix = true) noexcept;
+	template<class Level>
+	inline stream<Level> stream(const Level &level) noexcept;
 	
-	void log_raw(level level_, const std::string &data) noexcept;
 	
-	void flush() noexcept;
+	template<int Level>
+	inline void log_raw(const level::regular<Level> &, const std::string &data) noexcept;
+	
+	template<int Level>
+	inline void log_raw(const level::security<Level> &, const std::string &data) noexcept;
 private:
-	std::ostream &log_stream_;
+	void start_log() noexcept;
 	
-	bool colorize_output_;
+	
+	// Data
+	std::string log_name_;
 };	// class logger
 
 
-typedef ::logger::enable_logger_impl<logger> enable_logger;
-typedef ::logger::enable_logger_ref_impl<logger> enable_logger_ref;
+
+class enable_logger
+{
+public:
+	inline enable_logger(const std::string &log_name);
+	inline enable_logger(std::string &&log_name) noexcept;
+	
+	enable_logger(const enable_logger &other) = delete;
+	enable_logger(enable_logger &&other) = delete;
+	
+	enable_logger & operator=(const enable_logger &other) = delete;
+	enable_logger & operator=(enable_logger &&other) = delete;
+	
+	
+	// Returns reference to logger object
+	inline class logger & logger() const noexcept;
+private:
+	// Data
+	mutable class logger logger_;
+};	// class enable_logger
+
+
+
+class enable_logger_ref
+{
+public:
+	inline enable_logger_ref(class logger &logger) noexcept;
+	
+	
+	enable_logger_ref(const enable_logger_ref &other) = default;
+	enable_logger_ref(enable_logger_ref &&other) = default;
+	
+	enable_logger_ref & operator=(const enable_logger_ref &other) = default;
+	enable_logger_ref & operator=(enable_logger_ref &&other) = default;
+	
+	
+	// Returns reference to logger object
+	inline class logger & logger() const noexcept;
+private:
+	// Data
+	class logger *logger_ptr_;
+};	// class enable_logger_ref
+
+
+
+template<class Level>
+class stream:
+	public std::ostringstream,
+	protected enable_logger_ref
+{
+public:
+	inline stream(class logger &logger, const Level &level) noexcept;
+	~stream();
+	
+	stream(stream &&other) = default;
+	stream & operator=(stream &&other) = default;
+	
+	// Non-copy constructible/assignable
+	stream(const stream &other) = delete;
+	stream & operator=(const stream &other) = delete;
+private:
+	// Data
+	const Level *level_ptr_;
+};	// class stream
 
 
 };	// namespace logger

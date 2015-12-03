@@ -3,11 +3,10 @@
 #include <server/worker.h>
 
 
-template<class HMGen, class... HMGenArgs>
+template<class HMGen>
 server::server::server(logger::logger &logger,
 					   const ::server::server::parameters &parameters,
-					   const logger::async_logger::parameters &async_logger_parameters,
-					   HMGen &&hm_gen, HMGenArgs &&... hm_gen_args):
+					   HMGen &&hm_gen):
 	logger::enable_logger_ref{logger},
 	
 	parameters_{parameters}
@@ -20,14 +19,7 @@ server::server::server(logger::logger &logger,
 			this->logger().stream(logger::level::info)
 				<< "Creating worker...";
 			
-			this->worker_processes_.emplace_back(
-				::server::worker::run(
-					*this,
-					async_logger_parameters,
-					std::forward<HMGen>(hm_gen),
-					std::forward<HMGenArgs>(hm_gen_args)...
-				)
-			);
+			this->worker_processes_.emplace_back(::server::worker::run(*this, std::forward<HMGen>(hm_gen)));
 			
 			this->logger().stream(logger::level::info)
 				<< "Worker created: " << this->worker_processes_.back().get_id() << "...";

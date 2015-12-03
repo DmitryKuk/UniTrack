@@ -12,7 +12,6 @@
 #include <json.hpp>
 
 #include <logger/logger.h>
-#include <logger/async_logger.h>
 #include <system_/process.h>
 #include <server/types.h>
 #include <server/host/manager.h>
@@ -25,7 +24,7 @@ class worker;
 
 
 class server:
-	protected logger::enable_logger_ref
+	public logger::enable_logger_ref
 {
 public:
 	struct parameters
@@ -46,11 +45,10 @@ public:
 	
 	
 	
-	template<class HMGen, class... HMGenArgs>
+	template<class HMGen>
 	server(logger::logger &logger,
 		   const parameters &parameters,
-		   const logger::async_logger::parameters &async_logger_parameters,
-		   HMGen &&hm_gen, HMGenArgs &&... hm_gen_args);	// Host manager generator with args
+		   HMGen &&hm_gen);	// Host manager generator
 	
 	
 	// Non-copy/-move constructible/assignable. Use ptrs.

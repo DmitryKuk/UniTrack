@@ -11,16 +11,8 @@ application::status() const noexcept
 
 
 inline
-logger::logger &
-application::logger()
-{
-	return *(this->logger_ptr_);
-}
-
-
-inline
 logic::global_instance &
 application::logic()
 {
-	return *(this->logic_ptr_);
+	return *this->logic_ptr_;
 }

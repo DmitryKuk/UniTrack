@@ -88,7 +88,7 @@ server::session::process_request() noexcept
 	const auto log_request =
 		[&]()
 		{
-			auto stream = this->worker_.logger().stream(logger::level::info);
+			auto &&stream = this->worker_.logger().stream(logger::level::info);
 			stream
 				<< "Client: " << this->request_.client_address
 				<< ": HTTP/" << ::server::protocol::http::version_to_str(this->request_.version)

@@ -2,7 +2,7 @@
 
 #include <boost/filesystem.hpp>
 
-#include <logger/async_logger.h>
+#include <logger/logger.h>
 #include <server/worker.h>
 #include <server/host/exceptions.h>
 

@@ -1,41 +1,41 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
+#include <logger/logger.h>
 #include <server/worker.h>
 
 
 template<class HMGen>
-server::server::server(logger::logger &logger,
-					   const ::server::server::parameters &parameters,
+server::server::server(const ::server::server::parameters &parameters,
 					   HMGen &&hm_gen):
-	logger::enable_logger_ref{logger},
-	
 	parameters_{parameters}
 {
+	using namespace std::literals;
+	
+	
 	try {
 		// Workers creation
 		this->worker_processes_.reserve(this->parameters_.workers);
 		
+		auto workers_message = "Server: Workers created ("s + std::to_string(this->parameters_.workers) + "):"s;
+		
 		for (unsigned int i = 0; i < this->parameters_.workers; ++i) {
-			this->logger().stream(logger::level::info)
-				<< "Creating worker...";
-			
 			this->worker_processes_.emplace_back(::server::worker::run(*this, std::forward<HMGen>(hm_gen)));
 			
-			this->logger().stream(logger::level::info)
-				<< "Worker created: " << this->worker_processes_.back().get_id() << "...";
+			workers_message += ' ';
+			workers_message += std::to_string(this->worker_processes_.back().get_id());
 		}
 		
-		this->logger().stream(logger::level::info)
-			<< "Server: Workers created: " << this->parameters_.workers << '.';
+		workers_message += '.';
+		logger::log(logger::level::info, workers_message);
 	} catch (const std::exception &e) {
-		this->logger().stream(logger::level::critical)
-			<< "Server: Caught exception: " << e.what() << '.';
-		
-		this->logger().stream(logger::level::critical)
-			<< "Server: NOT started.";
+		logger::log(logger::level::critical, "Server: Caught exception: "s + e.what() + '.');
 		
 		// Stopping running workers
 		this->stop();
+		
+		logger::log(logger::level::critical, "Server: NOT started."s);
+		
+		throw;
 	}
 }
 

@@ -2,7 +2,9 @@
 
 #include <templatizer/chunk_exceptions.h>
 
+using namespace std::literals;
 
-templatizer::chunk_error::chunk_error(const std::string &what_arg):
-	std::logic_error(what_arg)
+
+templatizer::chunk_error::chunk_error(const std::string &chunk_cmd, const std::string &what_arg):
+	templatizer::error{"Chunk \""s + chunk_cmd + "\": "s + what_arg}
 {}

@@ -4,8 +4,10 @@
 
 #include <templatizer/module.h>
 
+using namespace std::literals;
 
-const std::string templatizer::var_chunk::cmd = "var";
+
+const std::string templatizer::var_chunk::cmd = "var"s;
 
 
 namespace {	// Module

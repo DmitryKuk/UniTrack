@@ -31,18 +31,21 @@ server::host::manager::host(const ::server::worker &worker,
 							const std::string &name,
 							::server::port_type port)
 {
+	using namespace std::literals;
+	
+	
 	auto it = this->hosts_.find(&name);
 	if (it == this->hosts_.end()) {
-		worker.logger().stream(logger::level::sec_info)
-			<< "Host manager: Requested access to nonexistent host: \"" << name << "\", port: " << port << '.';
+		logger::stream(logger::level::sec_info)
+			<< "Host manager: Requested access to nonexistent host: \""s << name << "\", port: "s << port << '.';
 		
 		throw ::server::host::host_not_found{name};
 	}
 	
 	auto &host_ptr = it->second;
 	if (!host_ptr->port_allowed(port)) {
-		worker.logger().stream(logger::level::sec_warning)
-			<< "Host manager: Requested access to non-allowed port: host: \"" << name << "\", port: " << port << '.';
+		logger::stream(logger::level::sec_warning)
+			<< "Host manager: Requested access to non-allowed port: host: \""s << name << "\", port: "s << port << '.';
 		
 		throw ::server::host::port_not_allowed{name, port};
 	}

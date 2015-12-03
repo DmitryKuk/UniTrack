@@ -10,7 +10,6 @@
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/signal_set.hpp>
 
-#include <logger/logger.h>
 #include <system_/process.h>
 #include <server/types.h>
 
@@ -31,8 +30,7 @@ class manager;
 };	// namespace host
 
 
-class worker:
-	public logger::enable_logger
+class worker
 {
 public:
 	// Creates and runs new worker in separate process

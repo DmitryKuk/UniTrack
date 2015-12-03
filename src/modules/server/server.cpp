@@ -5,17 +5,19 @@
 #include <functional>
 #include <system_error>
 
+#include <logger/logger.h>
 #include <base/json_utils.h>
-
 #include <server/worker.h>
+
+using namespace std::literals;
 
 
 // struct server::server::parameters
 server::server::parameters::parameters(const nlohmann::json &config)
 {
-	base::json_utils::extract(config, this->ports,			"ports");
-	base::json_utils::extract(config, this->workers,		"workers");
-	base::json_utils::extract(config, this->server_names,	"server_names");
+	base::json_utils::extract(config, this->ports,			"ports"s);
+	base::json_utils::extract(config, this->workers,		"workers"s);
+	base::json_utils::extract(config, this->server_names,	"server_names"s);
 }
 
 
@@ -23,20 +25,17 @@ server::server::parameters::parameters(const nlohmann::json &config)
 void
 server::server::stop() noexcept
 {
-	this->logger().stream(logger::level::info)
-		<< "Server: Stopping...";
+	logger::log(logger::level::info, "Server: Stopping..."s);
 	
 	// Stopping running workers
 	for (auto &process: this->worker_processes_) {
 		try {
 			process.kill();
 		} catch (const std::exception &e) {
-			this->logger().stream(logger::level::error)
-				<< "Server: Worker stopping error: " << e.what();
+			logger::log(logger::level::error, "Server: Worker stopping error: "s + e.what());
 		}
 	}
 	this->worker_processes_.clear();
 	
-	this->logger().stream(logger::level::info)
-		<< "Server: Stopped.";
+	logger::log(logger::level::info, "Server: Stopped."s);
 }

@@ -4,8 +4,10 @@
 
 #include <templatizer/module.h>
 
+using namespace std::literals;
 
-const std::string templatizer::debug_chunk::cmd = "debug";
+
+const std::string templatizer::debug_chunk::cmd = "debug"s;
 
 
 namespace {	// Module
@@ -35,11 +37,11 @@ templatizer::debug_chunk::generate(base::send_buffers_insert_functor buffers_ins
 	
 	size_t len = 0;
 	
-	len += buffers_ins_fn("DEBUG (length = ");
+	len += buffers_ins_fn("DEBUG (length = "s);
 	len += buffers_ins_fn(cache(std::to_string(value.size())));
-	len += buffers_ins_fn("): \"");
+	len += buffers_ins_fn("): \""s);
 	len += buffers_ins_fn(value);
-	len += buffers_ins_fn("\"");
+	len += buffers_ins_fn("\""s);
 	
 	return len;
 }

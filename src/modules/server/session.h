@@ -82,7 +82,7 @@ private:
 	
 	
 	// Response
-	static void add_response_handler(std::shared_ptr<session> this_, bool sending = true);
+	static void add_response_handler(std::shared_ptr<session> this_);
 	
 	static void response_handler(std::shared_ptr<session> this_,
 								 const boost::system::error_code &err,
@@ -106,6 +106,7 @@ private:
 	// Responses for sending to client
 	// NOTE: responses_queue_.front() points to response, that is sending now
 	std::queue<std::unique_ptr<::server::protocol::http::response>> responses_queue_;
+	bool sending_;
 };	// class session
 
 

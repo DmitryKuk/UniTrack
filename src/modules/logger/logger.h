@@ -11,112 +11,65 @@
 namespace logger {
 
 
-template<class Level>
-class stream;
-
-
-class logger
+class global_instance
 {
 public:
-	logger(const std::string &log_name);
-	logger(std::string &&log_name) noexcept;
-	~logger();
+	global_instance(const std::string &log_name);
+	global_instance(std::string &&log_name) noexcept;
+	~global_instance();
 	
 	
 	// Non-copy/-move constructible/assignable. Use ptrs.
-	logger(const logger &other) = delete;
-	logger(logger &&other) = delete;
+	global_instance(const global_instance &other) = delete;
+	global_instance(global_instance &&other) = delete;
 	
-	logger & operator=(const logger &other) = delete;
-	logger & operator=(logger &&other) = delete;
+	global_instance & operator=(const global_instance &other) = delete;
+	global_instance & operator=(global_instance &&other) = delete;
 	
 	
 	// Returns current log name
 	inline const std::string & log_name() const noexcept;
-	
-	
-	template<class Level>
-	inline stream<Level> stream(const Level &level) noexcept;
-	
-	
-	template<int Level>
-	inline void log_raw(const level::regular<Level> &, const std::string &data) noexcept;
-	
-	template<int Level>
-	inline void log_raw(const level::security<Level> &, const std::string &data) noexcept;
 private:
 	void start_log() noexcept;
 	
 	
 	// Data
 	std::string log_name_;
-};	// class logger
-
-
-
-class enable_logger
-{
-public:
-	inline enable_logger(const std::string &log_name);
-	inline enable_logger(std::string &&log_name) noexcept;
-	
-	enable_logger(const enable_logger &other) = delete;
-	enable_logger(enable_logger &&other) = delete;
-	
-	enable_logger & operator=(const enable_logger &other) = delete;
-	enable_logger & operator=(enable_logger &&other) = delete;
-	
-	
-	// Returns reference to logger object
-	inline class logger & logger() const noexcept;
-private:
-	// Data
-	mutable class logger logger_;
-};	// class enable_logger
-
-
-
-class enable_logger_ref
-{
-public:
-	inline enable_logger_ref(class logger &logger) noexcept;
-	
-	
-	enable_logger_ref(const enable_logger_ref &other) = default;
-	enable_logger_ref(enable_logger_ref &&other) = default;
-	
-	enable_logger_ref & operator=(const enable_logger_ref &other) = default;
-	enable_logger_ref & operator=(enable_logger_ref &&other) = default;
-	
-	
-	// Returns reference to logger object
-	inline class logger & logger() const noexcept;
-private:
-	// Data
-	class logger *logger_ptr_;
-};	// class enable_logger_ref
+};	// class global_instance
 
 
 
 template<class Level>
-class stream:
-	public std::ostringstream,
-	protected enable_logger_ref
+class log_stream:
+	public std::ostringstream
 {
 public:
-	inline stream(class logger &logger, const Level &level) noexcept;
-	~stream();
+	inline log_stream(const Level &level) noexcept;
+	~log_stream();
 	
-	stream(stream &&other) = default;
-	stream & operator=(stream &&other) = default;
+	log_stream(log_stream &&other) = default;
+	log_stream & operator=(log_stream &&other) = default;
 	
 	// Non-copy constructible/assignable
-	stream(const stream &other) = delete;
-	stream & operator=(const stream &other) = delete;
+	log_stream(const log_stream &other) = delete;
+	log_stream & operator=(const log_stream &other) = delete;
 private:
 	// Data
 	const Level *level_ptr_;
-};	// class stream
+};	// class log_stream
+
+
+
+// Global functions
+template<class Level>
+inline log_stream<Level> stream(const Level &level) noexcept;
+
+
+template<int Level>
+inline void log(const level::regular<Level> &, const std::string &data) noexcept;
+
+template<int Level>
+inline void log(const level::security<Level> &, const std::string &data) noexcept;
 
 
 };	// namespace logger

@@ -4,7 +4,7 @@
 #define SERVER_PROTOCOL_EXCEPTIONS_H
 
 #include <string>
-#include <exception>
+#include <stdexcept>
 
 
 namespace server {

@@ -4,9 +4,11 @@
 
 #include <functional>
 
-#include <logger/level.h>
+#include <logger/logger.h>
 #include <server/server.h>
 #include <server/session.h>
+
+using namespace std::literals;
 
 
 #define SIGNAL_REACTION(signal, reaction)	\
@@ -53,18 +55,18 @@ server::worker::add_client(::server::socket &&socket) noexcept
 	auto client_address = socket.remote_endpoint().address();
 	
 	
-	this->logger().stream(logger::level::info)
-		<< "Client accepted: " << client_address << '.';
+	logger::stream(logger::level::info)
+		<< "Client accepted: "s << client_address << '.';
 	
 	
 	try {
 		::server::session::run(*this, std::move(socket));
 	} catch (const std::exception &e) {
-		this->logger().stream(logger::level::error)
-			<< "Can\'t process client: " << client_address << ": " << e.what() << '.';
+		logger::stream(logger::level::error)
+			<< "Can\'t process client: "s << client_address << ": "s << e.what() << '.';
 	} catch (...) {
-		this->logger().stream(logger::level::error)
-			<< "Can\'t process client: " << client_address << ": Unknown error.";
+		logger::stream(logger::level::error)
+			<< "Can\'t process client: "s << client_address << ": Unknown error."s;
 	}
 }
 
@@ -76,22 +78,20 @@ server::worker::run() noexcept
 {
 	this->status_ = 0;
 	
-	this->logger().stream(logger::level::info)
-		<< "Worker started.";
+	logger::log(logger::level::info, "Worker started."s);
 	
 	
 	try {
 		this->io_service_.run();
 	} catch (const std::exception &e) {
-		this->logger().stream(logger::level::error)
-			<< "Worker failed: " << e.what();
+		logger::stream(logger::level::error)
+			<< "Worker failed: "s << e.what();
 		
 		this->status_ = 1;
 	}
 	
 	
-	this->logger().stream(logger::level::info)
-		<< "Worker stopped.";
+	logger::log(logger::level::info, "Worker stopped."s);
 	
 	
 	return this->status_;
@@ -103,8 +103,8 @@ void
 server::worker::handle_signal(const boost::system::error_code &err, int signal) noexcept
 {
 	if (err) {
-		this->logger().stream(logger::level::critical)
-			<< "Worker process signal handle error: " << err.message() << '.';
+		logger::stream(logger::level::critical)
+			<< "Worker process signal handle error: "s << err.message() << '.';
 		
 		this->status_ = 1;
 		this->io_service_.stop();
@@ -122,8 +122,8 @@ server::worker::handle_signal(const boost::system::error_code &err, int signal) 
 void
 server::worker::exit(int signal, const char *signal_str) noexcept
 {
-	this->logger().stream(logger::level::info)
-		<< "Worker: Recieved signal: " << signal_str << " (" << signal << "). Stopping...";
+	logger::stream(logger::level::info)
+		<< "Worker: Recieved signal: "s << signal_str << " ("s << signal << "). Stopping..."s;
 	
 	this->io_service_.stop();
 }
@@ -132,6 +132,6 @@ server::worker::exit(int signal, const char *signal_str) noexcept
 void
 server::worker::ignore(int signal, const char *signal_str) noexcept
 {
-	this->logger().stream(logger::level::info)
-		<< "Worker: Recieved signal: " << signal_str << " (" << signal << "). Ignore.";
+	logger::stream(logger::level::info)
+		<< "Worker: Recieved signal: "s << signal_str << " ("s << signal << "). Ignore."s;
 }

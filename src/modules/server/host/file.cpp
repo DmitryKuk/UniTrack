@@ -7,26 +7,28 @@
 #include <base/json_utils.h>
 #include <server/host/exceptions.h>
 
+using namespace std::literals;
+
 
 // struct server::host::file_only_parameters
 server::host::file_only_parameters::file_only_parameters(const nlohmann::json &config):
-	root{::base::json_utils::get<decltype(this->root)>(config, "root")}
+	root{::base::json_utils::get<decltype(this->root)>(config, "root"s)}
 {
 	if (!boost::filesystem::exists(this->root))
 		throw ::server::host::path_not_found{this->root.string()};
-	this->root = boost::filesystem::canonical(this->root, "/");
+	this->root = boost::filesystem::canonical(this->root, "/"s);
 	
 	
 	// Allow mode
 	{
-		const auto mode = ::base::json_utils::get<std::string>(config, "allow_match_mode");
-		if (mode == "any") {
+		const auto mode = ::base::json_utils::get<std::string>(config, "allow_match_mode"s);
+		if (mode == "any"s) {
 			this->mode = file_parameters::allow_match_mode::any;
-		} else if (mode == "all") {
+		} else if (mode == "all"s) {
 			this->mode = file_parameters::allow_match_mode::all;
 		} else {
-			throw ::server::host::incorrect_config{"Incorrect allow_match_mode: \"" + mode
-												   + "\", correct values are: \"any\", \"all\""};
+			throw ::server::host::incorrect_config{"Incorrect allow_match_mode: \""s + mode
+												   + "\", correct values are: \"any\", \"all\""s};
 		}
 	}
 	
@@ -43,11 +45,11 @@ server::host::file_only_parameters::file_only_parameters(const nlohmann::json &c
 		
 		
 		try {
-			fill_regexes(this->allow_regexes, ::base::json_utils::at(config, "allow_regexes"));
+			fill_regexes(this->allow_regexes, ::base::json_utils::at(config, "allow_regexes"s));
 		} catch (const std::out_of_range &) {}
 		
 		try {
-			fill_regexes(this->deny_regexes, ::base::json_utils::at(config, "deny_regexes"));
+			fill_regexes(this->deny_regexes, ::base::json_utils::at(config, "deny_regexes"s));
 		} catch (const std::out_of_range &) {}
 	}
 }

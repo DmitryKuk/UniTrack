@@ -8,8 +8,10 @@
 
 #include <templatizer/module.h>
 
+using namespace std::literals;
 
-const std::string templatizer::toupper_chunk::cmd = "toupper";
+
+const std::string templatizer::toupper_chunk::cmd = "toupper"s;
 
 
 namespace {	// Module

@@ -3,6 +3,7 @@
 #ifndef SERVER_HOST_MANAGER_H
 #define SERVER_HOST_MANAGER_H
 
+#include <string>
 #include <unordered_map>
 #include <memory>
 

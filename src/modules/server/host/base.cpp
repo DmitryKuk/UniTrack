@@ -9,11 +9,13 @@
 #include <server/host/exceptions.h>
 #include <server/worker.h>
 
+using namespace std::literals;
+
 
 // class ::server::host::base::parameters
 server::host::base::parameters::parameters(const nlohmann::json &config):
-	name{::base::json_utils::get<decltype(this->name)>(config, "name")},
-	ports{::base::json_utils::get<decltype(this->ports)>(config, "ports")}
+	name{::base::json_utils::get<decltype(this->name)>(config, "name"s)},
+	ports{::base::json_utils::get<decltype(this->ports)>(config, "ports"s)}
 {}
 
 

@@ -15,6 +15,8 @@
 #include <server/protocol/http/exceptions.h>
 #include <server/host/exceptions.h>
 
+using namespace std::literals;
+
 
 // static
 void
@@ -31,10 +33,12 @@ server::session::session(worker &worker, ::server::socket &&socket):
 	socket_{std::move(socket)},
 	
 	client_address_{this->socket_.remote_endpoint().address()},
-	server_port_{this->socket_.local_endpoint().port()}
+	server_port_{this->socket_.local_endpoint().port()},
+	
+	sending_{false}
 {
-	this->worker_.logger().stream(logger::level::info)
-		<< "Client connected: " << this->client_address() << '.';
+	logger::stream(logger::level::info)
+		<< "Server: Client: "s << this->client_address() << ": Connected."s;
 }
 
 
@@ -52,8 +56,9 @@ server::session::~session()
 void
 server::session::handle_error(const char *what, const ::server::protocol::http::status &status)
 {
-	this->worker_.logger().stream(logger::level::error)
-		<< "Client: " << this->request_.client_address << ": " << what << " => " << status.code() << '.';
+	logger::stream(logger::level::error)
+		<< "Server: Client: "s << this->request_.client_address << ": "s << what
+		<< " => "s << status.code_str() << ' ' << status.description() << '.';
 	
 	this->send_phony(status);
 }
@@ -88,15 +93,15 @@ server::session::process_request() noexcept
 	const auto log_request =
 		[&]()
 		{
-			auto &&stream = this->worker_.logger().stream(logger::level::info);
+			auto &&stream = logger::stream(logger::level::info);
 			stream
-				<< "Client: " << this->request_.client_address
-				<< ": HTTP/" << ::server::protocol::http::version_to_str(this->request_.version)
+				<< "Server: Client: "s << this->request_.client_address
+				<< ": HTTP/"s << ::server::protocol::http::version_to_str(this->request_.version)
 				<< ", " << ::server::protocol::http::method_to_str(this->request_.method)
-				<< ", Requested URI: \"" << this->request_.uri << "\". Headers:";
+				<< ", Requested URI: \""s << this->request_.uri << "\". Headers:"s;
 			
 			for (const auto &p: this->request_.headers)
-				stream << " [" << p.first << ": " << p.second << ']';
+				stream << " ["s << p.first << ": "s << p.second << ']';
 			stream << '.';
 		};
 	
@@ -116,8 +121,8 @@ server::session::process_request() noexcept
 			if (port != this->server_port())
 				throw ::server::protocol::http::incorrect_port{std::to_string(port)};
 		} catch (const ::server::protocol::http::incorrect_port &e) {
-			this->worker_.logger().stream(logger::level::sec_warning)
-				<< "Client: " << this->request_.client_address << ": " << e.what() << '.';
+			logger::stream(logger::level::sec_warning)
+				<< "Server: Client: "s << this->request_.client_address << ": "s << e.what() << '.';
 			throw;
 		}
 		
@@ -199,11 +204,11 @@ server::session::request_handler(std::shared_ptr<::server::session> this_,
 	
 	// Error
 	if (err == boost::asio::error::misc_errors::eof) {
-		this_->worker_.logger().stream(logger::level::info)
-			<< "Client: " << this_->client_address() << ": Client disconnected.";
+		logger::stream(logger::level::info)
+			<< "Server: Client: "s << this_->client_address() << ": Disconnected."s;
 	} else {
-		this_->worker_.logger().stream(logger::level::error)
-			<< "Client: " << this_->client_address() << ": " << err.message() << '.';
+		logger::stream(logger::level::error)
+			<< "Server: Client: "s << this_->client_address() << ": "s << err.message() << '.';
 	}
 }
 
@@ -212,10 +217,12 @@ server::session::request_handler(std::shared_ptr<::server::session> this_,
 // Response
 // static
 void
-server::session::add_response_handler(std::shared_ptr<::server::session> this_, bool sending)
+server::session::add_response_handler(std::shared_ptr<::server::session> this_)
 {
-	if (sending || this_->responses_queue_.empty())
+	if (this_->sending_ || this_->responses_queue_.empty())
 		return;
+	
+	this_->sending_ = true;
 	
 	using namespace std::placeholders;
 	boost::asio::async_write(this_->socket_,
@@ -230,15 +237,16 @@ server::session::response_handler(std::shared_ptr<::server::session> this_,
 								  const boost::system::error_code &err,
 								  size_t /* bytes_transferred */)
 {
+	this_->sending_ = false;
 	this_->responses_queue_.pop();	// Deleting current (sent) response
-	this_->add_response_handler(this_, false);
+	this_->add_response_handler(this_);
 	
 	
 	if (err) {
-		this_->worker_.logger().stream(logger::level::error)
-			<< "Client: " << this_->client_address() << ": Error sending response: " << err.message() << '.';
+		logger::stream(logger::level::error)
+			<< "Server: Client: "s << this_->client_address() << ": Error sending response: "s << err.message() << '.';
 	} else {
-		this_->worker_.logger().stream(logger::level::info)
-			<< "Client: " << this_->client_address() << ": Response sent.";
+		logger::stream(logger::level::info)
+			<< "Server: Client: "s << this_->client_address() << ": Response sent."s;
 	}
 }

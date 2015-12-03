@@ -3,15 +3,11 @@
 #ifndef SERVER_SERVER_H
 #define SERVER_SERVER_H
 
-#include <functional>
-#include <thread>
-#include <memory>
+#include <string>
 #include <vector>
-#include <unordered_map>
 
 #include <json.hpp>
 
-#include <logger/logger.h>
 #include <system_/process.h>
 #include <server/types.h>
 #include <server/host/manager.h>
@@ -23,8 +19,7 @@ namespace server {
 class worker;
 
 
-class server:
-	public logger::enable_logger_ref
+class server
 {
 public:
 	struct parameters
@@ -46,8 +41,7 @@ public:
 	
 	
 	template<class HMGen>
-	server(logger::logger &logger,
-		   const parameters &parameters,
+	server(const parameters &parameters,
 		   HMGen &&hm_gen);	// Host manager generator
 	
 	

@@ -4,13 +4,14 @@
 #define TEMPLATIZER_PAGE_EXCEPTIONS_H
 
 #include <string>
-#include <stdexcept>
+
+#include <templatizer/exceptions.h>
 
 
 namespace templatizer {
 
 
-class page_error: public std::logic_error
+class page_error: public templatizer::error
 {
 public:
 	explicit page_error(const std::string &what_arg);

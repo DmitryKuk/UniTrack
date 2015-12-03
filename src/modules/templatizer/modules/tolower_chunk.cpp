@@ -8,8 +8,10 @@
 
 #include <templatizer/module.h>
 
+using namespace std::literals;
 
-const std::string templatizer::tolower_chunk::cmd = "tolower";
+
+const std::string templatizer::tolower_chunk::cmd = "tolower"s;
 
 
 namespace {	// Module

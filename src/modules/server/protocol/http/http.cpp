@@ -10,6 +10,8 @@
 
 #include <server/protocol/http/statuses.hpp>
 
+using namespace std::literals;
+
 
 const server::port_type
 	server::protocol::http::default_port				= 80;
@@ -17,36 +19,36 @@ const server::port_type
 
 const std::string
 	server::protocol::http::str::default_port			= std::to_string(server::protocol::http::default_port),
-	server::protocol::http::str::space					= " ",
-	server::protocol::http::str::newline				= "\r\n",
-	server::protocol::http::str::HTTP					= "HTTP",
-	server::protocol::http::str::slash					= "/",
-	server::protocol::http::str::header_separator		= ": ";
+	server::protocol::http::str::space					= " "s,
+	server::protocol::http::str::newline				= "\r\n"s,
+	server::protocol::http::str::HTTP					= "HTTP"s,
+	server::protocol::http::str::slash					= "/"s,
+	server::protocol::http::str::header_separator		= ": "s;
 
 const std::string
-	server::protocol::http::str::header_body_separator	= "\r\n\r\n";
+	server::protocol::http::str::header_body_separator	= "\r\n\r\n"s;
 
 
 const std::string
-	server::protocol::http::header::content_length		= "Content-Length",
-	server::protocol::http::header::server				= "Server",
-	server::protocol::http::header::allow				= "Allow",
-	server::protocol::http::header::connection			= "Connection",
-	server::protocol::http::header::host				= "Host";
+	server::protocol::http::header::content_length		= "Content-Length"s,
+	server::protocol::http::header::server				= "Server"s,
+	server::protocol::http::header::allow				= "Allow"s,
+	server::protocol::http::header::connection			= "Connection"s,
+	server::protocol::http::header::host				= "Host"s;
 
 
 namespace {
 
 const std::string
-	method_GET("GET"),
-	method_HEAD("HEAD"),
-	method_POST("POST"),
-	method_DELETE("DELETE"),
-	method_unknown("unknown");
+	method_GET		= "GET"s,
+	method_HEAD		= "HEAD"s,
+	method_POST		= "POST"s,
+	method_DELETE	= "DELETE"s,
+	method_unknown	= "unknown"s;
 
 const std::string
-	version_v_1_1("1.1"),
-	version_unknown("unknown");
+	version_v_1_1	= "1.1"s,
+	version_unknown	= "unknown"s;
 
 };	// namespace
 

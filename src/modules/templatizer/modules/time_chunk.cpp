@@ -7,8 +7,10 @@
 
 #include <templatizer/module.h>
 
+using namespace std::literals;
 
-const std::string templatizer::time_chunk::cmd = "time";
+
+const std::string templatizer::time_chunk::cmd = "time"s;
 
 
 namespace {	// Module

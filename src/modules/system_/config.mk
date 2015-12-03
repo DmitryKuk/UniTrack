@@ -4,7 +4,7 @@
 
 
 # Other modules this module depends on
-MODULE_DEPS			 		= 
+MODULE_DEPS			 		= logger
 
 
 # External libs this module depends on

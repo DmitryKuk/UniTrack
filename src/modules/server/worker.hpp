@@ -2,8 +2,7 @@
 
 #include <functional>
 
-#include <cstdlib>
-
+#include <logger/logger.h>
 #include <server/server.h>
 #include <server/acceptor.h>
 #include <server/host/exceptions.h>
@@ -52,8 +51,6 @@ server::worker::host_manager() noexcept
 template<class HMGen>
 server::worker::worker(::server::server &server,
 					   HMGen &&hm_gen):	// Host manager generator
-	logger::enable_logger{server.logger().log_name() + std::string{"-worker"}},
-	
 	server_{server},
 	
 	status_{0},
@@ -62,9 +59,8 @@ server::worker::worker(::server::server &server,
 		std::bind<
 			std::unique_ptr<::server::host::manager>	// Host manager generator return type
 		>(
-			std::forward<HMGen>(hm_gen),				// Host manager generator
-			std::placeholders::_1
-		)(this->logger())
+			std::forward<HMGen>(hm_gen)					// Host manager generator
+		)()
 	},
 	
 	empty_work_{this->io_service_},
@@ -74,7 +70,7 @@ server::worker::worker(::server::server &server,
 {
 	if (this->host_manager_ptr_ == nullptr) {	// Idiot protection
 		using namespace std::literals;
-		this->logger().log_raw(logger::level::critical, "Worker: Host manager not constructed. Are you kidding?"s);
+		logger::log(logger::level::critical, "Worker: Host manager not constructed. Are you kidding?"s);
 		throw ::server::host::host_manager_not_constructed{};
 	}
 	

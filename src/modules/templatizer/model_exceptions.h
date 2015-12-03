@@ -4,13 +4,14 @@
 #define TEMPLATIZER_MODEL_EXCEPTIONS_H
 
 #include <string>
-#include <stdexcept>
+
+#include <templatizer/exceptions.h>
 
 
 namespace templatizer {
 
 
-class model_error: public std::logic_error
+class model_error: public templatizer::error
 {
 public:
 	explicit model_error(const std::string &what_arg);

@@ -15,8 +15,7 @@
 #include <project_config.h>
 
 
-class application:
-	protected logger::enable_logger
+class application
 {
 public:
 	application(int argc, char **argv) noexcept;
@@ -44,7 +43,8 @@ private:
 	
 	int status_;
 	
-	std::unique_ptr<logger::logger> logger_ptr_;
+	logger::global_instance logger_global_instance_;
+	
 	std::unique_ptr<logic::global_instance> logic_ptr_;
 	std::unique_ptr<server::host::manager> host_manager_ptr_;
 	std::unique_ptr<server::server> server_ptr_;

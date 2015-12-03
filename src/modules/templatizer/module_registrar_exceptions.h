@@ -4,13 +4,14 @@
 #define TEMPLATIZER_MODULE_REGISTRAR_EXCEPTIONS_H
 
 #include <string>
-#include <stdexcept>
+
+#include <templatizer/exceptions.h>
 
 
 namespace templatizer {
 
 
-class module_registrar_error: public std::logic_error
+class module_registrar_error: public templatizer::error
 {
 public:
 	explicit module_registrar_error(const std::string &what_arg);

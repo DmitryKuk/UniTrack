@@ -2,8 +2,11 @@
 
 #include <functional>
 #include <system_error>
+#include <string>
 #include <cstring>
 #include <cstdlib>
+
+#include <logger/logger.h>
 
 
 // Executes fn(args...) in separate process. fn should return int, that will be process exit status
@@ -13,6 +16,9 @@
 template<class Fn, class... Args>
 system_::process::process(Fn &&fn, Args &&... args)
 {
+	using namespace std::literals;
+	
+	
 	this->id_ = fork();
 	if (this->id_ != 0) {
 		// Parent process
@@ -28,7 +34,15 @@ system_::process::process(Fn &&fn, Args &&... args)
 	
 	try {
 		status = std::bind<int>(std::forward<Fn>(fn), std::forward<Args>(args)...)();
+	} catch (const std::exception &e) {
+		logger::log(logger::level::critical, "Process: Uncaught exception: "s + e.what() + '.');
+		logger::log(logger::level::critical, "Process: Abort..."s);
+		
+		std::abort();
 	} catch (...) {
+		logger::log(logger::level::critical, "Process: Uncaught exception (not std::exception)."s);
+		logger::log(logger::level::critical, "Process: Abort..."s);
+		
 		std::abort();
 	}
 	

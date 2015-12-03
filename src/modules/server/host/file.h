@@ -4,6 +4,7 @@
 #define SERVER_HOST_FILE_H
 
 #include <vector>
+#include <string>
 #include <regex>
 
 #include <boost/filesystem/path.hpp>

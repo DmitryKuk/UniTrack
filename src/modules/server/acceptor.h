@@ -5,7 +5,6 @@
 
 #include <boost/asio/ip/tcp.hpp>
 
-#include <logger/logger.h>
 #include <server/types.h>
 
 

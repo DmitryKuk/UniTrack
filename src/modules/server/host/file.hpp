@@ -30,6 +30,7 @@ std::unique_ptr<::server::protocol::http::response>
 server::host::file<HostType>::response(const worker &worker,
 									   const ::server::protocol::http::request &request) const
 {
+	using namespace std::literals;
 	using ::server::protocol::http::status;
 	
 	
@@ -39,12 +40,12 @@ server::host::file<HostType>::response(const worker &worker,
 		this->validate_path(request.path);
 		
 		
-		static const boost::filesystem::path path_current = ".";
+		static const boost::filesystem::path path_current = "."s;
 		
 		// boost::filesystem::canonical throws, if path not found
 		auto path = boost::filesystem::canonical(path_current / request.path, this->parameters_.root);
 		if (boost::filesystem::is_directory(path)) {
-			if (this->parameters_.default_index_file == "")
+			if (this->parameters_.default_index_file == ""s)
 				throw ::server::host::path_is_directory{path.string()};
 			
 			path = boost::filesystem::canonical(this->parameters_.default_index_file, path);
@@ -157,11 +158,12 @@ server::host::file<HostType>::handle_error(const worker &worker,
 										   const char *what,
 										   const ::server::protocol::http::status &status) const
 {
-	worker.logger().stream(logger::level::error)
-		<< "File host: \"" << this->name()
-		<< "\" (client: " << request.client_address
-		<< "): " << what
-		<< " => " << status.code() << '.';
+	using namespace std::literals;
+	logger::stream(logger::level::error)
+		<< "File host: \""s << this->name()
+		<< "\" (client: "s << request.client_address
+		<< "): "s << what
+		<< " => "s << status.code() << '.';
 	
 	return this->phony_response(worker, request, status);
 }

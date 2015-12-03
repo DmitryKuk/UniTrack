@@ -4,7 +4,7 @@
 
 
 # Other modules this module depends on
-MODULE_DEPS			 		= base
+MODULE_DEPS			 		= 
 
 
 # External libs this module depends on

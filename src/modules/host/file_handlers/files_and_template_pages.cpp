@@ -7,6 +7,8 @@
 #include <base/json_utils.h>
 #include <host/exceptions.h>
 
+using namespace std::literals;
+
 
 host::file_handlers::files_and_template_pages::parameters::parameters(const nlohmann::json &config)
 {
@@ -17,14 +19,14 @@ host::file_handlers::files_and_template_pages::parameters::parameters(const nloh
 		
 		std::string str;
 		
-		if (base::json_utils::extract(config, str, "default_behavior")) {
-			if (str == "files")
+		if (base::json_utils::extract(config, str, "default_behavior"s)) {
+			if (str == "files"s)
 				this->default_behavior = behavior::files;
-			else if (str == "template_pages")
+			else if (str == "template_pages"s)
 				this->default_behavior = behavior::template_pages;
 			else
-				throw server::host::incorrect_config{"Incorrect default_behavior: \"" + str
-													 + "\", correct values are: \"files\", \"template_pages\""};
+				throw server::host::incorrect_config{"Incorrect default_behavior: \""s + str
+													 + "\", correct values are: \"files\", \"template_pages\""s};
 		}
 	}
 	
@@ -32,7 +34,7 @@ host::file_handlers::files_and_template_pages::parameters::parameters(const nloh
 	{
 		std::string str;
 		
-		if (base::json_utils::extract(config, str, "change_behavior_regex"))
+		if (base::json_utils::extract(config, str, "change_behavior_regex"s))
 			this->change_behavior_regex = str;
 	}
 }

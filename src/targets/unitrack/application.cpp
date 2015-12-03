@@ -20,11 +20,10 @@ namespace {
 
 
 std::unique_ptr<server::host::manager>
-generate_host_manager(const nlohmann::json &config, logger::logger &logger)
+generate_host_manager(const nlohmann::json &config)
 {
 	// Logic and logic config
 	auto logic_ptr = std::make_unique<logic::global_instance>(
-		logger,
 		logic::global_instance::parameters{
 			base::json_utils::json_from_file(project_config::logic)
 		}
@@ -81,9 +80,9 @@ generate_host_manager(const nlohmann::json &config, logger::logger &logger)
 
 // class application
 application::application(int argc, char **argv) noexcept:
-	logger::enable_logger{std::string{argv[0]}},
+	status_{0},
 	
-	status_{0}
+	logger_global_instance_{argv[0]}
 {
 	// std::ios::sync_with_stdio(false);
 	
@@ -95,19 +94,12 @@ application::application(int argc, char **argv) noexcept:
 		
 		// Server
 		this->server_ptr_ = std::make_unique<server::server>(
-			this->logger(),
 			server::server::parameters{
 				base::json_utils::at(config, "server"s)
 			},
 			
 			// Host manager generator
-			std::bind<
-				std::unique_ptr<server::host::manager>
-			>(
-				generate_host_manager,
-				std::ref(config),
-				std::placeholders::_1
-			)
+			std::bind<std::unique_ptr<server::host::manager>>(generate_host_manager, config)
 		);
 	} catch (const std::exception &e) {
 		this->handle_error(e);
@@ -124,7 +116,7 @@ application::run_interactive() noexcept
 	
 	
 	try {
-		this->logger().log_raw(logger::level::info, "Running interactive mode. Press Ctrl+D to exit..."s);
+		logger::log(logger::level::info, "Running interactive mode. Press Ctrl+D to exit..."s);
 		
 		// Waiting for Ctrl+D
 		while (std::cin)
@@ -143,12 +135,12 @@ application::run_interactive() noexcept
 void
 application::stop()
 {
-	this->logger().log_raw(logger::level::info, "Stopping..."s);
+	logger::log(logger::level::info, "Stopping..."s);
 	
 	if (this->server_ptr_)
 		this->server_ptr_->stop();
 	
-	this->logger().log_raw(logger::level::info, "Stopped."s);
+	logger::log(logger::level::info, "Stopped."s);
 }
 
 
@@ -157,6 +149,5 @@ application::handle_error(const std::exception &e) noexcept
 {
 	this->status_ = 1;
 	
-	this->logger().stream(logger::level::critical)
-		<< e.what() << '.';
+	logger::log(logger::level::critical, e.what() + "."s);
 }

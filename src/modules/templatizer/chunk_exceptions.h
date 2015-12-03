@@ -4,16 +4,17 @@
 #define TEMPLATIZER_CHUNK_EXCEPTIONS_H
 
 #include <string>
-#include <stdexcept>
+
+#include <templatizer/exceptions.h>
 
 
 namespace templatizer {
 
 
-class chunk_error: public std::logic_error
+class chunk_error: public templatizer::error
 {
 public:
-	explicit chunk_error(const std::string &what_arg);
+	explicit chunk_error(const std::string &chunk_cmd, const std::string &what_arg);
 };
 
 

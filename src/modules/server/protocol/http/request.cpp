@@ -10,12 +10,14 @@
 
 #include <server/protocol/http/exceptions.h>
 
+using namespace std::literals;
+
 
 std::pair<std::string, server::port_type>
 server::protocol::http::request::host_and_port()
 {
 	static const std::regex host_regex{"([^:]+)"				// Host name [1]
-									   "(:([[:digit:]]+))?",	// Port number, if specified [3]
+									   "(:([[:digit:]]+))?"s,	// Port number, if specified [3]
 									   std::regex::optimize};
 	
 	
@@ -86,7 +88,7 @@ server::protocol::http::request::process_stream(std::istream &stream)
 	
 	// Setting up keep-alive
 	try {
-		static const std::regex keep_alive_regex{".*keep-alive.*", std::regex::optimize};
+		static const std::regex keep_alive_regex{".*keep-alive.*"s, std::regex::optimize};
 		
 		this->keep_alive = regex_match(this->headers.at(server::protocol::http::header::connection),
 									   keep_alive_regex);
@@ -106,7 +108,7 @@ server::protocol::http::request::process_start_string(const std::string &str)
 			  "([_[:alnum:]]+)"		"[[:space:]]+"				// Method	[1]
 			  "([^[:space:]]+)"		"[[:space:]]+"				// URI		[2]
 			  "([_[:alnum:]]+)/([[:digit:]]+\\.[[:digit:]]+)"	// Protocol	[3]/[4]
-			  "[\r\n]*$",
+			  "[\r\n]*$"s,
 			  std::regex::optimize};
 	
 	static const auto str_toupper =
@@ -129,7 +131,7 @@ server::protocol::http::request::process_start_string(const std::string &str)
 	// Protocol validating
 	{
 		auto protocol_name = str_toupper(match[3]);
-		if (protocol_name != "HTTP") throw ::server::protocol::http::incorrect_protocol{protocol_name};
+		if (protocol_name != "HTTP"s) throw ::server::protocol::http::incorrect_protocol{protocol_name};
 	}
 	
 	// Protocol version validating
@@ -155,11 +157,11 @@ server::protocol::http::request::process_header_string(const std::string &str)
 			  "([^[:space:]]+)"		// Key [1]
 			  ":[[:space:]]*"
 			  "(.+)"				// Value [2]
-			  "[\r\n]*$",
+			  "[\r\n]*$"s,
 			  std::regex::optimize},
 		regex_empty{"^"
 					"[\r[:space:]]*"
-					"$",
+					"$"s,
 					std::regex::optimize};
 	
 	std::smatch match;
@@ -179,7 +181,7 @@ server::protocol::http::request::process_uri()
 {
 	static const std::regex
 		base_regex{
-			"([^?]+)(\\?(.*))?",				// [1], [4]: path and args
+			"([^?]+)(\\?(.*))?"s,				// [1], [4]: path and args
 			std::regex::optimize
 		},
 		
@@ -189,7 +191,7 @@ server::protocol::http::request::process_uri()
 				"([^\\&\\?]+)\\=([^\\&\\?]*)"	// [3], [4]: key, value
 			"|"
 				"([^\\&\\?]+)"					// [5]: key only
-			")",
+			")"s,
 			std::regex::optimize
 		};
 	

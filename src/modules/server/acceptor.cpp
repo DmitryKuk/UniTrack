@@ -37,6 +37,7 @@ server::acceptor::acceptor(::server::worker &worker, ::server::port_type port):
 #endif	// SO_REUSEPORT
 		
 		this->bind(local_endpoint);
+		this->listen();
 	}
 	
 	

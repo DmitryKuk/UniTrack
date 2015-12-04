@@ -78,33 +78,40 @@ server::worker::run() noexcept
 {
 	this->status_ = 0;
 	
-	logger::log(logger::level::info, "Worker started."s);
+	logger::log(logger::level::info, "Started."s);
 	
 	
 	try {
 		this->io_service_.run();
+		
+		logger::log(logger::level::info, "Stopped."s);
 	} catch (const std::exception &e) {
 		logger::stream(logger::level::error)
-			<< "Worker failed: "s << e.what();
+			<< "Failed: "s << e.what();
 		
 		this->status_ = 1;
 	}
-	
-	
-	logger::log(logger::level::info, "Worker stopped."s);
 	
 	
 	return this->status_;
 }
 
 
+void
+server::worker::add_signal_handler() noexcept
+{
+	using namespace std::placeholders;
+	this->signal_set_.async_wait(std::bind(&::server::worker::signal_handler, this, _1, _2));
+}
+
+
 // Handles signals and dispatch them to primitive handlers
 void
-server::worker::handle_signal(const boost::system::error_code &err, int signal) noexcept
+server::worker::signal_handler(const boost::system::error_code &err, int signal) noexcept
 {
 	if (err) {
 		logger::stream(logger::level::critical)
-			<< "Worker process signal handle error: "s << err.message() << '.';
+			<< "Signal handle error: "s << err.message() << '.';
 		
 		this->status_ = 1;
 		this->io_service_.stop();
@@ -123,7 +130,7 @@ void
 server::worker::exit(int signal, const char *signal_str) noexcept
 {
 	logger::stream(logger::level::info)
-		<< "Worker: Recieved signal: "s << signal_str << " ("s << signal << "). Stopping..."s;
+		<< "Recieved signal: "s << signal_str << " ("s << signal << "). Stopping..."s;
 	
 	this->io_service_.stop();
 }
@@ -133,5 +140,5 @@ void
 server::worker::ignore(int signal, const char *signal_str) noexcept
 {
 	logger::stream(logger::level::info)
-		<< "Worker: Recieved signal: "s << signal_str << " ("s << signal << "). Ignore."s;
+		<< "Recieved signal: "s << signal_str << " ("s << signal << "). Ignoring..."s;
 }

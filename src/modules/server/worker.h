@@ -72,10 +72,13 @@ private:
 	void stop() noexcept;
 	
 	
-	// Handles signals and dispatch them to primitive handlers
-	void handle_signal(const boost::system::error_code &err, int signal) noexcept;
-	
 	// Signal handlers
+	void add_signal_handler() noexcept;
+	
+	// Handles signals and dispatch them to primitive handlers
+	void signal_handler(const boost::system::error_code &err, int signal) noexcept;
+	
+	// Primitive signal handlers
 	void exit(int signal, const char *signal_str) noexcept;
 	void ignore(int signal, const char *signal_str) noexcept;
 	
@@ -94,7 +97,7 @@ private:
 	
 	boost::asio::io_service			io_service_;
 	boost::asio::io_service::work	empty_work_;	// Forces io_service do not stop, when no clients in process
-	boost::asio::signal_set			signal_set_;	// Need for handle SIGTERM, SIGINT, SIGHUP
+	boost::asio::signal_set			signal_set_;	// Need for handle SIGTERM, SIGINT, SIGHUP, SIGQUIT
 	std::vector<::server::acceptor>	acceptors_;		// Need for accepting clients on ports
 	
 	// Used to choose random server name number

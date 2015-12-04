@@ -4,8 +4,8 @@
 #define SERVER_HOST_EXCEPTIONS_H
 
 #include <string>
-#include <stdexcept>
 
+#include <server/exceptions.h>
 #include <server/types.h>
 
 
@@ -13,7 +13,7 @@ namespace server {
 namespace host {
 
 
-class error: public std::logic_error
+class error: public ::server::error
 {
 public:
 	explicit error(const std::string &what_arg);

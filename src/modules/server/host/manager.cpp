@@ -42,6 +42,7 @@ server::host::manager::host(const ::server::worker &worker,
 		throw ::server::host::host_not_found{name};
 	}
 	
+	
 	auto &host_ptr = it->second;
 	if (!host_ptr->port_allowed(port)) {
 		logger::stream(logger::level::sec_warning)
@@ -49,6 +50,7 @@ server::host::manager::host(const ::server::worker &worker,
 		
 		throw ::server::host::port_not_allowed{name, port};
 	}
+	
 	
 	return host_ptr;
 }

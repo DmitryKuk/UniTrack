@@ -52,4 +52,8 @@ server::host::file_only_parameters::file_only_parameters(const nlohmann::json &c
 			fill_regexes(this->deny_regexes, ::base::json_utils::at(config, "deny_regexes"s));
 		} catch (const std::out_of_range &) {}
 	}
+	
+	try {
+		this->default_index_file = ::base::json_utils::get<std::string>(config, "default_index_file"s);
+	} catch (const std::out_of_range &) {}
 }

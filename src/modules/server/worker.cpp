@@ -54,11 +54,6 @@ server::worker::add_client(::server::socket &&socket) noexcept
 {
 	auto client_address = socket.remote_endpoint().address();
 	
-	
-	logger::stream(logger::level::info)
-		<< "Client accepted: "s << client_address << '.';
-	
-	
 	try {
 		::server::session::run(*this, std::move(socket));
 	} catch (const std::exception &e) {

@@ -31,19 +31,6 @@ server::protocol::http::response::finish_headers()
 }
 
 
-template<class... Args>
-inline
-void
-server::protocol::http::response::add_body(const Args &... data)
-{
-	using base::buffer;
-	
-	this->add_body(buffer(data...));
-}
-
-
-// Template specialization for base::send_buffer_type
-template<>
 inline
 void
 server::protocol::http::response::add_body(const base::send_buffer_type &buffer)

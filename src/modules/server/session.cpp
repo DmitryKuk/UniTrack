@@ -2,7 +2,6 @@
 
 #include <server/session.h>
 
-#include <iostream>
 #include <functional>
 #include <utility>
 #include <tuple>
@@ -35,10 +34,12 @@ server::session::session(worker &worker, ::server::socket &&socket):
 	client_address_{this->socket_.remote_endpoint().address()},
 	server_port_{this->socket_.local_endpoint().port()},
 	
+	request_{this->client_address_},
+	
 	sending_{false}
 {
 	logger::stream(logger::level::info)
-		<< "Server: Client: "s << this->client_address() << ": Connected."s;
+		<< "Client: "s << this->client_address() << ": Connected."s;
 }
 
 
@@ -57,7 +58,7 @@ void
 server::session::handle_error(const char *what, const ::server::protocol::http::status &status)
 {
 	logger::stream(logger::level::error)
-		<< "Server: Client: "s << this->request_.client_address << ": "s << what
+		<< "Client: "s << this->request_.client_address << ": "s << what
 		<< " => "s << status.code_str() << ' ' << status.description() << '.';
 	
 	this->send_phony(status);
@@ -95,7 +96,7 @@ server::session::process_request() noexcept
 		{
 			auto &&stream = logger::stream(logger::level::info);
 			stream
-				<< "Server: Client: "s << this->request_.client_address
+				<< "Client: "s << this->request_.client_address
 				<< ": HTTP/"s << ::server::protocol::http::version_to_str(this->request_.version)
 				<< ", " << ::server::protocol::http::method_to_str(this->request_.method)
 				<< ", Requested URI: \""s << this->request_.uri << "\". Headers:"s;
@@ -122,7 +123,7 @@ server::session::process_request() noexcept
 				throw ::server::protocol::http::incorrect_port{std::to_string(port)};
 		} catch (const ::server::protocol::http::incorrect_port &e) {
 			logger::stream(logger::level::sec_warning)
-				<< "Server: Client: "s << this->request_.client_address << ": "s << e.what() << '.';
+				<< "Client: "s << this->request_.client_address << ": "s << e.what() << '.';
 			throw;
 		}
 		
@@ -205,10 +206,10 @@ server::session::request_handler(std::shared_ptr<::server::session> this_,
 	// Error
 	if (err == boost::asio::error::misc_errors::eof) {
 		logger::stream(logger::level::info)
-			<< "Server: Client: "s << this_->client_address() << ": Disconnected."s;
+			<< "Client: "s << this_->client_address() << ": Disconnected."s;
 	} else {
 		logger::stream(logger::level::error)
-			<< "Server: Client: "s << this_->client_address() << ": "s << err.message() << '.';
+			<< "Client: "s << this_->client_address() << ": "s << err.message() << '.';
 	}
 }
 
@@ -235,18 +236,20 @@ server::session::add_response_handler(std::shared_ptr<::server::session> this_)
 void
 server::session::response_handler(std::shared_ptr<::server::session> this_,
 								  const boost::system::error_code &err,
-								  size_t /* bytes_transferred */)
+								  size_t bytes_transferred)
 {
 	this_->sending_ = false;
+	auto buffers = this_->responses_queue_.front()->buffers;
 	this_->responses_queue_.pop();	// Deleting current (sent) response
-	this_->add_response_handler(this_);
 	
 	
 	if (err) {
 		logger::stream(logger::level::error)
-			<< "Server: Client: "s << this_->client_address() << ": Error sending response: "s << err.message() << '.';
+			<< "Client: "s << this_->client_address() << ": Error sending response: "s << err.message() << '.';
 	} else {
+		this_->add_response_handler(this_);
+		
 		logger::stream(logger::level::info)
-			<< "Server: Client: "s << this_->client_address() << ": Response sent."s;
+			<< "Client: "s << this_->client_address() << ": Response sent."s;
 	}
 }

@@ -11,6 +11,8 @@
 template<class HostType>
 server::host::file<HostType>::file(const ::server::host::file_parameters &parameters,
 								   HostType &&handler):
+	::server::host::base{parameters},
+	
 	parameters_{parameters},
 	handler_{std::move(handler)}
 {}
@@ -19,6 +21,8 @@ server::host::file<HostType>::file(const ::server::host::file_parameters &parame
 template<class HostType>
 server::host::file<HostType>::file(const ::server::host::file_parameters &parameters,
 								   const HostType &handler):
+	::server::host::base{parameters},
+	
 	parameters_{parameters},
 	handler_{handler}
 {}
@@ -45,7 +49,7 @@ server::host::file<HostType>::response(const worker &worker,
 		// boost::filesystem::canonical throws, if path not found
 		auto path = boost::filesystem::canonical(path_current / request.path, this->parameters_.root);
 		if (boost::filesystem::is_directory(path)) {
-			if (this->parameters_.default_index_file == ""s)
+			if (this->parameters_.default_index_file.empty())
 				throw ::server::host::path_is_directory{path.string()};
 			
 			path = boost::filesystem::canonical(this->parameters_.default_index_file, path);

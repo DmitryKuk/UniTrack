@@ -33,35 +33,34 @@ generate_host_manager(const nlohmann::json &config)
 	// Hosts
 	auto host_manager_ptr = std::make_unique<server::host::manager>();
 	for (const auto &host_config: base::json_utils::at(config, "hosts"s)) {
-		server::host::file_parameters file_host_parameters{host_config};
-		
+		const server::host::file_parameters file_host_parameters{host_config};
 		const auto type = base::json_utils::get<std::string>(host_config, "type"s);
 		
 		if (type == "files_only"s) {
-			host_manager_ptr->add_host(
-				std::make_shared<server::host::file<server::host::file_handlers::files_only>>(
-					file_host_parameters
-				)
+			auto host_ptr = std::make_shared<server::host::file<server::host::file_handlers::files_only>>(
+				file_host_parameters
 			);
+			
+			host_manager_ptr->add_host(host_ptr);
 		} else if (type == "template_pages_only"s) {
-			host_manager_ptr->add_host(
-				std::make_shared<server::host::file<host::file_handlers::template_pages_only>>(
-					file_host_parameters,
-					host::file_handlers::template_pages_only{
-						*logic_ptr
-					}
-				)
+			auto host_ptr = std::make_shared<server::host::file<host::file_handlers::template_pages_only>>(
+				file_host_parameters,
+				host::file_handlers::template_pages_only{
+					*logic_ptr
+				}
 			);
+			
+			host_manager_ptr->add_host(host_ptr);
 		} else if (type == "files_and_template_pages"s) {
-			host_manager_ptr->add_host(
-				std::make_shared<server::host::file<host::file_handlers::files_and_template_pages>>(
-					file_host_parameters,
-					host::file_handlers::files_and_template_pages{
-						*logic_ptr,
-						host::file_handlers::files_and_template_pages::parameters{host_config}
-					}
-				)
+			auto host_ptr = std::make_shared<server::host::file<host::file_handlers::files_and_template_pages>>(
+				file_host_parameters,
+				host::file_handlers::files_and_template_pages{
+					*logic_ptr,
+					host::file_handlers::files_and_template_pages::parameters{host_config}
+				}
 			);
+			
+			host_manager_ptr->add_host(host_ptr);
 		} else {
 			throw server::host::incorrect_config{"Unknown host type: \""s + type
 												 + "\", correct values are: \"files_only\", "
@@ -70,7 +69,7 @@ generate_host_manager(const nlohmann::json &config)
 	}
 	
 	
-	return host_manager_ptr;
+	return std::move(host_manager_ptr);
 };
 
 

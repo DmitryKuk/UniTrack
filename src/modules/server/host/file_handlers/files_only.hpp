@@ -28,7 +28,7 @@ server::host::file_handlers::files_only::operator()(const FileHost &host,
 	
 	
 	try {
-		bool need_body = false;
+		bool need_body = true;
 		
 		switch (request.method) {
 			case ::server::protocol::http::method::GET:
@@ -62,7 +62,7 @@ server::host::file_handlers::files_only::operator()(const FileHost &host,
 		response_ptr->finish_headers();
 		
 		if (need_body)
-			response_ptr->add_body(file_content, file_size);
+			response_ptr->add_body(::base::buffer(file_content, file_size));
 		
 		
 		return std::move(response_ptr);

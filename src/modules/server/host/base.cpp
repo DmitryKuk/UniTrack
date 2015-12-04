@@ -123,7 +123,7 @@ server::host::base::phony_response(const ::server::worker &worker,
 	
 	// Adding body
 	for (const auto body_element_ptr: body_ptrs)
-		response_ptr->add_body(*body_element_ptr);
+		response_ptr->add_body(::base::buffer(*body_element_ptr));
 	
 	
 	return response_ptr;

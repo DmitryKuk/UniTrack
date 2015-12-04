@@ -5,6 +5,8 @@
 #include <functional>
 #include <string>
 
+#include <sys/socket.h>	// Need to enable SO_REUSEPORT socket option manually
+
 #include <logger/logger.h>
 #include <server/worker.h>
 
@@ -12,13 +14,32 @@ using namespace std::literals;
 
 
 server::acceptor::acceptor(::server::worker &worker, ::server::port_type port):
-	boost::asio::ip::tcp::acceptor{worker.io_service(),
-								   {boost::asio::ip::tcp::v4(), port},	// Local endpoint
-								   true},								// Reuse address
+	boost::asio::ip::tcp::acceptor{worker.io_service()},
 	
 	worker_ptr_{&worker},
 	socket_{this->worker_ptr_->io_service()}
 {
+	// Configuring acceptor's socket manually
+	{
+		boost::asio::ip::tcp::endpoint local_endpoint{boost::asio::ip::tcp::v4(), port};
+		
+		this->open(local_endpoint.protocol());
+		
+		// Without this bind() will fail on all systems
+		this->set_option(boost::asio::ip::tcp::acceptor::reuse_address{true});
+		
+#ifdef SO_REUSEPORT
+		{
+			// Without this bind() will fail on BSD-like systems
+			int enable_option = 1;
+			::setsockopt(this->native_handle(), SOL_SOCKET, SO_REUSEPORT, &enable_option, sizeof(enable_option));
+		}
+#endif	// SO_REUSEPORT
+		
+		this->bind(local_endpoint);
+	}
+	
+	
 	this->add_accept_handler();
 	
 	logger::stream(logger::level::info)

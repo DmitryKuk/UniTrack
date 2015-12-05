@@ -16,6 +16,7 @@ get_lib_files			= $(addsuffix .so,$(addprefix $(LIB_DIR)/lib$(PROJECT_LIB_PREFIX
 
 
 cpp_to_obj				= $(1:.cpp=.o)
+obj_to_dep				= $(1:.o=.d)
 lib_to_module			= $(basename $(subst lib$(PROJECT_LIB_PREFIX),,$(notdir $1)))
 bin_to_target			= $(notdir $(1))
 
@@ -25,17 +26,21 @@ get_external_libs		= $(addprefix -l,$(1))
 
 
 
-# Compile and link commands. Usage: $(call gpp_compile) -o OUTPUT_FILE INPUT_FILES
+# Compile and link commands. Usage: $(call gpp_compile,OUTPUT_FILE,INPUT_FILES)
 gpp_compile				= $(GPP) $(GPP_COMPILE_FLAGS) $($(ID)_GPP_COMPILE_FLAGS)		\
-								 $(GPP_HEADER_PATHS) $($(ID)_GPP_HEADER_PATHS)
+								 $(GPP_HEADER_PATHS) $($(ID)_GPP_HEADER_PATHS)			\
+								 -MMD -MT '$(1)' -MF '$(call obj_to_dep,$(1))'			\
+								 -o '$(1)' $(2)
 
 gpp_shared_lib			= $(GPP) $(GPP_SHARED_LIB_FLAGS) $($(ID)_GPP_SHARED_LIB_FLAGS)	\
 								 $(GPP_LIB_PATHS) $($(ID)_GPP_LIB_PATHS)				\
-								 $(GPP_LIBS) $($(ID)_GPP_LIBS)
+								 $(GPP_LIBS) $($(ID)_GPP_LIBS)							\
+								 -o '$(1)' $(2)
 
 gpp_link				= $(GPP) $(GPP_LINK_FLAGS) $($(ID)_GPP_LINK_FLAGS)				\
 								 $(GPP_LIB_PATHS) $($(ID)_GPP_LIB_PATHS)				\
-								 $(GPP_LIBS) $($(ID)_GPP_LIBS)
+								 $(GPP_LIBS) $($(ID)_GPP_LIBS)							\
+								 -o '$(1)' $(2)
 
 
 # Not used now. Usage:

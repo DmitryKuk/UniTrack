@@ -3,12 +3,12 @@
 #ifndef SERVER_HOST_FILE_FILES_ONLY_H
 #define SERVER_HOST_FILE_FILES_ONLY_H
 
-#include <string>
 #include <memory>
 
 #include <boost/filesystem/path.hpp>
 
 #include <base/mapped_file.h>
+#include <base/file_cache.h>
 #include <server/types.h>
 #include <server/protocol/http.h>
 
@@ -30,14 +30,14 @@ public:
 		public ::server::protocol::http::response
 	{
 	public:
-		inline response(::base::mapped_file &&mapped_file,
+		inline response(std::shared_ptr<const ::base::mapped_file> &&mapped_file_ptr,
 						const ::server::protocol::http::status &status,
 						::server::protocol::http::version version = ::server::protocol::http::version::v_1_1);
 	private:
 		friend class files_only;
 		
 		// Data
-		::base::mapped_file mapped_file_;
+		std::shared_ptr<const ::base::mapped_file> mapped_file_ptr_;
 	};	// class response
 	
 	
@@ -47,6 +47,17 @@ public:
 			   const worker &worker,
 			   const ::server::protocol::http::request &request,
 			   const ::boost::filesystem::path &path) const;
+private:
+	static std::shared_ptr<::base::mapped_file> load_file(const boost::filesystem::path &path);
+	
+	
+	// Data
+	mutable ::base::file_cache<
+		::base::mapped_file,
+		std::shared_ptr<::base::mapped_file> (*)(const boost::filesystem::path &)
+	> cache_{
+		load_file
+	};
 };	// class files_only
 
 

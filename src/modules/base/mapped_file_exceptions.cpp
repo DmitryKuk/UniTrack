@@ -2,22 +2,24 @@
 
 #include <base/mapped_file_exceptions.h>
 
+using namespace std::literals;
+
 
 base::mapped_file_error::mapped_file_error(const std::string &what_arg):
-	std::logic_error(what_arg)
+	std::logic_error{"Mapped file: "s + what_arg}
 {}
 
 
 base::path_not_found::path_not_found(const std::string &path):
-	base::mapped_file_error("Path not found: \"" + path + '\"')
+	base::mapped_file_error{"Path not found: \""s + path + '\"'}
 {}
 
 
 base::path_is_directory::path_is_directory(const std::string &path):
-	base::mapped_file_error("Path is directory: \"" + path + '\"')
+	base::mapped_file_error{"Path is directory: \""s + path + '\"'}
 {}
 
 
 base::incorrect_path::incorrect_path(const std::string &path):
-	base::mapped_file_error("Path is incorrect: \"" + path + '\"')
+	base::mapped_file_error{"Path is incorrect: \""s + path + '\"'}
 {}

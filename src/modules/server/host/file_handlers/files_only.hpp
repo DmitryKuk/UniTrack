@@ -8,12 +8,14 @@
 
 
 inline
-server::host::file_handlers::files_only::response::response(::base::mapped_file &&mapped_file,
-															const ::server::protocol::http::status &status,
-															::server::protocol::http::version version):
+server::host::file_handlers::files_only::response::response(
+	std::shared_ptr<const ::base::mapped_file> &&mapped_file_ptr,
+	const ::server::protocol::http::status &status,
+	::server::protocol::http::version version
+):
 	::server::protocol::http::response{status, version},
 	
-	mapped_file_{std::move(mapped_file)}
+	mapped_file_ptr_{std::move(mapped_file_ptr)}
 {}
 
 
@@ -44,7 +46,7 @@ server::host::file_handlers::files_only::operator()(const FileHost &host,
 		
 		
 		auto response_ptr = std::make_unique<::server::host::file_handlers::files_only::response>(
-			::base::mapped_file{path, read_only, MAP_SHARED},
+			this->cache_.at(path),
 			::server::protocol::http::status::ok,
 			request.version
 		);
@@ -53,8 +55,8 @@ server::host::file_handlers::files_only::operator()(const FileHost &host,
 		::server::host::base::add_server_name(worker, *response_ptr);	// Server name
 		
 		
-		const void *file_content = response_ptr->mapped_file_.data();
-		size_t file_size = response_ptr->mapped_file_.size();
+		const void *file_content = response_ptr->mapped_file_ptr_->data();
+		size_t file_size = response_ptr->mapped_file_ptr_->size();
 		
 		auto &content_len_str = response_ptr->cache(std::to_string(file_size));
 		

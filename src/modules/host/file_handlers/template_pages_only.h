@@ -3,12 +3,11 @@
 #ifndef HOST_FILE_TEMPLATE_PAGES_ONLY_H
 #define HOST_FILE_TEMPLATE_PAGES_ONLY_H
 
-#include <string>
 #include <memory>
-#include <unordered_map>
 
 #include <boost/filesystem/path.hpp>
 
+#include <base/file_cache.h>
 #include <server/protocol/http.h>
 #include <templatizer/page.h>
 #include <logic/page_model.h>
@@ -35,7 +34,7 @@ public:
 		public server::protocol::http::response
 	{
 	public:
-		inline response(const templatizer::page &page,
+		inline response(std::shared_ptr<const templatizer::page> &&page_ptr,
 						logic::page_model &&model,
 						const server::protocol::http::status &status,
 						server::protocol::http::version version = server::protocol::http::version::v_1_1);
@@ -43,7 +42,7 @@ public:
 		friend class template_pages_only;
 		
 		// Data
-		const templatizer::page &page_;
+		std::shared_ptr<const templatizer::page> page_ptr_;
 		
 		logic::page_model page_model_;
 	};	// class response
@@ -60,18 +59,16 @@ public:
 			   const server::protocol::http::request &request,
 			   const boost::filesystem::path &path) const;
 private:
-	class pages_cache
-	{
-	public:
-		const templatizer::page & at(const boost::filesystem::path &path);
-	private:
-		std::unordered_map<std::string, std::unique_ptr<templatizer::page>> cache_;
-	};	// class pages_cache
-	
+	static std::shared_ptr<templatizer::page> load_page(const boost::filesystem::path &path);
 	
 	
 	// Data
-	mutable pages_cache pages_cache_;
+	mutable ::base::file_cache<
+		templatizer::page,
+		std::shared_ptr<templatizer::page> (*)(const boost::filesystem::path &)
+	> cache_{
+		load_page
+	};
 	
 	logic::global_instance &logic_;
 };	// template_pages_only

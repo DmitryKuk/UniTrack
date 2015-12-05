@@ -6,13 +6,15 @@
 
 // class host::file_handlers::template_pages_only::response
 inline
-host::file_handlers::template_pages_only::response::response(const templatizer::page &page,
-															 logic::page_model &&model,
-															 const server::protocol::http::status &status,
-															 server::protocol::http::version version):
+host::file_handlers::template_pages_only::response::response(
+	std::shared_ptr<const templatizer::page> &&page_ptr,
+	logic::page_model &&model,
+	const server::protocol::http::status &status,
+	server::protocol::http::version version
+):
 	server::protocol::http::response{status, version},
 	
-	page_{page},
+	page_ptr_{std::move(page_ptr)},
 	page_model_{std::move(model)}
 {}
 
@@ -37,7 +39,7 @@ host::file_handlers::template_pages_only::operator()(const FileHost &host,
 	
 	// Generating page model, loading template page, if need, and creating response
 	auto response_ptr = std::make_unique<host::file_handlers::template_pages_only::response>(
-		this->pages_cache_.at(path),
+		this->cache_.at(path),
 		this->logic_.generate(request, path),
 		server::protocol::http::status::ok,
 		request.version
@@ -54,9 +56,9 @@ host::file_handlers::template_pages_only::operator()(const FileHost &host,
 	
 	
 	// Generating content
-	size_t content_len = response_ptr->page_.generate(response_ptr->buffers,
-													  *response_ptr,
-													  response_ptr->page_model_);
+	size_t content_len = response_ptr->page_ptr_->generate(response_ptr->buffers,
+														   *response_ptr,
+														   response_ptr->page_model_);
 	
 	
 	// Fix Content-Length header

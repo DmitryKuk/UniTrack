@@ -11,42 +11,30 @@
 using namespace std::literals;
 
 
-// class logic::mongo_parameters
-logic::global_instance::mongo_parameters::mongo_parameters(const nlohmann::json &config)
-{
-	if (!base::json_utils::extract(config, this->uri, "uri"s))
-		throw logic::parameters_init_error{"Required key: \"uri\" missed (in mongo parameters)"s};
-}
-
-
-
-// class logic::parameters
-logic::global_instance::parameters::parameters(const nlohmann::json &config)
-{
-	try {
-		this->mongo = logic::global_instance::mongo_parameters{base::json_utils::at(config, "mongo"s)};
-	} catch (const std::out_of_range &) {
-		throw logic::parameters_init_error{"Required key: \"mongo\" missed"s};
-	}
-}
-
-
-
-// class logic::global_instance
-logic::global_instance::global_instance(const logic::global_instance::parameters &parameters,
+logic::global_instance::global_instance(const nlohmann::json &config,
 										const mongo::client::Options &options):
-	mongo_client_global_instance_{options},
-	
-	parameters_{parameters}
+	mongo_client_global_instance_{options}
 {
 	if (!this->mongo_client_global_instance_.initialized())
 		throw logic::global_instance_init_error{this->mongo_client_global_instance_.status().toString()};
 	
 	
+	// Parsing config
+	const nlohmann::json *mongo_config_ptr = nullptr;
+	try {
+		mongo_config_ptr = &base::json_utils::at(config, "mongo"s);
+	} catch (const std::out_of_range &) {
+		throw logic::parameters_init_error{"Required key: \"mongo\" missed"s};
+	}
+	
+	if (!base::json_utils::extract(*mongo_config_ptr, this->mongo_uri_, "uri"s))
+		throw logic::parameters_init_error{"Required key: \"uri\" missed (in mongo parameters)"s};
+	
+	
 	// Connection to MongoDB
 	{
 		std::string error_message;
-		auto cs = mongo::ConnectionString::parse(this->parameters_.mongo.uri, error_message);
+		auto cs = mongo::ConnectionString::parse(this->mongo_uri_, error_message);
 		if (!cs.isValid())
 			throw logic::mongodb_incorrect_uri{error_message};
 		
@@ -61,8 +49,8 @@ logic::global_instance::global_instance(const logic::global_instance::parameters
 
 
 logic::page_model
-logic::global_instance::generate(const server::protocol::http::request &request,
-								 const boost::filesystem::path &path) const
+logic::global_instance::page_model(const server::protocol::http::request &request,
+								   const boost::filesystem::path &path) const
 {
 	auto &&stream = logger::stream(logger::level::info);
 	stream << "Here! " << request.path;

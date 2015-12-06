@@ -12,16 +12,9 @@
 using namespace std::literals;
 
 
-// class ::server::host::base::parameters
-server::host::base::parameters::parameters(const nlohmann::json &config):
-	name{::base::json_utils::get<decltype(this->name)>(config, "name"s)},
-	ports{::base::json_utils::get<decltype(this->ports)>(config, "ports"s)}
-{}
-
-
-// class ::server::host::base
-server::host::base::base(const ::server::host::base::parameters &parameters):
-	parameters_{parameters}
+server::host::base::base(const nlohmann::json &config):
+	name_{::base::json_utils::get<decltype(this->name_)>(config, "name"s)},
+	ports_{::base::json_utils::get<decltype(this->ports_)>(config, "ports"s)}
 {}
 
 
@@ -29,7 +22,7 @@ server::host::base::base(const ::server::host::base::parameters &parameters):
 bool
 server::host::base::port_allowed(::server::port_type port) const noexcept
 {
-	if (this->parameters_.ports.count(port) > 0)
+	if (this->ports_.count(port) > 0)
 		return true;
 	return false;
 }

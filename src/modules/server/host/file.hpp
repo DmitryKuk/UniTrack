@@ -2,30 +2,32 @@
 
 #include <boost/filesystem.hpp>
 
+#include <base/json_utils.h>
 #include <logger/logger.h>
 #include <server/worker.h>
 #include <server/host/exceptions.h>
 
 
-// class server::host::file<HostType>
 template<class HostType>
-server::host::file<HostType>::file(const ::server::host::file_parameters &parameters,
+server::host::file<HostType>::file(const nlohmann::json &config,
 								   HostType &&handler):
-	::server::host::base{parameters},
+	::server::host::base{config},
 	
-	parameters_{parameters},
 	handler_{std::move(handler)}
-{}
+{
+	this->parse_config(config);
+}
 
 
 template<class HostType>
-server::host::file<HostType>::file(const ::server::host::file_parameters &parameters,
+server::host::file<HostType>::file(const nlohmann::json &config,
 								   const HostType &handler):
-	::server::host::base{parameters},
+	::server::host::base{config},
 	
-	parameters_{parameters},
 	handler_{handler}
-{}
+{
+	this->parse_config(config);
+}
 
 
 template<class HostType>
@@ -47,12 +49,12 @@ server::host::file<HostType>::response(const worker &worker,
 		static const boost::filesystem::path path_current = "."s;
 		
 		// boost::filesystem::canonical throws, if path not found
-		auto path = boost::filesystem::canonical(path_current / request.path, this->parameters_.root);
+		auto path = boost::filesystem::canonical(path_current / request.path, this->root_);
 		if (boost::filesystem::is_directory(path)) {
-			if (this->parameters_.default_index_file.empty())
+			if (this->default_index_file_.empty())
 				throw ::server::host::path_is_directory{path.string()};
 			
-			path = boost::filesystem::canonical(this->parameters_.default_index_file, path);
+			path = boost::filesystem::canonical(this->default_index_file_, path);
 			
 			if (boost::filesystem::is_directory(path))	// Path is still directory, WTF?..
 				throw ::server::host::path_is_directory{path.string()};
@@ -124,7 +126,7 @@ void
 server::host::file<HostType>::validate_path(const std::string &path) const
 {
 	// Checks for denied regexes
-	for (const auto &deny_regex: this->parameters_.deny_regexes)
+	for (const auto &deny_regex: this->deny_regexes_)
 		if (std::regex_match(path, deny_regex))
 			throw ::server::host::path_forbidden{path};
 	
@@ -132,18 +134,18 @@ server::host::file<HostType>::validate_path(const std::string &path) const
 	// Checks for allowed regexes
 	bool verification_status = false;
 	
-	if (this->parameters_.allow_regexes.empty()) {
+	if (this->allow_regexes_.empty()) {
 		verification_status = false;
-	} else if (this->parameters_.mode == file_parameters::allow_match_mode::any) {	// Any
+	} else if (this->mode_ == allow_match_mode::any) {	// Any
 		verification_status = false;
-		for (const auto &allow_regex: this->parameters_.allow_regexes)
+		for (const auto &allow_regex: this->allow_regexes_)
 			if (std::regex_match(path, allow_regex)) {
 				verification_status = true;
 				break;
 			}
-	} else {																		// All
+	} else {														// All
 		verification_status = true;
-		for (const auto &allow_regex: this->parameters_.allow_regexes)
+		for (const auto &allow_regex: this->allow_regexes_)
 			if (!std::regex_match(path, allow_regex)) {
 				verification_status = false;
 				break;
@@ -182,4 +184,58 @@ server::host::file<HostType>::handle_error(const worker &worker,
 										   const ::server::protocol::http::status &status) const
 {
 	return this->handle_error(worker, request, e.what(), status);
+}
+
+
+// Config parser
+template<class HostType>
+void
+server::host::file<HostType>::parse_config(const nlohmann::json &config)
+{
+	using namespace std::literals;
+	
+	
+	this->root_ = ::base::json_utils::get<decltype(this->root_)>(config, "root"s);
+	if (!boost::filesystem::exists(this->root_))
+		throw ::server::host::path_not_found{this->root_.string()};
+	this->root_ = boost::filesystem::canonical(this->root_, "/"s);
+	
+	
+	// Allow mode
+	{
+		const auto mode = ::base::json_utils::get<std::string>(config, "allow_match_mode"s);
+		if (mode == "any"s) {
+			this->mode_ = allow_match_mode::any;
+		} else if (mode == "all"s) {
+			this->mode_ = allow_match_mode::all;
+		} else {
+			throw ::server::host::incorrect_config{"Incorrect allow_match_mode: \""s + mode
+												   + "\", correct values are: \"any\", \"all\""s};
+		}
+	}
+	
+	
+	// Optional parameters
+	{
+		static const auto fill_regexes =
+			[](auto &regex_vector, const auto &regexes)
+			{
+				regex_vector.clear();
+				for (const std::string &regex: regexes)
+					regex_vector.emplace_back(regex);
+			};
+		
+		
+		try {
+			fill_regexes(this->allow_regexes_, ::base::json_utils::at(config, "allow_regexes"s));
+		} catch (const std::out_of_range &) {}
+		
+		try {
+			fill_regexes(this->deny_regexes_, ::base::json_utils::at(config, "deny_regexes"s));
+		} catch (const std::out_of_range &) {}
+	}
+	
+	try {
+		this->default_index_file_ = ::base::json_utils::get<std::string>(config, "default_index_file"s);
+	} catch (const std::out_of_range &) {}
 }

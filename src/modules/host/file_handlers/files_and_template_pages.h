@@ -34,29 +34,15 @@ class files_and_template_pages:
 	private host::file_handlers::template_pages_only
 {
 public:
-	struct parameters
-	{
-		enum class behavior {
-			template_pages,
-			files
-		};	// enum class behavior
-		
-		
-		// By default: interpret all files as plain files...
-		behavior default_behavior = behavior::files;				// Optional
-		
-		// ...but change behavior for .html files.
-		std::regex change_behavior_regex = std::regex(".*\\.html");	// Optional
-		
-		
-		explicit parameters() = default;
-		explicit parameters(const nlohmann::json &config);
-	};	// struct parameters
+	enum class behavior {
+		template_pages,
+		files
+	};	// enum class behavior
 	
 	
 	
-	inline files_and_template_pages(logic::global_instance &logic,
-									const parameters &parameters);
+	files_and_template_pages(const nlohmann::json &config,
+							 logic::global_instance &logic);
 	
 	
 	template<class FileHost>
@@ -66,7 +52,12 @@ public:
 			   const server::protocol::http::request &request,
 			   const boost::filesystem::path &path) const;
 protected:
-	parameters parameters_;
+	// Parameters
+	// By default: interpret all files as plain files...
+	behavior default_behavior_ = behavior::files;	// Optional
+	
+	// ...but change behavior for .html files.
+	std::regex change_behavior_regex_{".*\\.html"};	// Optional
 };	// files_and_template_pages
 
 

@@ -16,8 +16,11 @@ namespace server {
 namespace host {
 
 
-struct file_only_parameters
+template<class HostType>
+class file:
+	public ::server::host::base
 {
+public:
 	// May be useful, if several allow_regexes specified.
 	enum class allow_match_mode
 	{
@@ -26,56 +29,11 @@ struct file_only_parameters
 	};	// enum class allow_match_mode
 	
 	
-	boost::filesystem::path root;						// Required
 	
-	// Set to "index.html" for standard behavior. Empty value denies searching, if directory path requested
-	boost::filesystem::path default_index_file = "";	// Optional
-	
-	std::vector<std::regex>
-		deny_regexes =									// Optional
-			{
-				std::regex(".*\\.\\./.*"),	// Don't allow "../" sequences!
-				std::regex(".*/\\..*")		// Don't allow hidden directories and files
-			},
-		allow_regexes =									// Optional
-			{
-				// Don't allow anything by default
-			};
-	
-	allow_match_mode mode = allow_match_mode::all;		// Optional
-	
-	
-	
-	explicit file_only_parameters() = default;
-	explicit file_only_parameters(const nlohmann::json &config);
-};	// struct file_only_parameters
-
-
-struct file_parameters:
-	public ::server::host::base::parameters,
-	public file_only_parameters
-{
-	using file_only_parameters::allow_match_mode;
-	
-	
-	explicit file_parameters() = default;
-	
-	explicit file_parameters(const nlohmann::json &config):
-		::server::host::base::parameters(config),
-		file_only_parameters(config)
-	{}
-};	// struct file_parameters
-
-
-template<class HostType>
-class file:
-	public ::server::host::base
-{
-public:
-	file(const file_parameters &parameters,
+	file(const nlohmann::json &config,
 		 HostType &&handler = std::move(HostType()));
 	
-	file(const file_parameters &parameters,
+	file(const nlohmann::json &config,
 		 const HostType &handler);
 	
 	
@@ -99,9 +57,7 @@ public:
 			 const ::server::protocol::http::request &request) const override;
 protected:
 	// Validators
-	inline
-	void validate_method(::server::protocol::http::method method) const;
-	
+	inline void validate_method(::server::protocol::http::method method) const;
 	void validate_path(const std::string &path) const;
 	
 	
@@ -120,9 +76,31 @@ protected:
 				 const ::server::protocol::http::status &status) const;
 	
 	
-	// Data
-	file_only_parameters parameters_;
+	// Config parser
+	void parse_config(const nlohmann::json &config);
+	
+	
+	
+	// Parameters
+	boost::filesystem::path root_;						// Required
+	
+	// Set to "index.html" for standard behavior. Empty value denies searching, if directory path requested
+	boost::filesystem::path default_index_file_ = "";	// Optional
+	
+	std::vector<std::regex>
+		deny_regexes_ =									// Optional
+			{
+				std::regex(".*\\.\\./.*"),	// Don't allow "../" sequences!
+				std::regex(".*/\\..*")		// Don't allow hidden directories and files
+			},
+		allow_regexes_ =								// Optional
+			{
+				// Don't allow anything by default
+			};
+	
+	allow_match_mode mode_ = allow_match_mode::all;		// Optional
 private:
+	// Data
 	HostType handler_;
 };	// class file
 

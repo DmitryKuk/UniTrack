@@ -10,6 +10,7 @@
 #include <server/host/file_handlers/files_only.h>
 #include <host/file_handlers/template_pages_only.h>
 #include <host/file_handlers/files_and_template_pages.h>
+#include <host/logic.h>
 
 using namespace std::literals;
 
@@ -22,7 +23,7 @@ phony_host(const nlohmann::json &host_config,
 		   logic::global_instance & /* logic */)
 {
 	return std::make_shared<server::host::base>(
-		server::host::base::parameters{host_config}
+		host_config
 	);
 }
 
@@ -32,7 +33,7 @@ files_only_host(const nlohmann::json &host_config,
 				logic::global_instance & /* logic */)
 {
 	return std::make_shared<server::host::file<server::host::file_handlers::files_only>>(
-		server::host::file_parameters{host_config}
+		host_config
 	);
 }
 
@@ -42,7 +43,7 @@ template_pages_only_host(const nlohmann::json &host_config,
 						 logic::global_instance &logic)
 {
 	return std::make_shared<server::host::file<host::file_handlers::template_pages_only>>(
-		server::host::file_parameters{host_config},
+		host_config,
 		host::file_handlers::template_pages_only{logic}
 	);
 }
@@ -53,11 +54,22 @@ files_and_template_pages_host(const nlohmann::json &host_config,
 							  logic::global_instance &logic)
 {
 	return std::make_shared<server::host::file<host::file_handlers::files_and_template_pages>>(
-		server::host::file_parameters{host_config},
+		host_config,
 		host::file_handlers::files_and_template_pages{
-			logic,
-			host::file_handlers::files_and_template_pages::parameters{host_config}
+			host_config,
+			logic
 		}
+	);
+}
+
+
+std::shared_ptr<server::host::base>
+logic_host(const nlohmann::json &host_config,
+		   logic::global_instance &logic)
+{
+	return std::make_shared<host::logic>(
+		host_config,
+		logic
 	);
 }
 
@@ -77,7 +89,8 @@ const std::unordered_map<std::string, host_generator_type> host_generators_map =
 	hg_pair{"phony"s,						phony_host					 },
 	hg_pair{"files_only"s,					files_only_host				 },
 	hg_pair{"template_pages_only"s,			template_pages_only_host	 },
-	hg_pair{"files_and_template_pages"s,	files_and_template_pages_host}
+	hg_pair{"files_and_template_pages"s,	files_and_template_pages_host},
+	hg_pair{"logic"s,						logic_host					 }
 };
 
 
@@ -87,7 +100,7 @@ class host_manager_with_logic:
 {
 public:
 	host_manager_with_logic(const nlohmann::json &logic_config):
-		logic::global_instance{logic::global_instance::parameters{logic_config}}
+		logic::global_instance{logic_config}
 	{}
 	
 	

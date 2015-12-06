@@ -5,31 +5,17 @@
 #include <server/worker.h>
 
 
-inline
-host::file_handlers::files_and_template_pages::files_and_template_pages(
-	logic::global_instance &logic,
-	const host::file_handlers::files_and_template_pages::parameters &parameters
-):
-	template_pages_only{logic},
-	
-	parameters_{parameters}
-{}
-
-
 template<class FileHost>
 std::unique_ptr<server::protocol::http::response>
 host::file_handlers::files_and_template_pages::operator()(const FileHost &host,
-												 const server::worker &worker,
-												 const server::protocol::http::request &request,
-												 const boost::filesystem::path &path) const
+														  const server::worker &worker,
+														  const server::protocol::http::request &request,
+														  const boost::filesystem::path &path) const
 {
-	using behavior = host::file_handlers::files_and_template_pages::parameters::behavior;
-	
-	
 	// Checking type of requested file resource
-	bool is_template_page = (this->parameters_.default_behavior == behavior::template_pages);
+	bool is_template_page = (this->default_behavior_ == behavior::template_pages);
 	
-	if (std::regex_match(path.string(), this->parameters_.change_behavior_regex))
+	if (std::regex_match(path.string(), this->change_behavior_regex_))
 		is_template_page = !is_template_page;
 	
 	

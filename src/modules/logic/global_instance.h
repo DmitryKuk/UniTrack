@@ -24,50 +24,19 @@ namespace logic {
 class global_instance
 {
 public:
-	struct mongo_parameters
-	{
-		std::string uri;
-		
-		
-		explicit mongo_parameters() = default;
-		explicit mongo_parameters(const nlohmann::json &config);
-		
-		mongo_parameters(const mongo_parameters &other) = default;
-		mongo_parameters(mongo_parameters &&other) = default;
-		
-		mongo_parameters & operator=(const mongo_parameters &other) = default;
-		mongo_parameters & operator=(mongo_parameters &&other) = default;
-	};	// struct mongo_parameters
+	global_instance(const nlohmann::json &config,
+					const mongo::client::Options &options = mongo::client::Options());
 	
 	
-	struct parameters
-	{
-		mongo_parameters mongo;
-		
-		
-		explicit parameters() = default;
-		explicit parameters(const nlohmann::json &config);
-		
-		parameters(const parameters &other) = default;
-		parameters(parameters &&other) = default;
-		
-		parameters & operator=(const parameters &other) = default;
-		parameters & operator=(parameters &&other) = default;
-	};	// struct parameters
-	
-	
-	
-	explicit global_instance(const parameters &parameters,
-							 const mongo::client::Options &options = mongo::client::Options());
-	
-	
-	logic::page_model generate(const server::protocol::http::request &request,
-							   const boost::filesystem::path &path) const;
+	logic::page_model page_model(const server::protocol::http::request &request,
+								 const boost::filesystem::path &path) const;
+protected:
+	// Parameters
+	std::string mongo_uri_;	// Required
 private:
+	// Data
 	mongo::client::GlobalInstance mongo_client_global_instance_;
 	std::unique_ptr<mongo::DBClientBase> connection_ptr_;
-	
-	parameters parameters_;
 };	// class global_instance
 
 

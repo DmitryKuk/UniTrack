@@ -27,21 +27,8 @@ namespace host {
 class base
 {
 public:
-	// Host parameters. Need for every host.
-	// This is default parameters for error_host.
-	struct parameters
-	{
-		std::string				name;	// Required
-		::server::port_set_type	ports;	// Required
-		
-		
-		explicit parameters() = default;
-		explicit parameters(const nlohmann::json &config);
-	};	// struct parameters
-	
-	
-	
-	base(const parameters &parameters = base::parameters{});
+	base(const nlohmann::json &config);
+	base() = default;
 	
 	virtual ~base() = default;
 	
@@ -77,7 +64,9 @@ public:
 	std::pair<const std::string *, bool>
 	add_server_name(const worker &worker, ::server::protocol::http::response &response);
 protected:
-	parameters parameters_;
+	// Parameters
+	std::string				name_;	// Required
+	::server::port_set_type	ports_;	// Required
 };	// class base
 
 

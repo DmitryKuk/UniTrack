@@ -6,5 +6,5 @@ inline
 const std::string &
 server::host::base::name() const noexcept
 {
-	return this->parameters_.name;
+	return this->name_;
 }

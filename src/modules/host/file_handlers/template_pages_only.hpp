@@ -40,7 +40,7 @@ host::file_handlers::template_pages_only::operator()(const FileHost &host,
 	// Generating page model, loading template page, if need, and creating response
 	auto response_ptr = std::make_unique<host::file_handlers::template_pages_only::response>(
 		this->cache_.at(path),
-		this->logic_.generate(request, path),
+		this->logic_.page_model(request, path),
 		server::protocol::http::status::ok,
 		request.version
 	);

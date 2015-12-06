@@ -109,13 +109,13 @@ server::host::file<HostType>::response(const worker &worker,
 template<class HostType>
 inline
 void
-server::host::file<HostType>::validate_method(::server::protocol::http::method method) const
+server::host::file<HostType>::validate_method(::server::protocol::http::method m) const
 {
-	using namespace ::server::protocol::http;
+	using ::server::protocol::http::method;
 	
 	// This host only supports GET and HEAD methods
-	if (method != method::GET && method != method::HEAD)
-		throw ::server::host::method_not_allowed{::server::protocol::http::method_to_str(method)};
+	if (m != method::GET && m != method::HEAD)
+		throw ::server::host::method_not_allowed{::server::protocol::http::method_to_str(m)};
 }
 
 

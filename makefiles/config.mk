@@ -39,3 +39,6 @@ PREFIX_WWW			= /var/$(PROJECT_NAME_LOW)
 PREFIX_LOG			= /var/log/$(PROJECT_NAME_LOW)
 
 # ---===  End of project installation properties  ===---
+
+
+export PREFIX_THIRDPARTY

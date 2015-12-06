@@ -48,42 +48,42 @@ $(ID)_GPP_HEADER_PATHS		:= -I'$($(ID)_SRC_DIR_CURR)'
 
 
 # Sources and headers
-$(ID)_HEADER_FILES :=										\
-	$(shell find '$($(ID)_SRC_DIR_CURR)'					\
-		\( -type f -or -type l \)							\
-		-not -name 'test*'									\
+$(ID)_HEADER_FILES :=														\
+	$(shell find '$($(ID)_SRC_DIR_CURR)'									\
+		\( -type f -or -type l \)											\
+		-not -name 'test*'													\
 		\( -name '*.h' -or -name '*.hpp' \))
 
 
 # .cpp files in BFS order
-$(ID)_SRC_CPP_FILES :=										\
-	$(shell													\
-		DIRS=$($(ID)_SRC_DIR_CURR);							\
-		while [ "X$$DIRS" != "X" ]; do						\
-			find $$DIRS -d 1 \( -type f -or -type l \) 		\
-				 -not \( -name 'test*' -or -name 'main*' \)	\
-				 -name '*.cpp';								\
-			DIRS=$$(find $$DIRS -d 1 -type d);				\
-		done												\
+$(ID)_SRC_CPP_FILES :=														\
+	$(shell																	\
+		DIRS=$($(ID)_SRC_DIR_CURR);											\
+		while [ "X$$DIRS" != "X" ]; do										\
+			find $$DIRS -maxdepth 1 -mindepth 1 \( -type f -or -type l \)	\
+				 -not \( -name 'test*' -or -name 'main*' \)					\
+				 -name '*.cpp';												\
+			DIRS=$$(find $$DIRS -maxdepth 1 -mindepth 1 -type d);			\
+		done																\
 	)
 
 
 # main*.cpp files in BFS order
-$(ID)_MAIN_CPP_FILES :=										\
-	$(shell													\
-		DIRS=$($(ID)_SRC_DIR_CURR);							\
-		while [ "X$$DIRS" != "X" ]; do						\
-			find $$DIRS -d 1 \( -type f -or -type l \) 		\
-				 -name 'main*.cpp';							\
-			DIRS=$$(find $$DIRS -d 1 -type d);				\
-		done												\
+$(ID)_MAIN_CPP_FILES :=														\
+	$(shell																	\
+		DIRS=$($(ID)_SRC_DIR_CURR);											\
+		while [ "X$$DIRS" != "X" ]; do										\
+			find $$DIRS -maxdepth 1 -mindepth 1 \( -type f -or -type l \)	\
+				 -name 'main*.cpp';											\
+			DIRS=$$(find $$DIRS -maxdepth 1 -mindepth 1 -type d);			\
+		done																\
 	)
 
 
 # Tests
-$(ID)_TEST_SRC_CPP_FILES :=									\
-	$(shell find '$($(ID)_SRC_DIR_CURR)'					\
-		\( -type f -or -type l \)							\
+$(ID)_TEST_SRC_CPP_FILES :=													\
+	$(shell find '$($(ID)_SRC_DIR_CURR)'									\
+		\( -type f -or -type l \)											\
 		-name 'test*.cpp')
 
 

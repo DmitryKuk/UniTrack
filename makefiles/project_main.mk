@@ -37,8 +37,8 @@ GPP_LIB_PATHS				+= -L'$(PREFIX_THIRDPARTY)/lib' -L'$(LIB_DIR)'
 GPP_COMPILE_FLAGS			+= $(GPP_PROJECT_DATA)
 
 
-MODULES						= $(notdir $(shell find '$(MODULES_SRC_DIR)' -depth 1 -type d))
-TARGETS						= $(notdir $(shell find '$(TARGETS_SRC_DIR)' -depth 1 -type d))
+MODULES						= $(notdir $(shell find '$(MODULES_SRC_DIR)' -maxdepth 1 -mindepth 1 -type d))
+TARGETS						= $(notdir $(shell find '$(TARGETS_SRC_DIR)' -maxdepth 1 -mindepth 1 -type d))
 
 
 # Global lists of test targets
@@ -95,18 +95,18 @@ tests: dirs $(TEST_TARGET_FILES)
 
 
 third-party:
-	$(MAKE) -C "$(THIRDPARTY_DIR)"
+	$(MAKE) -C '$(THIRDPARTY_DIR)'
 
 
 
 # Cleaning
 # Cleaning project targets and modules (not third-party!)
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -rf '$(BUILD_DIR)'
 
 
 clean-third-party:
-	$(MAKE) -C "$(THIRDPARTY_DIR)" clean
+	$(MAKE) -C '$(THIRDPARTY_DIR)' clean
 
 
 # Cleaning all built files (submodules and third-party too!)
@@ -133,7 +133,7 @@ install-bin:
 
 
 install-third-party:
-	$(MAKE) -C "$(THIRDPARTY_DIR)" install
+	$(MAKE) -C '$(THIRDPARTY_DIR)' install
 
 
 install-config:

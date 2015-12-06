@@ -3,12 +3,12 @@
 # This Makefile contains Mac OS X platform-dependent things.
 
 
-GPP							= clang++
+export GPP					= clang++
 
 
 # MacPorts installs boost and others into /opt/local
-GPP_HEADER_PATHS			+= -cxx-isystem/opt/local/include
-GPP_LIB_PATHS				+= -L/opt/local/lib
+export GPP_HEADER_PATHS		+= -cxx-isystem/opt/local/include
+export GPP_LIB_PATHS		+= -L/opt/local/lib
 
-OSX_VERSION					= $(shell sw_vers -productVersion)
-OSX_VERSION_MIN				= $(shell echo $(OSX_VERSION) | cut -d. -f1,2)
+export OSX_VERSION			= $(shell sw_vers -productVersion)
+export OSX_VERSION_MIN		= $(shell echo $(OSX_VERSION) | cut -d. -f1,2)

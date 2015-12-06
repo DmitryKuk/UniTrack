@@ -10,7 +10,7 @@ MONGO_BUILD_LOG_FILE		= $(LOGS_DIR)/mongo-cxx-driver_build_log.txt
 MONGO_INSTALL_LOG_FILE		= $(LOGS_DIR)/mongo-cxx-driver_install_log.txt
 
 
-MONGO_FLAGS					= -C "$(MONGO_CXX_DRIVER_PATH)" "-j$(DEFAULT_JOBS)"			\
+MONGO_FLAGS					= -C "$(MONGO_CXX_DRIVER_PATH)" "-j$(JOBS)"					\
 							  --sharedclient --c++11=on --release --dbg=off				\
 							  --prefix="$(PREFIX_THIRDPARTY)"
 
@@ -30,7 +30,7 @@ endif
 
 all:
 	echo '$(COLOR_RUN)Building MongoDB C++ driver'										\
-		 '(in $(DEFAULT_JOBS) job(s))...$(COLOR_RESET)';								\
+		 '(in $(JOBS) job(s))...$(COLOR_RESET)';										\
 	scons $(MONGO_FLAGS) >$(MONGO_BUILD_LOG_FILE) 2>&1;									\
 	STATUS=$$?;																			\
 	if [ "X$$STATUS" == "X0" ]; then													\

@@ -43,18 +43,6 @@ gpp_link				= $(GPP) $(GPP_LINK_FLAGS) $($(ID)_GPP_LINK_FLAGS)				\
 								 -o '$(1)' $(2)
 
 
-# Not used now. Usage:
-# 	$(call gpp_get_header_deps,path/to/file.cpp)
-# returns list of included files.
-# Warning: pathes of included files are NOT resolved. This not works now!
-
-# gpp_get_header_deps		= $(shell $(GPP) $(GPP_HEADER_PATHS) $($(ID)_GPP_HEADER_PATHS)	\
-# 										 $(GPP_HEADER_DEPS_FLAGS) "$(1)" |				\
-# 								  tr -d '\\\n' |										\
-# 								  sed -E 's/.*\.o: *.*\.cpp//')
-
-
-
 target_name_from_this	= $(shell basename $$( dirname '$(1)' ))
 
 

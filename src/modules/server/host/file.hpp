@@ -111,10 +111,11 @@ inline
 void
 server::host::file<HostType>::validate_method(::server::protocol::http::method method) const
 {
-	using ::server::protocol::http::method;
+	using ::server::protocol::http::method::GET;
+	using ::server::protocol::http::method::HEAD;
 	
 	// This host only supports GET and HEAD methods
-	if (method != method::GET && method != method::HEAD)
+	if (method != GET && method != HEAD)
 		throw ::server::host::method_not_allowed{::server::protocol::http::method_to_str(method)};
 }
 

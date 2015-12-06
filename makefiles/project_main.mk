@@ -319,5 +319,5 @@ lines:
 		( find -E $$2 $$3 -type f -regex "$$1" -exec grep -ch '^' {} \; |						\
 	 	  tr "\n" '+' && echo '0' ) | bc;														\
 	};																							\
-	echo "Total lines of all C++-sources: $$( lines_count '.*\.(cpp|h|hpp)' $(SRC_DIR) )";		\
+	echo "Total lines of all C++ sources: $$( lines_count '.*\.(cpp|h|hpp)' $(SRC_DIR) )";		\
 	echo "Total lines of all Makefiles:   $$( lines_count '.*\.mk' $(MK_DIR) $(SRC_DIR) )"

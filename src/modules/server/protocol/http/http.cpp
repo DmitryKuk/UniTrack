@@ -2,6 +2,7 @@
 
 #include <server/protocol/http/http.h>
 
+#include <vector>
 #include <unordered_map>
 #include <regex>
 #include <cctype>
@@ -39,16 +40,20 @@ const std::string
 
 namespace {
 
-const std::string
-	method_GET		= "GET"s,
-	method_HEAD		= "HEAD"s,
-	method_POST		= "POST"s,
-	method_DELETE	= "DELETE"s,
-	method_unknown	= "unknown"s;
 
 const std::string
-	version_v_1_1	= "1.1"s,
-	version_unknown	= "unknown"s;
+	method_unknown	= "unknown"s,	// 0
+	
+	method_GET		= "GET"s,		// 1
+	method_HEAD		= "HEAD"s,		// 2
+	method_POST		= "POST"s,		// 3
+	method_DELETE	= "DELETE"s;	// 4
+
+const std::string
+	version_unknown	= "unknown"s,	// 0
+	
+	version_v_1_1	= "1.1"s;		// 1
+
 
 };	// namespace
 
@@ -56,23 +61,22 @@ const std::string
 const std::string &
 server::protocol::http::method_to_str(server::protocol::http::method method) noexcept
 {
-	typedef std::pair<server::protocol::http::method, std::string> pair;
-	
-	static const std::unordered_map<server::protocol::http::method, std::string> method_to_str_map{
+	static const std::vector<const std::string *> method_str_vector{
 		{
-			pair{server::protocol::http::method::GET,		method_GET    },
-			pair{server::protocol::http::method::HEAD,		method_HEAD   },
-			pair{server::protocol::http::method::POST,		method_POST   },
-			pair{server::protocol::http::method::DELETE,	method_DELETE },
-			pair{server::protocol::http::method::unknown,	method_unknown}
+			&method_unknown,
+			
+			&method_GET,
+			&method_HEAD,
+			&method_POST,
+			&method_DELETE
 		}
 	};
 	
 	
-	auto it = method_to_str_map.find(method);
-	if (it == method_to_str_map.end())
+	size_t method_val = static_cast<size_t>(method);
+	if (method_val >= method_str_vector.size())
 		return method_unknown;
-	return it->second;
+	return *method_str_vector[method_val];
 }
 
 
@@ -102,20 +106,19 @@ server::protocol::http::str_to_method(const std::string &str) noexcept
 const std::string &
 server::protocol::http::version_to_str(server::protocol::http::version version) noexcept
 {
-	typedef std::pair<server::protocol::http::version, std::string> pair;
-	
-	static const std::unordered_map<server::protocol::http::version, std::string> version_to_str_map{
+	static const std::vector<const std::string *> version_str_vector{
 		{
-			pair{server::protocol::http::version::v_1_1,	version_v_1_1  },
-			pair{server::protocol::http::version::unknown,	version_unknown}
+			&version_unknown,
+			
+			&version_v_1_1
 		}
 	};
 	
 	
-	auto it = version_to_str_map.find(version);
-	if (it == version_to_str_map.end())
+	size_t version_val = static_cast<size_t>(version);
+	if (version_val >= version_str_vector.size())
 		return version_unknown;
-	return it->second;
+	return *version_str_vector[version_val];
 }
 
 

@@ -52,12 +52,12 @@ extern const std::string
 
 enum class method
 {
-	GET,
-	HEAD,
-	POST,
-	DELETE,
+	unknown	= 0,
 	
-	unknown
+	GET		= 1,
+	HEAD	= 2,
+	POST	= 3,
+	DELETE	= 4
 };	// enum class method
 
 const std::string & method_to_str(method method_) noexcept;
@@ -66,9 +66,9 @@ method str_to_method(const std::string &str) noexcept;
 
 enum class version
 {
-	v_1_1,	// HTTP/1.1
+	unknown	= 0,
 	
-	unknown
+	v_1_1	= 1	// HTTP/1.1
 };	// enum class version
 
 const std::string & version_to_str(version version_) noexcept;

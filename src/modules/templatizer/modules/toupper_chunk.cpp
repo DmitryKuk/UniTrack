@@ -38,7 +38,7 @@ templatizer::toupper_chunk::generate(base::send_buffers_insert_functor buffers_i
 									 const templatizer::model &model) const
 { 
 	auto toup = model.variable(this->symbol_);
-	std::transform(toup.begin(), toup.end(), toup.begin(), std::toupper);
+	std::transform(toup.begin(), toup.end(), toup.begin(), static_cast<int (*)(int)>(std::toupper));
 	
 	return buffers_ins_fn(cache(toup));
 }

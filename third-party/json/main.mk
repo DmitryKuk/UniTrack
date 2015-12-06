@@ -22,7 +22,7 @@ install:
 	mkdir -p "$$DIR";																	\
 	install "$(JSON_PATH)/src/json.hpp" "$$DIR";										\
 	STATUS=$$?;																			\
-	if [ "X$$STATUS" == "X0" ]; then													\
+	if [ "X$$STATUS" = 'X0' ]; then														\
 		echo '$(COLOR_PASS)==> Nlohmann JSON installed successfully.$(COLOR_RESET)';	\
 		true;																			\
 	else																				\

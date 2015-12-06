@@ -32,7 +32,7 @@ $($(ID)_TARGET_FILE): $($(ID)_OBJ_FILES) $($(ID)_MAIN_OBJ_FILES)					\
 		 " $(subst $(BIN_DIR)/,,$@)...$(COLOR_RESET)";								\
 	$(call gpp_link,$@,$($(ID)_OBJ_FILES) $($(ID)_MAIN_OBJ_FILES));					\
 	STATUS=$$?;																		\
-	if [ "X$$STATUS" == 'X0' ]; then												\
+	if [ "X$$STATUS" = 'X0' ]; then													\
 		echo "$(COLOR_PASS)==> Built successfully:"									\
 			 " [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)].$(COLOR_RESET)";		\
 	else																			\
@@ -51,7 +51,7 @@ $($(ID)_TARGET_LIB_FILE): $($(ID)_OBJ_FILES)										\
 		 " $(subst $(LIB_DIR)/,,$@)...$(COLOR_RESET)";								\
 	$(call gpp_shared_lib,$@,$($(ID)_OBJ_FILES));									\
 	STATUS=$$?;																		\
-	if [ "X$$STATUS" == 'X0' ]; then												\
+	if [ "X$$STATUS" = 'X0' ]; then													\
 		echo "$(COLOR_PASS)==> Built successfully:"									\
 			 " [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)].$(COLOR_RESET)";		\
 	else																			\
@@ -72,7 +72,7 @@ $($(ID)_TEST_DIR_CURR)/%: $($(ID)_OBJ_DIR_CURR)/%.o									\
 		 " $$TEST...$(COLOR_RESET)";												\
 	$(call gpp_link,$@,'$<' $($(ID)_OBJ_FILES));									\
 	STATUS=$$?;																		\
-	if [ "X$$STATUS" == 'X0' ]; then												\
+	if [ "X$$STATUS" = 'X0' ]; then													\
 		echo "$(COLOR_PASS)==> Test built successfully:"							\
 			 " [$($(ID)_TARGET_TYPE): $($(ID)_TARGET_NAME)].$(COLOR_RESET)";		\
 	else																			\

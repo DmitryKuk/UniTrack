@@ -33,7 +33,7 @@ all:
 		 '(in $(JOBS) job(s))...$(COLOR_RESET)';										\
 	scons $(MONGO_FLAGS) >$(MONGO_BUILD_LOG_FILE) 2>&1;									\
 	STATUS=$$?;																			\
-	if [ "X$$STATUS" == "X0" ]; then													\
+	if [ "X$$STATUS" = 'X0' ]; then														\
 		echo '$(COLOR_PASS)==> MongoDB C++ driver built successfully.$(COLOR_RESET)';	\
 		true;																			\
 	else																				\
@@ -53,7 +53,7 @@ install:
 	mkdir -p "$$DIR";																	\
 	scons $(MONGO_FLAGS) install >$(MONGO_INSTALL_LOG_FILE) 2>&1;						\
 	STATUS=$$?;																			\
-	if [ "X$$STATUS" == "X0" ]; then													\
+	if [ "X$$STATUS" = 'X0' ]; then														\
 		echo '$(COLOR_PASS)==> MongoDB C++ driver'										\
 			 'installed successfully.$(COLOR_RESET)';									\
 	else																				\

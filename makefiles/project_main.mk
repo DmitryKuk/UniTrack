@@ -209,7 +209,7 @@ run: targets
 		echo "$(COLOR_RUN)Running: $$T...$(COLOR_RESET)";							\
 		"./$(BIN_DIR)/$$T";															\
 		STATUS=$$?;																	\
-		if [ "X$$STATUS" == 'X0' ]; then											\
+		if [ "X$$STATUS" = 'X0' ]; then												\
 			echo "$(COLOR_PASS)==> Done successfully: $$T.$(COLOR_RESET)";			\
 			let ++NUM_SUCCESS;														\
 		else																		\
@@ -234,7 +234,7 @@ run-tests: tests
 		echo "$(COLOR_RUN)Running: $$TNAME...$(COLOR_RESET)";						\
 		"./$$T";																	\
 		STATUS=$$?;																	\
-		if [ "X$$STATUS" == 'X0' ]; then											\
+		if [ "X$$STATUS" = 'X0' ]; then												\
 			let ++NUM_SUCCESS;														\
 		else																		\
 			echo "$(COLOR_FAIL)==> Test failed: $$TNAME"							\

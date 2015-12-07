@@ -1,6 +1,6 @@
 {
 	"server": {
-		"ports":[ 8080 ],
+		"ports": [ 8080 ],
 		"workers": 3,
 		
 		"server_names": [

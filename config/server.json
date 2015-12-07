@@ -1,25 +1,6 @@
 {
-	"hosts": [
-		{
-			"name": "localhost",
-			"ports": [ 8080 ],
-			
-			"type": "files_and_template_pages",
-			"root": "/var/unitrack/www",
-			
-			"default_index_file": "index.html",
-			
-			"allow_match_mode": "any",
-			"allow_regexes": [ "/.*" ],
-			
-			"default_behavior": "files",
-			"change_behavior_regex": ".*\\.html"
-		}
-	],
-	
-	
 	"server": {
-		"ports": [ 8080 ],
+		"ports":[ 8080 ],
 		"workers": 3,
 		
 		"server_names": [
@@ -32,5 +13,36 @@
 			"segasrv/1.0 (SEGA MEGA DRIVE HTTP SERVER ROM 1.0)",
 			"Tea with milk (Full cup, with sugar)"
 		]
-	}
+	},
+	
+	"hosts": [
+		{
+			"name": "localhost",
+			"ports": [ 8080 ],
+			
+			"type": "hierarchy",
+			
+			
+			"default": {
+				"type": "files_and_template_pages",
+				
+				"root": "/var/unitrack/www",
+				
+				"default_index_file": "index.html",
+				
+				"allow_match_mode": "any",
+				"allow_regexes": [ "/.*" ],
+				
+				"default_behavior": "files",
+				"change_behavior_regex": ".*\\.html"
+			},
+			
+			
+			"content": {
+				"user": {
+					"type": "logic"
+				}
+			}
+		}
+	]
 }

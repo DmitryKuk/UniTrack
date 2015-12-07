@@ -33,7 +33,7 @@ server::host::base::port_allowed(::server::port_type port) const noexcept
 // virtual
 std::unique_ptr<::server::protocol::http::response>
 server::host::base::response(const ::server::worker &worker,
-							 const ::server::protocol::http::request &request) const
+							 ::server::protocol::http::request &request) const
 {
 	return this->phony_response(worker, request, ::server::protocol::http::status::not_found);
 }

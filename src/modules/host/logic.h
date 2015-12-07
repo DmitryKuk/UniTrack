@@ -34,7 +34,7 @@ public:
 	virtual
 	std::unique_ptr<server::protocol::http::response>
 	response(const server::worker &worker,
-			 const server::protocol::http::request &request) const override;
+			 server::protocol::http::request &request) const override;
 private:
 	::logic::global_instance &logic_;
 };	// class logic

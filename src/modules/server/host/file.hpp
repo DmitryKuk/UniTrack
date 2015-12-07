@@ -34,7 +34,7 @@ template<class HostType>
 // virtual
 std::unique_ptr<::server::protocol::http::response>
 server::host::file<HostType>::response(const worker &worker,
-									   const ::server::protocol::http::request &request) const
+									   ::server::protocol::http::request &request) const
 {
 	using namespace std::literals;
 	using ::server::protocol::http::status;

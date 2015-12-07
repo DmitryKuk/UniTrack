@@ -36,11 +36,13 @@ public:
 	virtual
 	std::unique_ptr<server::protocol::http::response>
 	response(const server::worker &worker,
-			 const server::protocol::http::request &request) const override;
+			 server::protocol::http::request &request) const override;
 protected:
 	::logic::global_instance &logic_;
 private:
-	std::unordered_map<std::string, std::shared_ptr<server::host::base>> hosts_;
+	// Hosts from parameters
+	std::unordered_map<std::string, std::shared_ptr<server::host::base>> hosts_;	// Optional
+	std::shared_ptr<server::host::base> default_host_;								// Optional
 };	// class hierarchy
 
 

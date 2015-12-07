@@ -54,7 +54,7 @@ public:
 	virtual
 	std::unique_ptr<::server::protocol::http::response>
 	response(const worker &worker,
-			 const ::server::protocol::http::request &request) const override;
+			 ::server::protocol::http::request &request) const override;
 protected:
 	// Validators
 	inline void validate_method(::server::protocol::http::method method) const;

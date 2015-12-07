@@ -46,7 +46,7 @@ public:
 	virtual
 	std::unique_ptr<::server::protocol::http::response>
 	response(const worker &worker,
-			 const ::server::protocol::http::request &request) const;
+			 ::server::protocol::http::request &request) const;
 	
 	
 	// Prepares a phony response to the client.

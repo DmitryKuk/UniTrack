@@ -13,11 +13,11 @@
 using namespace std::literals;
 
 
-server::acceptor::acceptor(::server::worker &worker, ::server::port_type port):
-	boost::asio::ip::tcp::acceptor{worker.io_service()},
+server::acceptor::acceptor(boost::asio::io_service &io_service, ::server::port_type port):
+	boost::asio::ip::tcp::acceptor{io_service},
 	
-	worker_ptr_{&worker},
-	socket_{this->worker_ptr_->io_service()}
+	worker_ptr_{nullptr},
+	socket_{io_service}
 {
 	// Configuring acceptor's socket manually
 	{
@@ -41,10 +41,8 @@ server::acceptor::acceptor(::server::worker &worker, ::server::port_type port):
 	}
 	
 	
-	this->add_accept_handler();
-	
 	logger::stream(logger::level::info)
-		<< "Accepting on port: "s << this->local_endpoint().port() << ": started."s;
+		<< "Listening on port: "s << this->local_endpoint().port() << ": started."s;
 }
 
 
@@ -52,6 +50,17 @@ server::acceptor::~acceptor()
 {
 	boost::system::error_code err;
 	this->close(err);
+}
+
+
+void
+server::acceptor::start_accepting(::server::worker &worker)
+{
+	this->worker_ptr_ = &worker;
+	this->add_accept_handler();
+	
+	logger::stream(logger::level::info)
+		<< "Accepting on port: "s << this->local_endpoint().port() << ": started."s;
 }
 
 

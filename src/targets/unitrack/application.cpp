@@ -9,7 +9,6 @@
 #include <server/server.h>
 #include <host/manager_generator.h>
 
-
 using namespace std::literals;
 
 
@@ -26,14 +25,13 @@ application::application(int argc, char **argv) noexcept:
 		// Server and hosts config
 		auto config = base::json_utils::json_from_file(project_config::server);
 		
-		
 		// Server
 		this->server_ptr_ = std::make_unique<server::server>(
-			server::server::parameters{base::json_utils::at(config, "server"s)},
+			base::json_utils::at(config, "server"s),
 			
 			host::manager_generator{
-				std::move(base::json_utils::at(config, "hosts"s)),
-				std::move(base::json_utils::json_from_file(project_config::logic))
+				base::json_utils::at(config, "hosts"s),
+				base::json_utils::json_from_file(project_config::logic)
 			}
 		);
 	} catch (const std::exception &e) {

@@ -18,7 +18,7 @@ class acceptor:
 	protected boost::asio::ip::tcp::acceptor
 {
 public:
-	acceptor(worker &worker, ::server::port_type port);
+	acceptor(boost::asio::io_service &io_service, ::server::port_type port);
 	~acceptor();
 	
 	acceptor(acceptor &&other) = default;
@@ -26,6 +26,8 @@ public:
 	
 	acceptor(const acceptor &other) = delete;
 	acceptor & operator=(const acceptor &other) = delete;
+	
+	void start_accepting(worker &worker);
 private:
 	// Handlers
 	// Add accept_handler to the io_service event loop

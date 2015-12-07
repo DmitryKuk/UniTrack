@@ -8,48 +8,12 @@
 #include <server/host/exceptions.h>
 
 
-// Creates and runs new worker in separate process
-// Returns correct child process object (only in parent process!)
-// Throws: std::system_error, if it's impossible to create process (only in parent process!)
-// NEVER returns in child process!
-
-// NOTE: Host manager generator should return std::unique_ptr<server::host::manager> to correct
-// and ready-to-response host manager. If it is impossible, please, throw!
-// static
-template<class HMGen>
-system_::process
-server::worker::run(::server::server &server,
-					HMGen &&hm_gen)	// Host manager generator
-{
-	return system_::process{
-		[&]
-		{
-			return ::server::worker{server, std::forward<HMGen>(hm_gen)}.run();
-		}
-	};
-}
-
-
-boost::asio::io_service &
-server::worker::io_service() noexcept
-{
-	return this->io_service_;
-}
-
-
-inline
-::server::host::manager &
-server::worker::host_manager() noexcept
-{
-	return *this->host_manager_ptr_;
-}
-
-
 // Constructor
 // NOTE: Host manager generator should return std::unique_ptr<server::host::manager> to correct
 // and ready-to-response host manager. If it is impossible, please, throw!
 template<class HMGen>
 server::worker::worker(::server::server &server,
+					   std::vector<::server::acceptor> &acceptors,
 					   HMGen &&hm_gen):	// Host manager generator
 	server_{server},
 	
@@ -63,8 +27,10 @@ server::worker::worker(::server::server &server,
 		)()
 	},
 	
-	empty_work_{this->io_service_},
-	signal_set_{this->io_service_},
+	empty_work_{this->server_.io_service()},
+	signal_set_{this->server_.io_service()},
+	
+	acceptors_{acceptors},
 	
 	server_name_generator_{std::random_device{}()}		// /dev/urandom used as seed generator
 {
@@ -79,8 +45,23 @@ server::worker::worker(::server::server &server,
 		this->add_signal_handler();
 	}
 	
-	// Creating acceptors
-	this->acceptors_.reserve(this->server_.parameters_.ports.size());
-	for (auto port: this->server_.parameters_.ports)
-		this->acceptors_.emplace_back(*this, port);
+	// Start accepting
+	for (auto &acceptor: this->acceptors_)
+		acceptor.start_accepting(*this);
+}
+
+
+inline
+boost::asio::io_service &
+server::worker::io_service() noexcept
+{
+	return this->server_.io_service();
+}
+
+
+inline
+::server::host::manager &
+server::worker::host_manager() noexcept
+{
+	return *this->host_manager_ptr_;
 }

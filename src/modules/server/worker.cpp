@@ -30,7 +30,32 @@ const std::unordered_map<int, std::pair<const char *, void (server::worker::*)(i
 #undef SIGNAL_REACTION
 
 
-// Returns server name (random!)
+// Returns exit status for current process
+int
+server::worker::run() noexcept
+{
+	this->status_ = 0;
+	
+	logger::log(logger::level::info, "Started."s);
+	
+	
+	try {
+		this->io_service().run();
+		
+		logger::log(logger::level::info, "Stopped."s);
+	} catch (const std::exception &e) {
+		logger::stream(logger::level::error)
+			<< "Failed: "s << e.what();
+		
+		this->status_ = 1;
+	}
+	
+	
+	return this->status_;
+}
+
+
+// Returns random server name
 const std::string &
 server::worker::server_name() const noexcept
 {
@@ -67,31 +92,6 @@ server::worker::add_client(::server::socket &&socket) noexcept
 
 
 // private
-// Returns exit status for current process
-int
-server::worker::run() noexcept
-{
-	this->status_ = 0;
-	
-	logger::log(logger::level::info, "Started."s);
-	
-	
-	try {
-		this->io_service_.run();
-		
-		logger::log(logger::level::info, "Stopped."s);
-	} catch (const std::exception &e) {
-		logger::stream(logger::level::error)
-			<< "Failed: "s << e.what();
-		
-		this->status_ = 1;
-	}
-	
-	
-	return this->status_;
-}
-
-
 void
 server::worker::add_signal_handler() noexcept
 {
@@ -109,7 +109,7 @@ server::worker::signal_handler(const boost::system::error_code &err, int signal)
 			<< "Signal handle error: "s << err.message() << '.';
 		
 		this->status_ = 1;
-		this->io_service_.stop();
+		this->io_service().stop();
 	} else {
 		auto it = worker::signal_handlers_.find(signal);
 		if (it == worker::signal_handlers_.end())
@@ -127,7 +127,7 @@ server::worker::exit(int signal, const char *signal_str) noexcept
 	logger::stream(logger::level::info)
 		<< "Recieved signal: "s << signal_str << " ("s << signal << "). Stopping..."s;
 	
-	this->io_service_.stop();
+	this->io_service().stop();
 }
 
 

@@ -12,15 +12,6 @@
 using namespace std::literals;
 
 
-// struct server::server::parameters
-server::server::parameters::parameters(const nlohmann::json &config)
-{
-	base::json_utils::extract(config, this->ports,			"ports"s);
-	base::json_utils::extract(config, this->workers,		"workers"s);
-	base::json_utils::extract(config, this->server_names,	"server_names"s);
-}
-
-
 // class server::server
 void
 server::server::stop() noexcept

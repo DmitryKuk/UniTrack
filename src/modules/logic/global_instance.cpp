@@ -24,11 +24,11 @@ logic::global_instance::global_instance(const nlohmann::json &config,
 	try {
 		mongo_config_ptr = &base::json_utils::at(config, "mongo"s);
 	} catch (const std::out_of_range &) {
-		throw logic::parameters_init_error{"Required key: \"mongo\" missed"s};
+		throw logic::global_instance_init_error{"Required key: \"mongo\" missed"s};
 	}
 	
 	if (!base::json_utils::extract(*mongo_config_ptr, this->mongo_uri_, "uri"s))
-		throw logic::parameters_init_error{"Required key: \"uri\" missed (in mongo parameters)"s};
+		throw logic::global_instance_init_error{"Required key: \"uri\" missed (in mongo parameters)"s};
 	
 	
 	// Connection to MongoDB

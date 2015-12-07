@@ -1,25 +1,48 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
 #include <logger/logger.h>
+#include <base/json_utils.h>
+#include <server/acceptor.h>
 #include <server/worker.h>
 
 
 template<class HMGen>
-server::server::server(const ::server::server::parameters &parameters,
-					   HMGen &&hm_gen):
-	parameters_{parameters}
+server::server::server(const nlohmann::json &config,
+					   HMGen &&hm_gen)
 {
 	using namespace std::literals;
 	
 	
+	base::json_utils::extract(config, this->ports_,		"ports"s);
+	base::json_utils::extract(config, this->workers_,	"workers"s);
+	base::json_utils::extract(config, this->names_,		"server_names"s);
+	
+	
 	try {
-		// Workers creation
-		this->worker_processes_.reserve(this->parameters_.workers);
+		// Creating acceptors
+		std::vector<::server::acceptor>	acceptors;	// Need for accepting clients on ports
 		
-		auto workers_message = "Server: Workers created ("s + std::to_string(this->parameters_.workers) + "):"s;
+		acceptors.reserve(this->ports_.size());
+		for (auto port: this->ports_)
+			acceptors.emplace_back(this->io_service_, port);
 		
-		for (unsigned int i = 0; i < this->parameters_.workers; ++i) {
-			this->worker_processes_.emplace_back(::server::worker::run(*this, std::forward<HMGen>(hm_gen)));
+		
+		// Creating workers
+		this->worker_processes_.reserve(this->workers_);
+		
+		auto workers_message = "Server: Workers created ("s + std::to_string(this->workers_) + "):"s;
+		
+		for (unsigned int i = 0; i < this->workers_; ++i) {
+			this->io_service_.notify_fork(boost::asio::io_service::fork_prepare);
+			this->worker_processes_.emplace_back(
+				[&]() -> int
+				{
+					this->io_service_.notify_fork(boost::asio::io_service::fork_child);
+					return ::server::worker{*this, acceptors, std::forward<HMGen>(hm_gen)}.run();
+				}
+			);
+			this->io_service_.notify_fork(boost::asio::io_service::fork_parent);
+			
 			
 			workers_message += ' ';
 			workers_message += std::to_string(this->worker_processes_.back().get_id());
@@ -40,34 +63,18 @@ server::server::server(const ::server::server::parameters &parameters,
 }
 
 
-// // Checks server's thread for joinable
-// inline bool
-// server::server::joinable() const noexcept
-// {
-// 	return this->server_thread_.joinable();
-// }
-
-
-// // Joins server's thread
-// inline void
-// server::server::join()
-// {
-// 	this->server_thread_.join();
-// }
-
-
-// // Detaches server's thread
-// inline void
-// server::server::detach()
-// {
-// 	this->server_thread_.detach();
-// }
-
-
 // Returns server names
 inline
 const std::vector<std::string> &
 server::server::names() const noexcept
 {
-	return this->parameters_.server_names;
+	return this->names_;
+}
+
+
+inline
+boost::asio::io_service &
+server::server::io_service() noexcept
+{
+	return this->io_service_;
 }

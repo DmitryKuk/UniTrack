@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#include <boost/asio/io_service.hpp>
+
 #include <json.hpp>
 
 #include <system_/process.h>
@@ -22,26 +24,8 @@ class worker;
 class server
 {
 public:
-	struct parameters
-	{
-		::server::port_set_type		ports			= {};
-		unsigned int				workers			= 1;
-		
-		
-		std::vector<std::string>	server_names	=	// Optional
-			{
-#				include <server/default_server_names.hpp>
-			};
-		
-		
-		explicit parameters() = default;
-		explicit parameters(const nlohmann::json &config);
-	};	// struct parameters
-	
-	
-	
 	template<class HMGen>
-	server(const parameters &parameters,
+	server(const nlohmann::json &config,
 		   HMGen &&hm_gen);	// Host manager generator
 	
 	
@@ -57,20 +41,24 @@ public:
 	void stop() noexcept;
 	
 	
-	// inline bool joinable() const noexcept;	// Checks server's thread for joinable
-	// inline void join();						// Joins server's thread
-	// inline void detach();					// Detaches server's thread
+	inline boost::asio::io_service & io_service() noexcept;
 	
 	
 	// Returns server names
 	inline const std::vector<std::string> & names() const noexcept;
 protected:
-	friend class worker;
+	// Parameters
+	::server::port_set_type		ports_		= {};	// Optional
+	unsigned int				workers_	= 1;	// Optional
 	
-	// Data
-	parameters parameters_;
+	std::vector<std::string>	names_		=		// Optional
+		{
+#			include <server/default_server_names.hpp>
+		};
 private:
 	// Data
+	boost::asio::io_service io_service_;
+	
 	std::vector<system_::process> worker_processes_;
 };	// class server
 

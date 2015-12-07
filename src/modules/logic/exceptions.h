@@ -17,13 +17,6 @@ public:
 };
 
 
-class parameters_init_error: public error
-{
-public:
-	explicit parameters_init_error(const std::string &description);
-};
-
-
 class global_instance_init_error: public error
 {
 public:

@@ -32,7 +32,7 @@ server::server::server(const nlohmann::json &config,
 		
 		auto workers_message = "Server: Workers created ("s + std::to_string(this->workers_) + "):"s;
 		
-		for (unsigned int i = 0; i < this->workers_; ++i) {
+		for (decltype(this->workers_) i = 0; i < this->workers_; ++i) {
 			this->io_service_.notify_fork(boost::asio::io_service::fork_prepare);
 			this->worker_processes_.emplace_back(
 				[&]() -> int

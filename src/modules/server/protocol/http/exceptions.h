@@ -92,6 +92,13 @@ public:
 };
 
 
+class data_size_error: public error
+{
+public:
+	explicit data_size_error();
+};
+
+
 };	// namespace http
 };	// namespace protocol
 };	// namespace server

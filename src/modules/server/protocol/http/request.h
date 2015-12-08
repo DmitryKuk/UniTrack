@@ -5,6 +5,8 @@
 
 #include <istream>
 #include <string>
+#include <vector>
+#include <unordered_set>
 #include <unordered_map>
 
 #include <boost/asio/ip/address.hpp>
@@ -26,19 +28,31 @@ class request:
 public:
 	// Data
 	// Protocol info
-	::server::protocol::http::method					method  = ::server::protocol::http::method::unknown;
-	::server::protocol::http::version					version = ::server::protocol::http::version::unknown;
+	::server::protocol::http::method					method  		= ::server::protocol::http::method::unknown;
+	::server::protocol::http::version					version 		= ::server::protocol::http::version::unknown;
 	
 	// Non-parsed URI
 	std::string											uri;
 	
 	// Parsed URI info
 	std::string											path;
-	::server::protocol::http::uri_arguments_map_type	args_map;
-	::server::protocol::http::uri_arguments_set_type	args_set;
+	std::unordered_multimap<std::string, std::string>	args_map;
+	std::unordered_multiset<std::string>				args_set;
 	
 	// Headers
-	::server::protocol::http::headers_map_type			headers;
+	std::string											host;
+	::server::port_type									port			= ::server::protocol::http::default_port;
+	
+	size_t												content_length	= 0;
+	
+	std::unordered_map<std::string, std::string>		cookies;
+	
+	std::unordered_multimap<std::string, std::string>	unparsed_headers,
+														parsed_headers;
+	
+	// Body
+	std::vector<char>									body;
+	
 	
 	
 	// Constructor with client address
@@ -52,26 +66,30 @@ public:
 	request & operator=(const request &other) = delete;
 	
 	
-	// Returns requested host and port pair. Used default port (80), if it was omitted
-	std::pair<std::string, ::server::port_type> host_and_port();
-	
-	
 	// Prepares request for new data from same client
 	// Resets buffer and keep_alive, saving client_address
 	void reset() noexcept;
 	
 	
-	void process_stream(std::istream &stream);
+	// Fills request data from the stream
+	// Returns 0, if no additional data required, otherwise returns number of bytes to read
+	size_t process_stream(std::istream &stream);
+	
+	// Fills request body with bytes_transferred number of bytes
+	// Throws server::protocol::http::data_size_error, if it's impossible to read content_length bytes from the stream
+	void process_stream_again(std::istream &stream);
 private:
 	// Helper functions
 	void process_start_string(const std::string &str);
-	void process_header_string(const std::string &str);
+	bool process_header_string(const std::string &str);
 	void process_uri();
 };	// class request
 
 
 // Same as request.process_stream(stream)
 inline std::istream & operator>>(std::istream &stream, request &request);
+
+std::ostream & operator<<(std::ostream &stream, const ::server::protocol::http::request &request);
 
 
 };	// namespace http

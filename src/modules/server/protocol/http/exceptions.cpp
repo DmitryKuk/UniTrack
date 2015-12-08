@@ -56,3 +56,8 @@ server::protocol::http::incorrect_host_header::incorrect_host_header(const std::
 server::protocol::http::incorrect_port::incorrect_port(const std::string &port_str):
 	server::protocol::http::error{"Incorrect port: \""s + port_str + '\"'}
 {}
+
+
+server::protocol::http::data_size_error::data_size_error():
+	server::protocol::http::error{"Data size error"s}
+{}

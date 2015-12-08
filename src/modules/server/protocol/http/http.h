@@ -4,8 +4,6 @@
 #define SERVER_PROTOCOL_HTTP_HTTP_H
 
 #include <string>
-#include <unordered_set>
-#include <unordered_map>
 
 #include <server/types.h>
 
@@ -15,11 +13,14 @@ namespace protocol {
 namespace http {
 
 
+
 extern const ::server::port_type
 	default_port;			// 80
 
 
+
 namespace str {
+
 
 extern const std::string
 	default_port,			// "80"
@@ -37,14 +38,18 @@ extern const std::string
 };	// namespace str
 
 
+
 namespace header {
+
 
 extern const std::string
 	content_length,
 	server,
 	allow,
 	connection,
-	host;
+	host,
+	cookie;
+
 
 };	// namespace header
 
@@ -64,6 +69,7 @@ const std::string & method_to_str(method method_) noexcept;
 method str_to_method(const std::string &str) noexcept;
 
 
+
 enum class version
 {
 	unknown	= 0,
@@ -73,17 +79,6 @@ enum class version
 
 const std::string & version_to_str(version version_) noexcept;
 version str_to_version(const std::string &str) noexcept;
-
-
-
-// Headers
-typedef std::pair<std::string, std::string>				header_pair_type;
-typedef std::unordered_map<std::string, std::string>	headers_map_type;
-
-
-// URI
-typedef std::unordered_map<std::string, std::string>	uri_arguments_map_type;
-typedef std::unordered_set<std::string>					uri_arguments_set_type;
 
 
 

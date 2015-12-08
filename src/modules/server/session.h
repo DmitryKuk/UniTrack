@@ -107,6 +107,8 @@ private:
 	// NOTE: responses_queue_.front() points to response, that is sending now
 	std::queue<std::unique_ptr<::server::protocol::http::response>> responses_queue_;
 	bool sending_;
+	
+	bool processing_new_request_;
 };	// class session
 
 

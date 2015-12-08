@@ -36,7 +36,9 @@ server::session::session(worker &worker, ::server::socket &&socket):
 	
 	request_{this->client_address_},
 	
-	sending_{false}
+	sending_{false},
+	
+	processing_new_request_{true}
 {
 	logger::stream(logger::level::info)
 		<< "Client: "s << this->client_address() << ": Connected."s;
@@ -91,36 +93,35 @@ server::session::process_request() noexcept
 	using ::server::protocol::http::status;
 	
 	
-	const auto log_request =
-		[&]()
-		{
-			auto &&stream = logger::stream(logger::level::info);
-			stream
-				<< "Client: "s << this->request_.client_address
-				<< ": HTTP/"s << ::server::protocol::http::version_to_str(this->request_.version)
-				<< ", " << ::server::protocol::http::method_to_str(this->request_.method)
-				<< ", Requested URI: \""s << this->request_.uri << "\". Headers:"s;
-			
-			for (const auto &p: this->request_.headers)
-				stream << " ["s << p.first << ": "s << p.second << ']';
-			stream << '.';
-		};
-	
-	
 	try {
-		// Preparing and logging current request
-		std::istream{&this->stream_buffer_} >> this->request_;
-		log_request();
+		if (this->processing_new_request_) {	// New request
+			std::istream stream{&this->stream_buffer_};
+			auto required_body_size = this->request_.process_stream(stream);
+			if (required_body_size > 0) {
+				this->processing_new_request_ = false;
+				
+				using namespace std::placeholders;
+				boost::asio::async_read(this->socket_,
+										this->stream_buffer_,
+										boost::asio::transfer_at_least(required_body_size),
+										std::bind(&session::request_handler, this->shared_from_this(), _1, _2));
+				return;
+			}
+		} else {								// Continue of old request (body required)
+			this->processing_new_request_ = true;
+			
+			std::istream stream{&this->stream_buffer_};
+			this->request_.process_stream_again(stream);
+		}
+		// After this request is ready for work
 		
 		
-		std::string host;
-		::server::port_type port;
+		logger::stream(logger::level::info) << this->request_;
+		
 		
 		try {
-			std::tie(host, port) = this->request_.host_and_port();
-			
-			if (port != this->server_port())
-				throw ::server::protocol::http::incorrect_port{std::to_string(port)};
+			if (this->request_.port != this->server_port())
+				throw ::server::protocol::http::incorrect_port{std::to_string(this->request_.port)};
 		} catch (const ::server::protocol::http::incorrect_port &e) {
 			logger::stream(logger::level::sec_warning)
 				<< "Client: "s << this->request_.client_address << ": "s << e.what() << '.';
@@ -129,7 +130,7 @@ server::session::process_request() noexcept
 		
 		
 		// NOTE: BEFORE get response and add it to the queue
-		auto host_ptr = this->worker_.host_manager().host(this->worker_, host, port);
+		auto host_ptr = this->worker_.host_manager().host(this->worker_, this->request_.host, this->request_.port);
 		this->send_response(host_ptr->response(this->worker_, this->request_));
 		
 		

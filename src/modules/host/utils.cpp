@@ -86,14 +86,14 @@ using hg_pair = std::pair<std::string, host_generator_type>;
 
 
 const std::unordered_map<std::string, host_generator_type> host_generators_map =
-{
-	hg_pair{"phony"s,						generate_phony_host						},
-	hg_pair{"files_only"s,					generate_files_only_host				},
-	hg_pair{"template_pages_only"s,			generate_template_pages_only_host		},
-	hg_pair{"files_and_template_pages"s,	generate_files_and_template_pages_host	},
-	hg_pair{"logic"s,						generate_logic_host						},
-	hg_pair{"hierarchy"s,					generate_hierarchy_host					}
-};
+	{
+		hg_pair{"phony"s,						generate_phony_host						},
+		hg_pair{"files_only"s,					generate_files_only_host				},
+		hg_pair{"template_pages_only"s,			generate_template_pages_only_host		},
+		hg_pair{"files_and_template_pages"s,	generate_files_and_template_pages_host	},
+		hg_pair{"logic"s,						generate_logic_host						},
+		hg_pair{"hierarchy"s,					generate_hierarchy_host					}
+	};
 
 
 };	// namespace

@@ -35,7 +35,8 @@ const std::string
 	server::protocol::http::header::server				= "Server"s,
 	server::protocol::http::header::allow				= "Allow"s,
 	server::protocol::http::header::connection			= "Connection"s,
-	server::protocol::http::header::host				= "Host"s;
+	server::protocol::http::header::host				= "Host"s,
+	server::protocol::http::header::cookie				= "Cookie"s;
 
 
 namespace {

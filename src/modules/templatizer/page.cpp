@@ -5,7 +5,7 @@
 #include <regex>
 #include <functional>
 
-#include <templatizer/module_registrar.h>
+#include <templatizer/module.h>
 #include <templatizer/modules/var_chunk.h>
 
 #include <templatizer/page_exceptions.h>
@@ -137,7 +137,7 @@ templatizer::page::load()
 					
 					
 					// These can throw
-					auto chunk_generator = templatizer::module_registrar::default_module_registrar.module(command);
+					auto chunk_generator = templatizer::default_module_registrar.module(command);
 					chunk_ptrs.emplace_back(chunk_generator(std::move(argument)));
 				}
 			}

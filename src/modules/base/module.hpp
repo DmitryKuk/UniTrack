@@ -23,8 +23,8 @@ base::module_registrar<ModuleID, ModuleObject>::erase(const module_id &id) noexc
 
 
 // Returns the module object or throws std::out_of_range exception, if module not found
-inline
 template<class ModuleID, class ModuleObject>
+inline
 const typename base::module_registrar<ModuleID, ModuleObject>::module_object &
 base::module_registrar<ModuleID, ModuleObject>::module(const module_id &id) const
 {

@@ -57,7 +57,7 @@ template<class ModuleID, class ModuleObject>
 class module_registrar
 {
 public:
-	using module_id		= ModuleID,
+	using module_id		= ModuleID;
 	using module_object	= ModuleObject;
 	
 	
@@ -81,7 +81,7 @@ template<class ModuleID, class ModuleObject, class ThrowIfNotAdded = std::true_t
 class module
 {
 public:
-	using module_id		= ModuleID,
+	using module_id		= ModuleID;
 	using module_object	= ModuleObject;
 	
 	
@@ -98,7 +98,7 @@ template<class ModuleID, class ModuleObject>
 class module<ModuleID, ModuleObject, std::false_type>
 {
 public:
-	using module_id		= ModuleID,
+	using module_id		= ModuleID;
 	using module_object	= ModuleObject;
 	
 	

@@ -4,22 +4,29 @@
 #define TEMPLATIZER_MODULE_H
 
 #include <string>
+#include <functional>
 
-#include <templatizer/module_registrar.h>
+#include <base/module.h>
+#include <templatizer/chunk.h>
 
 
 namespace templatizer {
 
 
+using chunk_generator_type	= std::function<std::unique_ptr<templatizer::chunk> (const std::string &)>;
+using module_registrar		= base::module_registrar<std::string, chunk_generator_type>;
+
+
+extern module_registrar default_module_registrar;
+
+
 template<class ModuleRepr>
-class module
+class module:
+	public base::module<std::string, chunk_generator_type>
 {
 public:
-	module(
-		const std::string &command,
-		templatizer::module_registrar &registrar =
-			templatizer::module_registrar::default_module_registrar
-	);
+	inline module(const std::string &command,
+				  module_registrar &registrar = default_module_registrar);
 };	// class module
 
 
@@ -28,4 +35,4 @@ public:
 
 #include <templatizer/module.hpp>
 
-#endif // TEMPLATIZER_MODULE_H
+#endif	// TEMPLATIZER_MODULE_H

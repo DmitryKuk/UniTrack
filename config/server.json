@@ -24,7 +24,7 @@
 			
 			
 			"default": {
-				"type": "files_and_template_pages",
+				"type": "files_only",
 				
 				"root": "/var/unitrack/www",
 				
@@ -40,7 +40,10 @@
 			
 			"content": {
 				"user": {
-					"type": "logic_base"
+					"type": "logic/user",
+					"root": "/var/unitrack/www",
+					"allow_match_mode": "any",
+					"allow_regexes": [ "/.*" ]
 				}
 			}
 		}

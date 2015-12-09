@@ -22,7 +22,7 @@ host::file_handlers::template_pages_only::response::response(
 
 // class host::file_handlers::template_pages_only
 inline
-host::file_handlers::template_pages_only::template_pages_only(logic::global_instance &logic):
+host::file_handlers::template_pages_only::template_pages_only(logic::page_model_generator &logic):
 	logic_{logic}
 {}
 

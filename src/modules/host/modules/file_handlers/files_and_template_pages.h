@@ -11,7 +11,7 @@
 #include <json.hpp>
 
 #include <server/protocol/http.h>
-#include <logic/global_instance.h>
+#include <logic/page_model_generator.h>
 #include <host/modules/file_handlers/files_only.h>
 #include <host/modules/file_handlers/template_pages_only.h>
 
@@ -42,7 +42,7 @@ public:
 	
 	
 	files_and_template_pages(const nlohmann::json &config,
-							 logic::global_instance &logic);
+							 logic::page_model_generator &logic);
 	
 	
 	template<class FileHost>
@@ -57,7 +57,7 @@ protected:
 	behavior default_behavior_ = behavior::files;	// Optional
 	
 	// ...but change behavior for .html files.
-	std::regex change_behavior_regex_{".*\\.html"};	// Optional
+	std::regex change_behavior_regex_{".*\\.html", std::regex::optimize};	// Optional
 };	// files_and_template_pages
 
 

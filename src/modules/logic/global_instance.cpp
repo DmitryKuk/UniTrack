@@ -46,22 +46,3 @@ logic::global_instance::global_instance(const nlohmann::json &config,
 		}
 	}
 }
-
-
-logic::page_model
-logic::global_instance::page_model(const server::protocol::http::request &request,
-								   const boost::filesystem::path &path) const
-{
-	auto &&stream = logger::stream(logger::level::info);
-	stream << "Here! " << request.path;
-	
-	
-	logic::page_model model;
-	
-	model.emplace("USERNAME", "Dmitry Kukovinets");
-	model.emplace("UNIVERSITY", "STANKIN");
-	model.emplace("DEPARTMENT", "Inteh");
-	model.emplace("TAGS", "Student");
-	
-	return model;
-}

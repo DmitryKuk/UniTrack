@@ -2,32 +2,9 @@
 
 #include <host/modules/file_handlers/template_pages_only.h>
 
-#include <string>
 
-#include <server/host/file.h>
-#include <host/module.h>
-
-using namespace std::literals;
-using namespace std::placeholders;
-
-
-namespace {
-
-
-host::module<server::host::file<host::file_handlers::template_pages_only>> module{
-	"template_pages_only"s,
-	[](const nlohmann::json &host_config, ::logic::global_instance &logic)
-	{
-		return std::make_shared<server::host::file<host::file_handlers::template_pages_only>>(
-			host_config,
-			host::file_handlers::template_pages_only{logic}
-		);
-	}
-};
-
-
-};	// namespace
-
+// NOTE: This host can NOT be a module! It needs page model generator, so this host should be helper
+// for some logic host, which provides page model generator.
 
 
 // static

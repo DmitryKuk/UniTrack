@@ -11,7 +11,7 @@
 #include <server/protocol/http.h>
 #include <templatizer/page.h>
 #include <logic/page_model.h>
-#include <logic/global_instance.h>
+#include <logic/page_model_generator.h>
 
 
 namespace server {
@@ -49,7 +49,7 @@ public:
 	
 	
 	
-	inline template_pages_only(logic::global_instance &logic);
+	inline template_pages_only(logic::page_model_generator &logic);
 	
 	
 	template<class FileHost>
@@ -70,7 +70,7 @@ private:
 		load_page
 	};
 	
-	logic::global_instance &logic_;
+	logic::page_model_generator &logic_;
 };	// template_pages_only
 
 

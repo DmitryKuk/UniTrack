@@ -7,7 +7,7 @@
 #include <base/json_utils.h>
 #include <logger/logger.h>
 #include <server/server.h>
-#include <host/manager_generator.h>
+#include <host/generator.h>
 
 using namespace std::literals;
 

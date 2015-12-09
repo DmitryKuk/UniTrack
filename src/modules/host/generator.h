@@ -8,6 +8,7 @@
 #include <json.hpp>
 
 #include <server/host/manager.h>
+#include <logic/global_instance.h>
 
 
 namespace host {
@@ -25,6 +26,12 @@ private:
 	const nlohmann::json &hosts_config_;
 	const nlohmann::json &logic_config_;
 };	// class manager_generator
+
+
+
+std::shared_ptr<server::host::base>
+generate_host(const nlohmann::json &host_config,
+			  logic::global_instance &logic);
 
 
 };	// namespace host

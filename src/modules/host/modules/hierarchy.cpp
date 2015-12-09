@@ -1,14 +1,32 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#include <host/hierarchy.h>
+#include <host/modules/hierarchy.h>
 
 #include <regex>
 
 #include <base/json_utils.h>
 #include <server/worker.h>
-#include <host/utils.h>
+#include <host/generator.h>
+#include <host/module.h>
 
 using namespace std::literals;
+using namespace std::placeholders;
+
+
+namespace {
+
+
+host::module<host::hierarchy> module{
+	"hierarchy"s,
+	[](const nlohmann::json &host_config, ::logic::global_instance &logic)
+	{
+		return std::make_shared<host::hierarchy>(host_config, logic);
+	}
+};
+
+
+};	// namespace
+
 
 
 host::hierarchy::hierarchy(const nlohmann::json &config,

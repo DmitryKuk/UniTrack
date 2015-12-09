@@ -1,7 +1,7 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#ifndef HOST_FILE_FILES_AND_TEMPLATE_PAGES_H
-#define HOST_FILE_FILES_AND_TEMPLATE_PAGES_H
+#ifndef HOST_MODULES_FILE_HANDLERS_FILES_AND_TEMPLATE_PAGES_H
+#define HOST_MODULES_FILE_HANDLERS_FILES_AND_TEMPLATE_PAGES_H
 
 #include <memory>
 #include <regex>
@@ -10,10 +10,10 @@
 
 #include <json.hpp>
 
-#include <server/host/file_handlers/files_only.h>
 #include <server/protocol/http.h>
 #include <logic/global_instance.h>
-#include <host/file_handlers/template_pages_only.h>
+#include <host/modules/file_handlers/files_only.h>
+#include <host/modules/file_handlers/template_pages_only.h>
 
 
 namespace server {
@@ -65,6 +65,6 @@ protected:
 };	// namespace host
 
 
-#include <host/file_handlers/files_and_template_pages.hpp>
+#include <host/modules/file_handlers/files_and_template_pages.hpp>
 
-#endif	// HOST_FILE_FILES_AND_TEMPLATE_PAGES_H
+#endif	// HOST_MODULES_FILE_HANDLERS_FILES_AND_TEMPLATE_PAGES_H

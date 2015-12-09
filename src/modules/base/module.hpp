@@ -32,6 +32,15 @@ base::module_registrar<ModuleID, ModuleObject>::module(const module_id &id) cons
 }
 
 
+template<class ModuleID, class ModuleObject>
+inline
+const typename base::module_registrar<ModuleID, ModuleObject>::map_type &
+base::module_registrar<ModuleID, ModuleObject>::map() const noexcept
+{
+	return this->modules_;
+}
+
+
 
 // class base::module
 template<class ModuleID, class ModuleObject, class ThrowIfNotAdded>

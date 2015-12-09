@@ -59,6 +59,7 @@ class module_registrar
 public:
 	using module_id		= ModuleID;
 	using module_object	= ModuleObject;
+	using map_type		= std::unordered_map<module_id, module_object>;
 	
 	
 	template<class MID, class MObject>
@@ -71,8 +72,12 @@ public:
 	
 	// Returns the module object or throws std::out_of_range exception, if module not found
 	inline const module_object & module(const module_id &id) const;
+	
+	
+	// Returns const inner representation
+	inline const map_type & map() const noexcept;
 private:
-	std::unordered_map<module_id, module_object> modules_;
+	map_type modules_;
 };	// class module_registrar
 
 

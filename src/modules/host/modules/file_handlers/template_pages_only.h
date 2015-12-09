@@ -1,7 +1,7 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#ifndef HOST_FILE_TEMPLATE_PAGES_ONLY_H
-#define HOST_FILE_TEMPLATE_PAGES_ONLY_H
+#ifndef HOST_MODULES_FILE_HANDLERS_TEMPLATE_PAGES_ONLY_H
+#define HOST_MODULES_FILE_HANDLERS_TEMPLATE_PAGES_ONLY_H
 
 #include <memory>
 
@@ -78,6 +78,6 @@ private:
 };	// namespace host
 
 
-#include <host/file_handlers/template_pages_only.hpp>
+#include <host/modules/file_handlers/template_pages_only.hpp>
 
-#endif	// HOST_FILE_TEMPLATE_PAGES_ONLY_H
+#endif	// HOST_MODULES_FILE_HANDLERS_TEMPLATE_PAGES_ONLY_H

@@ -1,7 +1,7 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#ifndef HOST_LOGIC_H
-#define HOST_LOGIC_H
+#ifndef HOST_MODULES_LOGIC_BASE_H
+#define HOST_MODULES_LOGIC_BASE_H
 
 #include <memory>
 
@@ -13,34 +13,40 @@
 
 
 namespace host {
+namespace logic {
 
 
-class logic:
+class base:
 	public server::host::base
 {
 public:
-	logic(const nlohmann::json &config,
-		  ::logic::global_instance &logic);
+	base(const nlohmann::json &config,
+		 ::logic::global_instance &logic);
 	
 	
 	// Non-copy/-move constructible/assignable. Use ptrs.
-	logic(const logic &other) = delete;
-	logic(logic &&other) = delete;
+	base(const base &other) = delete;
+	base(base &&other) = delete;
 	
-	logic & operator=(const logic &other) = delete;
-	logic & operator=(logic &&other) = delete;
+	base & operator=(const base &other) = delete;
+	base & operator=(base &&other) = delete;
 	
 	
 	virtual
 	std::unique_ptr<server::protocol::http::response>
 	response(const server::worker &worker,
 			 server::protocol::http::request &request) const override;
+protected:
+	inline ::logic::global_instance & logic() noexcept;
 private:
 	::logic::global_instance &logic_;
-};	// class logic
+};	// class base
 
 
+};	// namespace logic
 };	// namespace host
 
 
-#endif	// HOST_LOGIC_H
+#include <host/modules/logic/base.hpp>
+
+#endif	// HOST_MODULES_LOGIC_BASE_H

@@ -1,7 +1,7 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#ifndef SERVER_HOST_FILE_FILES_ONLY_H
-#define SERVER_HOST_FILE_FILES_ONLY_H
+#ifndef SERVER_HOST_FILE_HANDLERS_FILES_ONLY_H
+#define SERVER_HOST_FILE_HANDLERS_FILES_ONLY_H
 
 #include <memory>
 
@@ -68,4 +68,4 @@ private:
 
 #include <server/host/file_handlers/files_only.hpp>
 
-#endif	// SERVER_HOST_FILE_FILES_ONLY_H
+#endif	// SERVER_HOST_FILE_HANDLERS_FILES_ONLY_H

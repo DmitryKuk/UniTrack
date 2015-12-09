@@ -1,13 +1,35 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#include <host/file_handlers/files_and_template_pages.h>
+#include <host/modules/file_handlers/files_and_template_pages.h>
 
 #include <string>
 
 #include <base/json_utils.h>
+#include <server/host/file.h>
 #include <host/exceptions.h>
+#include <host/module.h>
 
 using namespace std::literals;
+using namespace std::placeholders;
+
+
+namespace {
+
+
+host::module<server::host::file<host::file_handlers::files_and_template_pages>> module{
+	"files_and_template_pages"s,
+	[](const nlohmann::json &host_config, ::logic::global_instance &logic)
+	{
+		return std::make_shared<server::host::file<host::file_handlers::files_and_template_pages>>(
+			host_config,
+			host::file_handlers::files_and_template_pages{host_config, logic}
+		);
+	}
+};
+
+
+};	// namespace
+
 
 
 host::file_handlers::files_and_template_pages::files_and_template_pages(const nlohmann::json &config,

@@ -1,7 +1,5 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#include <memory>
-
 
 template<class ModuleRepr>
 inline

@@ -9,7 +9,6 @@
 #include <templatizer/modules/var_chunk.h>
 
 #include <templatizer/page_exceptions.h>
-#include <templatizer/module_registrar_exceptions.h>
 
 
 // Default constructor
@@ -136,9 +135,16 @@ templatizer::page::load()
 					}
 					
 					
-					// These can throw
-					auto chunk_generator = templatizer::default_module_registrar.module(command);
-					chunk_ptrs.emplace_back(chunk_generator(std::move(argument)));
+					try {
+						auto chunk_generator = templatizer::default_module_registrar.module(command);
+						chunk_ptrs.emplace_back(chunk_generator(std::move(argument)));
+					} catch (const std::out_of_range &) {
+						this->set_state(templatizer::page::state::parse_error);
+						
+						using namespace std::literals;
+						throw templatizer::file_parsing_error{this->path().string(),
+															  "Module not found: \""s + command + '\"'};
+					}
 				}
 			}
 			
@@ -165,9 +171,8 @@ templatizer::page::load()
 			this->set_state(templatizer::page::state::file_error);
 			throw templatizer::file_mapping_error{this->path().string(), e.what()};
 		}
-	} catch (const templatizer::module_not_found &e) {
-		this->set_state(templatizer::page::state::parse_error);
-		throw templatizer::file_parsing_error{this->path().string(), e.what()};
+	} catch (const std::exception &e) {
+		throw templatizer::page_error{e.what()};
 	}
 }
 

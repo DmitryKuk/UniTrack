@@ -4,6 +4,7 @@
 #define TEMPLATIZER_MODULE_H
 
 #include <string>
+#include <memory>
 #include <functional>
 
 #include <base/module.h>

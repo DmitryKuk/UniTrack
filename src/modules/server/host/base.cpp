@@ -49,37 +49,6 @@ server::host::base::phony_response(const ::server::worker &worker,
 	using namespace ::server::protocol::http;
 	
 	
-	// Body elements
-	static const std::string
-		body_1  =
-			"<html>"
-			"<head>"
-				"<meta charset=\"utf-8\">"
-				"<title>",
-				// status.code_str()
-		&body_2 =
-				str::space,
-				// status.description()
-		body_3  =
-				"</title>"
-			"</head>"
-			"<body>"
-				"<h1>",
-				// status.code_str()
-		&body_4 =
-				str::space,
-				// status.description()
-		body_5  =
-				"</h1>"
-				"<hr width=\"100%\">"
-				"<p>",
-				// Server name
-		body_6  =
-				"</p>"
-			"</body>"
-			"</html>";
-	
-	
 	// Response
 	auto response_ptr = std::make_unique<::server::protocol::http::response>(status, request.version);
 	
@@ -87,37 +56,35 @@ server::host::base::phony_response(const ::server::worker &worker,
 	// Server name (even, if it is empty)
 	const auto &server_name = *(::server::host::base::add_server_name(worker, *response_ptr).first);
 	
-	
-	// Status strings
-	const std::string &code_str    = status.code_str(),
-					  &description = status.description();
-	
-	std::vector<const std::string *> body_ptrs{{ &body_1, &code_str, &body_2, &description,
-												 &body_3, &code_str, &body_4, &description,
-												 &body_5, &server_name, &body_6 }};
-	
-	// Calculating content length
-	const std::string *content_len_ptr = nullptr;
-	{
-		size_t content_len = std::accumulate(
-			std::begin(body_ptrs), std::end(body_ptrs), size_t{0},
-			[](size_t current, const std::string *body_element_ptr) -> size_t
-			{
-				return current + body_element_ptr->size();
-			}
-		);
+	// Adding body
+	if (request.method != ::server::protocol::http::method::HEAD) {
+		std::string status_str = status.code_str() + str::space + status.description();
 		
-		content_len_ptr = &response_ptr->cache(std::to_string(content_len));
+		// Page body
+		std::string body =
+			"<html>"
+			"<head>"
+				"<meta charset=\"utf-8\">"
+				"<title>"s
+				+ status_str +
+				"</title>"
+			"</head>"
+			"<body>"
+				"<h1>"s
+				+ status_str +
+				"</h1>"
+				"<hr width=\"100%\">"
+				"<p>"s
+				+ server_name +
+				"</p>"
+			"</body>"
+			"</html>"s;
+		
+		response_ptr->add_header(header::content_length, std::to_string(body.size()));
+		response_ptr->add_body(::base::buffer(body));
 	}
 	
-	// Adding content length header
-	response_ptr->add_header(::server::protocol::http::header::content_length, *content_len_ptr);
-	response_ptr->finish_headers();
-	
-	// Adding body
-	for (const auto body_element_ptr: body_ptrs)
-		response_ptr->add_body(::base::buffer(*body_element_ptr));
-	
+	response_ptr->finish();
 	
 	return response_ptr;
 }

@@ -48,7 +48,8 @@ extern const std::string
 	allow,
 	connection,
 	host,
-	cookie;
+	cookie,
+	location;
 
 
 };	// namespace header
@@ -85,20 +86,23 @@ version str_to_version(const std::string &str) noexcept;
 class status
 {
 public:
-	explicit status(unsigned int code, std::string description) noexcept;
+	explicit status(unsigned int code,
+					const std::string &description,
+					const std::string &start_string) noexcept;
 	
 	
 	inline unsigned int code() const noexcept;
 	inline const std::string & code_str() const noexcept;
 	inline const std::string & description() const noexcept;
+	inline const std::string & start_string() const noexcept;
 private:
 	const unsigned int code_;
-	const std::string code_str_, description_;
+	const std::string code_str_, description_, start_string_;
 public:
 	// Declaration statuses as static class members
-	#define SERVER_PROTOCOL_HTTP_PROTOCOL_CLASS_STATUS
+	#define SERVER_PROTOCOL_HTTP_CLASS_STATUS
 	#include <server/protocol/http/statuses.hpp>
-	#undef SERVER_PROTOCOL_HTTP_PROTOCOL_CLASS_STATUS
+	#undef SERVER_PROTOCOL_HTTP_CLASS_STATUS
 };	// class status
 
 

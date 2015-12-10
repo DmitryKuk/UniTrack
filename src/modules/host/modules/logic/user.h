@@ -29,10 +29,10 @@ public:
 	user & operator=(user &&other) = delete;
 	
 	
-	virtual
-	std::unique_ptr<server::protocol::http::response>
-	response(const server::worker &worker,
-			 server::protocol::http::request &request) const override;
+	// virtual
+	// std::unique_ptr<server::protocol::http::response>
+	// response(const server::worker &worker,
+	// 		 server::protocol::http::request &request) const override;
 };	// class user
 
 

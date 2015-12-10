@@ -15,6 +15,7 @@
 #include <boost/asio/streambuf.hpp>
 
 #include <server/types.h>
+#include <server/protocol/response.h>
 #include <server/protocol/http.h>
 #include <server/host/base.h>
 #include <server/host/manager.h>
@@ -105,7 +106,7 @@ private:
 	
 	// Responses for sending to client
 	// NOTE: responses_queue_.front() points to response, that is sending now
-	std::queue<std::unique_ptr<::server::protocol::http::response>> responses_queue_;
+	std::queue<std::unique_ptr<const ::server::protocol::response>> responses_queue_;
 	bool sending_;
 	
 	bool processing_new_request_;

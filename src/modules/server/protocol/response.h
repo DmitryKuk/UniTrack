@@ -4,7 +4,6 @@
 #define SERVER_PROTOCOL_RESPONSE_H
 
 #include <base/buffer.h>
-#include <base/strings_cache.h>
 
 
 namespace server {
@@ -12,30 +11,29 @@ namespace protocol {
 
 
 // Base response class. Contains buffers to send and strings cache.
-class response:
-	public base::strings_cache
+class response
 {
 public:
-	// Buffers to send
-	base::send_buffers_type buffers;
-	
-	
+	// Constructs empty response.
 	response() = default;
 	
+	// Constructs buffers_ with given size. Don't forget to fill!
+	inline response(size_t buffers_size);
 	
-	// Non-copy/move constructible/assignable (because of strings cache)
-	response(const response &other) = delete;
-	response(response &&other) = delete;
 	
-	response & operator=(const response &other) = delete;
-	response & operator=(response &&other) = delete;
+	inline const base::send_buffers_type & buffers() const noexcept;
 protected:
-	using base::strings_cache::operator();	// Allow only cache() method
+	inline base::send_buffers_type & buffers() noexcept;
+private:
+	// Buffers to send
+	base::send_buffers_type buffers_;
 };	// class response
 
 
 };	// namespace protocol
 };	// namespace server
 
+
+#include <server/protocol/response.hpp>
 
 #endif	// SERVER_PROTOCOL_RESPONSE_H

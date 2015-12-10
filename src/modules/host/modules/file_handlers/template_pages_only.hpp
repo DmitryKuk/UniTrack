@@ -46,25 +46,19 @@ host::file_handlers::template_pages_only::operator()(const FileHost &host,
 	);
 	
 	
-	// Adding headers
-	server::host::base::add_server_name(worker, *response_ptr);						// Server name
-	
-	response_ptr->add_header(server::protocol::http::header::content_length, ""s);	// Content-Length
-	size_t content_len_index = response_ptr->header_value_index();
-	
-	response_ptr->finish_headers();
+	// Server name
+	server::host::base::add_server_name(worker, *response_ptr);
 	
 	
 	// Generating content
-	size_t content_len = response_ptr->page_ptr_->generate(response_ptr->buffers,
+	size_t content_len = response_ptr->page_ptr_->generate(response_ptr->buffers(),
 														   *response_ptr,
 														   response_ptr->page_model_);
 	
+	// Content-Length
+	response_ptr->add_header(server::protocol::http::header::content_length, std::to_string(content_len));
 	
-	// Fix Content-Length header
-	const auto &content_len_str = response_ptr->cache(std::to_string(content_len));
-	response_ptr->buffers[content_len_index] = ::base::buffer(content_len_str);
-	
+	response_ptr->finish();
 	
 	return std::move(response_ptr);
 }

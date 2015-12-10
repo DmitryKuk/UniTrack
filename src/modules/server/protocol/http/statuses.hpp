@@ -10,18 +10,21 @@
 // Include protocol_http.h instead!
 
 // WARNING: don't forget insert
-//	#define SERVER_PROTOCOL_HTTP_PROTOCOL_CLASS_STATUS
+//	#define SERVER_PROTOCOL_HTTP_CLASS_STATUS
 // in server/protocol/http/protocol.h before including this header!
 
-#ifdef SERVER_PROTOCOL_HTTP_PROTOCOL_CLASS_STATUS
+#ifdef SERVER_PROTOCOL_HTTP_CLASS_STATUS
 // Declaration in header
-#	define HTTP_STATUS(status_name_, code_, description_)			\
+#	define HTTP_STATUS(status_name_, code_, description_)									\
 		static const status status_name_
 #else
 // Definition in .cpp
-#	define HTTP_STATUS(status_name_, code_, description_)			\
-		const server::protocol::http::status server::protocol::http::status::status_name_(code_, description_)
-#endif	// defined SERVER_PROTOCOL_HTTP_PROTOCOL_CLASS_STATUS
+#	define HTTP_STATUS(status_name_, code_, description_)									\
+		const server::protocol::http::status												\
+		server::protocol::http::status::status_name_{code_,									\
+													 description_,							\
+													 " " #code_ " " description_ "\r\n"}
+#endif	// defined SERVER_PROTOCOL_HTTP_CLASS_STATUS
 
 
 // 1xx: Informational

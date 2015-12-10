@@ -36,7 +36,8 @@ const std::string
 	server::protocol::http::header::allow				= "Allow"s,
 	server::protocol::http::header::connection			= "Connection"s,
 	server::protocol::http::header::host				= "Host"s,
-	server::protocol::http::header::cookie				= "Cookie"s;
+	server::protocol::http::header::cookie				= "Cookie"s,
+	server::protocol::http::header::location			= "Location"s;
 
 
 namespace {
@@ -143,8 +144,11 @@ server::protocol::http::str_to_version(const std::string &str) noexcept
 }
 
 
-server::protocol::http::status::status(unsigned int code, std::string description) noexcept:
-	code_(code),
-	code_str_(std::move(std::to_string(code_))),
-	description_(std::move(description))
+server::protocol::http::status::status(unsigned int code,
+									   const std::string &description,
+									   const std::string &start_string) noexcept:
+	code_{code},
+	code_str_{std::to_string(this->code_)},
+	description_{description},
+	start_string_{start_string}
 {}

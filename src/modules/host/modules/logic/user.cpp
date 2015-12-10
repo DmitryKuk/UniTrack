@@ -39,9 +39,9 @@ host::logic::user::user(const nlohmann::json &config,
 
 
 // virtual
-std::unique_ptr<server::protocol::http::response>
-host::logic::user::response(const server::worker &worker,
-							server::protocol::http::request &request) const
-{
-	return this->server::host::base::response(worker, request);
-}
+// std::unique_ptr<server::protocol::http::response>
+// host::logic::user::response(const server::worker &worker,
+// 							server::protocol::http::request &request) const
+// {
+// 	return this->server::host::base::response(worker, request);
+// }

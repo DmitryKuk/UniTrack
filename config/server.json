@@ -41,7 +41,8 @@
 			"content": {
 				"user": {
 					"type": "logic/user",
-					"root": "/var/unitrack/www",
+					"root": "/var/unitrack/www/user",
+					"default_index_file": "index.html",
 					"allow_match_mode": "any",
 					"allow_regexes": [ "/.*" ]
 				}

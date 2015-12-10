@@ -17,13 +17,14 @@ namespace http {
 
 
 class response:
-	public ::server::protocol::response
+	public ::server::protocol::response,
+	public base::strings_cache
 {
 public:
 	inline response(const ::server::protocol::http::status &status,
 					::server::protocol::http::version version = ::server::protocol::http::version::v_1_1);
 	
-	response() = default;
+	inline response();
 	
 	
 	// Non-copy/move constructible/assignable
@@ -40,15 +41,16 @@ public:
 	//    or:					response r; r.add_start_string(status, version);
 	// 2. Add headers: repeat:	r.add_header(name, value);
 	//    or/and:	   repeat:	r.add_headers(std::map<std::string, std::string>{ { "header1", "value1" }, ... });
-	// 3. Finish headers:		r.finish_headers();
-	// 4. Add body:    repeat:	r.add_body(data);
+	// 3. Add body:    repeat:	r.add_body(data);
+	// 4. Finish response:		r.finish();
 	// After these steps you have response ready to send. You may skip steps 2 and 4, if you need.
 	
-	void add_start_string(const ::server::protocol::http::status &status,
-						  ::server::protocol::http::version version = ::server::protocol::http::version::v_1_1);
+	inline void add_start_string(const ::server::protocol::http::status &status,
+								 ::server::protocol::http::version version = ::server::protocol::http::version::v_1_1);
 	
 	
-	void add_header(const std::string &name, const std::string &value);
+	template<class String1, class String2>
+	inline void add_header(String1 &&name, String2 &&value);
 	
 	// Headers should be iterable container. Each element should have first and second members,
 	// both convertible to std::string. Usage example:
@@ -56,16 +58,16 @@ public:
 	template<class Headers>
 	void add_headers(const Headers &headers);
 	
-	inline void finish_headers();
-	
 	
 	inline void add_body(const ::base::send_buffer_type &buffer);
 	
 	
-	// Returns index of send buffer, that points to value of last added header
-	// WARNING: Call this method immidiately after add_header or add_headers called!
-	//          Otherwise, trash value will be returned!
-	inline size_t header_value_index() const noexcept;
+	inline void finish();
+protected:
+	using base::strings_cache::operator();	// Allow only cache() method
+private:
+	// Data
+	std::string headers_;
 };	// class response
 
 

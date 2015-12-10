@@ -58,14 +58,12 @@ server::host::file_handlers::files_only::operator()(const FileHost &host,
 		const void *file_content = response_ptr->mapped_file_ptr_->data();
 		size_t file_size = response_ptr->mapped_file_ptr_->size();
 		
-		auto &content_len_str = response_ptr->cache(std::to_string(file_size));
-		
-		response_ptr->add_header(::server::protocol::http::header::content_length, content_len_str);
-		response_ptr->finish_headers();
+		response_ptr->add_header(::server::protocol::http::header::content_length, std::to_string(file_size));
 		
 		if (need_body)
 			response_ptr->add_body(::base::buffer(file_content, file_size));
 		
+		response_ptr->finish();
 		
 		return std::move(response_ptr);
 	}

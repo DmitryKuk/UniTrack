@@ -20,7 +20,6 @@ application::application(int argc, char **argv) noexcept:
 {
 	// std::ios::sync_with_stdio(false);
 	
-	
 	try {
 		// Server and hosts config
 		auto config = base::json_utils::json_from_file(project_config::server);
@@ -40,13 +39,12 @@ application::application(int argc, char **argv) noexcept:
 }
 
 
-// Run application in interactive mode (reading std::cid and waiting until it will be closed)
+// Run application in interactive mode (reading std::cin and waiting until it will be closed)
 int
 application::run_interactive() noexcept
 {
 	if (this->status_)
 		return this->status();
-	
 	
 	try {
 		logger::log(logger::level::info, "Running interactive mode. Press Ctrl+D to exit..."s);

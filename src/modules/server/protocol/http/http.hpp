@@ -23,3 +23,11 @@ server::protocol::http::status::description() const noexcept
 {
 	return this->description_;
 }
+
+
+inline
+const std::string &
+server::protocol::http::status::start_string() const noexcept
+{
+	return this->start_string_;
+}

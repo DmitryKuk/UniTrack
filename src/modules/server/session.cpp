@@ -228,7 +228,7 @@ server::session::add_response_handler(std::shared_ptr<::server::session> this_)
 	
 	using namespace std::placeholders;
 	boost::asio::async_write(this_->socket_,
-							 this_->responses_queue_.front()->buffers,
+							 this_->responses_queue_.front()->buffers(),
 							 std::bind(&session::response_handler, this_, _1, _2));
 }
 
@@ -240,17 +240,14 @@ server::session::response_handler(std::shared_ptr<::server::session> this_,
 								  size_t bytes_transferred)
 {
 	this_->sending_ = false;
-	auto buffers = this_->responses_queue_.front()->buffers;
 	this_->responses_queue_.pop();	// Deleting current (sent) response
 	
 	
-	if (err) {
-		logger::stream(logger::level::error)
-			<< "Client: "s << this_->client_address() << ": Error sending response: "s << err.message() << '.';
-	} else {
+	if (!err) {
 		this_->add_response_handler(this_);
-		
-		logger::stream(logger::level::info)
-			<< "Client: "s << this_->client_address() << ": Response sent."s;
+		return;
 	}
+	
+	logger::stream(logger::level::error)
+		<< "Client: "s << this_->client_address() << ": Error sending response: "s << err.message() << '.';
 }

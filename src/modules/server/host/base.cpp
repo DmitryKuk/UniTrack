@@ -80,7 +80,7 @@ server::host::base::phony_response(const ::server::worker &worker,
 			"</html>"s;
 		
 		response_ptr->add_header(header::content_length, std::to_string(body.size()));
-		response_ptr->add_body(::base::buffer(response_ptr->cache(body)));
+		response_ptr->add_body(::base::buffer(response_ptr->cache(std::move(body))));
 	}
 	
 	response_ptr->finish();

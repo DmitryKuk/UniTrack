@@ -136,25 +136,34 @@ server::protocol::http::request::process_stream(std::istream &stream)
 	// Processing URI
 	this->process_uri();
 	
-	return this->content_length;
+	// No request body to read
+	if (this->content_length == 0)
+		return 0;
+	
+	if (this->method != ::server::protocol::http::method::POST)
+		throw ::server::protocol::http::content_length_must_be_0{
+			::server::protocol::http::method_to_str(this->method)
+		};
+	
+	// Try to read request body
+	this->body.resize(this->content_length);
+	return this->process_stream_again(stream);
 }
 
 
 // Fills request body with bytes_transferred number of bytes
-// Throws server::protocol::http::data_size_error, if it's impossible to read content_length bytes from the stream
-void
+// Returns 0, if no additional data required, otherwise returns number of bytes to read
+size_t
 server::protocol::http::request::process_stream_again(std::istream &stream)
 {
-	if (this->content_length == 0)
-		return;
+	size_t bytes_to_read = this->content_length - this->body_bytes_read_;
+	if (bytes_to_read == 0)
+		return 0;
 	
-	this->body.resize(this->content_length);
-	stream.read(this->body.data(), this->body.size());
+	stream.readsome(this->body.data() + this->body_bytes_read_, bytes_to_read);
+	this->body_bytes_read_ += stream.gcount();
 	
-	if (stream.gcount() != this->content_length) {
-		this->body.clear();
-		throw ::server::protocol::http::data_size_error{};
-	}
+	return this->content_length - this->body_bytes_read_;
 }
 
 

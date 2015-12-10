@@ -50,7 +50,6 @@ public:
 	
 	
 	// Prepares a phony response to the client.
-	// WARNING: Remember to save anywhere status too (standard statuses are already saved)!
 	std::unique_ptr<::server::protocol::http::response>
 	phony_response(const worker &worker,
 				   const ::server::protocol::http::request &request,

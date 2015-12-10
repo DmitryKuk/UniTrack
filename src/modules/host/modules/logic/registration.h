@@ -5,27 +5,27 @@
 
 #include <server/host/file.h>
 #include <host/modules/file_handlers/files_and_template_pages.h>
-#include <logic/user.h>
+#include <logic/registration.h>
 
 
 namespace host {
 namespace logic {
 
 
-class user:
-	public ::logic::user,
+class registration:
+	public ::logic::registration,
 	public server::host::file<host::file_handlers::files_and_template_pages>
 {
 public:
-	user(const nlohmann::json &config,
-		 ::logic::global_instance &logic);
+	registration(const nlohmann::json &config,
+				 ::logic::global_instance &logic);
 	
 	
 	// virtual
 	// std::unique_ptr<server::protocol::http::response>
 	// response(const server::worker &worker,
 	// 		 server::protocol::http::request &request) const override;
-};	// class user
+};	// class registration
 
 
 };	// namespace logic

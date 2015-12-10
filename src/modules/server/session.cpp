@@ -94,10 +94,21 @@ server::session::process_request() noexcept
 	
 	
 	try {
-		if (this->processing_new_request_) {	// New request
+		// Reading request (with body, if required)
+		{
 			std::istream stream{&this->stream_buffer_};
-			auto required_body_size = this->request_.process_stream(stream);
-			if (required_body_size > 0) {
+			size_t required_body_size = 0;
+			
+			
+			if (this->processing_new_request_)	// New request
+				required_body_size = this->request_.process_stream(stream);
+			else								// Continue of old request (body required)
+				required_body_size = this->request_.process_stream_again(stream);
+			
+			
+			if (required_body_size == 0) {		// All request processed
+				this->processing_new_request_ = true;
+			} else {							// Continue of old request (body required)
 				this->processing_new_request_ = false;
 				
 				using namespace std::placeholders;
@@ -107,11 +118,6 @@ server::session::process_request() noexcept
 										std::bind(&session::request_handler, this->shared_from_this(), _1, _2));
 				return;
 			}
-		} else {								// Continue of old request (body required)
-			this->processing_new_request_ = true;
-			
-			std::istream stream{&this->stream_buffer_};
-			this->request_.process_stream_again(stream);
 		}
 		// After this request is ready for work
 		

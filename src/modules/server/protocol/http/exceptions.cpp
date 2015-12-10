@@ -58,6 +58,6 @@ server::protocol::http::incorrect_port::incorrect_port(const std::string &port_s
 {}
 
 
-server::protocol::http::data_size_error::data_size_error():
-	server::protocol::http::error{"Data size error"s}
+server::protocol::http::content_length_must_be_0::content_length_must_be_0(const std::string &method_str):
+	server::protocol::http::error{"Content length must be 0 for method: \""s + method_str + '\"'}
 {}

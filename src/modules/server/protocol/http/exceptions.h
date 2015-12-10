@@ -92,10 +92,10 @@ public:
 };
 
 
-class data_size_error: public error
+class content_length_must_be_0: public error
 {
 public:
-	explicit data_size_error();
+	explicit content_length_must_be_0(const std::string &method_str);
 };
 
 

@@ -40,7 +40,6 @@ server::host::base::response(const ::server::worker &worker,
 
 
 // Prepares a phony response to the client.
-// WARNING: Remember to save anywhere status too (standard statuses are already saved)!
 std::unique_ptr<::server::protocol::http::response>
 server::host::base::phony_response(const ::server::worker &worker,
 								   const ::server::protocol::http::request &request,
@@ -81,7 +80,7 @@ server::host::base::phony_response(const ::server::worker &worker,
 			"</html>"s;
 		
 		response_ptr->add_header(header::content_length, std::to_string(body.size()));
-		response_ptr->add_body(::base::buffer(body));
+		response_ptr->add_body(::base::buffer(response_ptr->cache(body)));
 	}
 	
 	response_ptr->finish();

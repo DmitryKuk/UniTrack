@@ -76,13 +76,17 @@ public:
 	size_t process_stream(std::istream &stream);
 	
 	// Fills request body with bytes_transferred number of bytes
-	// Throws server::protocol::http::data_size_error, if it's impossible to read content_length bytes from the stream
-	void process_stream_again(std::istream &stream);
+	// Returns 0, if no additional data required, otherwise returns number of bytes to read
+	size_t process_stream_again(std::istream &stream);
 private:
 	// Helper functions
 	void process_start_string(const std::string &str);
 	bool process_header_string(const std::string &str);
 	void process_uri();
+	
+	
+	// Data
+	size_t body_bytes_read_ = 0;	// Count of body bytes, that are already read
 };	// class request
 
 

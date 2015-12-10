@@ -113,6 +113,7 @@ server::protocol::http::request::reset() noexcept
 	
 	// Body
 	this->body.clear();
+	this->body_bytes_read_ = 0;
 }
 
 

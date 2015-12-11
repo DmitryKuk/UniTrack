@@ -17,14 +17,19 @@ class registration:
 	public server::host::file<host::file_handlers::files_and_template_pages>
 {
 public:
+	using file_host = server::host::file<host::file_handlers::files_and_template_pages>;
+	
+	
 	registration(const nlohmann::json &config,
 				 ::logic::global_instance &logic);
 	
 	
-	// virtual
-	// std::unique_ptr<server::protocol::http::response>
-	// response(const server::worker &worker,
-	// 		 server::protocol::http::request &request) const override;
+	virtual
+	std::unique_ptr<server::protocol::http::response>
+	response(const server::worker &worker,
+			 server::protocol::http::request &request) const override;
+protected:
+	void validate_request_body(const std::vector<char> &body) const;
 };	// class registration
 
 

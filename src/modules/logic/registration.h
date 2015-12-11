@@ -21,6 +21,9 @@ public:
 	logic::page_model
 	page_model(const server::protocol::http::request &request,
 			   const boost::filesystem::path &path) const override;
+	
+	
+	void register_user(const std::string &data) const;
 };	// class registration
 
 

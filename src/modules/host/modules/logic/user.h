@@ -17,6 +17,9 @@ class user:
 	public server::host::file<host::file_handlers::files_and_template_pages>
 {
 public:
+	using file_host = server::host::file<host::file_handlers::files_and_template_pages>;
+	
+	
 	user(const nlohmann::json &config,
 		 ::logic::global_instance &logic);
 	

@@ -6,7 +6,6 @@
 #include <host/module.h>
 
 using namespace std::literals;
-using namespace std::placeholders;
 
 
 namespace {
@@ -31,17 +30,27 @@ host::module<host::logic::registration> module{
 host::logic::registration::registration(const nlohmann::json &config,
 										::logic::global_instance &logic):
 	::logic::registration{logic},
-	server::host::file<host::file_handlers::files_and_template_pages>{
-		config,
-		{config, *this}
-	}
+	file_host{config, {config, *this}}
 {}
 
 
 // virtual
-// std::unique_ptr<server::protocol::http::response>
-// host::logic::registration::response(const server::worker &worker,
-// 									server::protocol::http::request &request) const
-// {
-// 	return this->server::host::base::response(worker, request);
-// }
+std::unique_ptr<server::protocol::http::response>
+host::logic::registration::response(const server::worker &worker,
+									server::protocol::http::request &request) const
+{
+	if (request.method == server::protocol::http::method::POST) {
+		this->register_user(std::string{request.body.data(), request.body.size()});
+		return this->phony_response(worker, request, server::protocol::http::status::ok);
+	}
+	
+	return this->file_host::response(worker, request);
+}
+
+
+// private
+void
+host::logic::registration::validate_request_body(const std::vector<char> &body) const
+{
+	
+}

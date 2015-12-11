@@ -6,7 +6,6 @@
 #include <host/module.h>
 
 using namespace std::literals;
-using namespace std::placeholders;
 
 
 namespace {
@@ -31,10 +30,7 @@ host::module<host::logic::user> module{
 host::logic::user::user(const nlohmann::json &config,
 						::logic::global_instance &logic):
 	::logic::user{logic},
-	server::host::file<host::file_handlers::files_and_template_pages>{
-		config,
-		{config, *this}
-	}
+	file_host{config, {config, *this}}
 {}
 
 

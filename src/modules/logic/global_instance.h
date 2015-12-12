@@ -11,9 +11,13 @@
 #include <mongo/client/init.h>
 #include <mongo/client/options.h>
 #include <mongo/client/dbclient.h>
+#include <mongo/client/dbclientcursor.h>
 
 
 namespace logic {
+
+
+using cursor_ptr_type = std::unique_ptr<mongo::DBClientCursor>;
 
 
 class global_instance
@@ -24,9 +28,15 @@ public:
 	
 	
 	inline mongo::DBClientBase & connection();
+	
+	inline const std::string & collection_users() const noexcept;
+	inline const std::string & collection_sessions() const noexcept;
 protected:
 	// Parameters
-	std::string mongo_uri_;	// Required
+	std::string mongo_uri_;					// Required
+	
+	std::string	mongo_collection_users_,	// Required
+				mongo_collection_sessions_;	// Required
 private:
 	// Data
 	mongo::client::GlobalInstance mongo_client_global_instance_;

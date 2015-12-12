@@ -38,6 +38,41 @@ public:
 };
 
 
+class cant_create_cursor: public error
+{
+public:
+	explicit cant_create_cursor();
+};
+
+
+class login_not_found: public error
+{
+public:
+	explicit login_not_found(const std::string &user_login, const std::string &user_password);
+};
+
+
+class password_not_match: public error
+{
+public:
+	explicit password_not_match(const std::string &user_login, const std::string &user_password);
+};
+
+
+class session_not_found: public error
+{
+public:
+	explicit session_not_found(const std::string &session_id);
+};
+
+
+class incorrect_form: public error
+{
+public:
+	explicit incorrect_form(const std::string &description);
+};
+
+
 };	// namespace logic
 
 

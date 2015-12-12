@@ -30,6 +30,12 @@ logic::global_instance::global_instance(const nlohmann::json &config,
 	if (!base::json_utils::extract(*mongo_config_ptr, this->mongo_uri_, "uri"s))
 		throw logic::global_instance_init_error{"Required key: \"uri\" missed (in mongo parameters)"s};
 	
+	if (!base::json_utils::extract(*mongo_config_ptr, this->mongo_collection_users_, "collection_users"s))
+		throw logic::global_instance_init_error{"Required key: \"collection_users\" missed (in mongo parameters)"s};
+	
+	if (!base::json_utils::extract(*mongo_config_ptr, this->mongo_collection_sessions_, "collection_sessions"s))
+		throw logic::global_instance_init_error{"Required key: \"collection_sessions\" missed (in mongo parameters)"s};
+	
 	
 	// Connection to MongoDB
 	{

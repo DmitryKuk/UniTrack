@@ -1,10 +1,10 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#ifndef HOST_MODULES_LOGIC_USER_H
-#define HOST_MODULES_LOGIC_USER_H
+#ifndef HOST_MODULES_LOGIC_REGISTRATION_H
+#define HOST_MODULES_LOGIC_REGISTRATION_H
 
 #include <server/host/file.h>
-#include <host/modules/file_handlers/files_and_template_pages.h>
+#include <server/host/file_handlers/files_only.h>
 #include <logic/registration.h>
 
 
@@ -14,10 +14,10 @@ namespace logic {
 
 class registration:
 	public ::logic::registration,
-	public server::host::file<host::file_handlers::files_and_template_pages>
+	public server::host::file<server::host::file_handlers::files_only>
 {
 public:
-	using file_host = server::host::file<host::file_handlers::files_and_template_pages>;
+	using file_host = server::host::file<server::host::file_handlers::files_only>;
 	
 	
 	registration(const nlohmann::json &config,
@@ -38,4 +38,4 @@ protected:
 };	// namespace host
 
 
-#endif	// HOST_MODULES_LOGIC_USER_H
+#endif	// HOST_MODULES_LOGIC_REGISTRATION_H

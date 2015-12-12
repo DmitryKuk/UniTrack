@@ -1,5 +1,8 @@
 {
 	"mongo": {
-		"uri": "mongodb://localhost:27017"
+		"uri": "mongodb://localhost:27017",
+		
+		"collection_users":		"unitrack.users",
+		"collection_sessions":	"unitrack.sessions"
 	}
 }

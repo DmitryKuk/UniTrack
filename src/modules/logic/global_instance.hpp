@@ -10,6 +10,22 @@ logic::global_instance::connection()
 
 
 inline
+const std::string &
+logic::global_instance::collection_users() const noexcept
+{
+	return this->mongo_collection_users_;
+}
+
+
+inline
+const std::string &
+logic::global_instance::collection_sessions() const noexcept
+{
+	return this->mongo_collection_sessions_;
+}
+
+
+inline
 logic::enable_global_instance_ref::enable_global_instance_ref(global_instance &logic_gi) noexcept:
 	logic_gi_{logic_gi}
 {}

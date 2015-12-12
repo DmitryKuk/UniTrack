@@ -30,7 +30,7 @@ host::module<host::logic::registration> module{
 host::logic::registration::registration(const nlohmann::json &config,
 										::logic::global_instance &logic):
 	::logic::registration{logic},
-	file_host{config, {config, *this}}
+	file_host{config}
 {}
 
 
@@ -66,13 +66,16 @@ host::logic::registration::response(const server::worker &worker,
 								  "Can\'t decode registration request body"s,
 								  server::protocol::http::status::bad_request);
 	
-	
-	std::string user_id, session_id;
-	if (this->register_user(form, user_id, session_id)) {
+	try {
+		std::string user_id, session_id;
+		this->register_user(form, user_id, session_id);
+		
 		auto response_ptr = this->redirect_response(worker, request, "/user/"s + user_id);
 		response_ptr->add_header(server::protocol::http::header::set_cookie, "sid="s + session_id);
 		
 		return response_ptr;
+	} catch (const std::exception &e) {
+		return this->handle_error(worker, request, e.what(), server::protocol::http::status::internal_server_error);
 	}
 	
 	return this->phony_response(worker, request, server::protocol::http::status::ok);

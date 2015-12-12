@@ -21,6 +21,9 @@ class global_instance
 public:
 	global_instance(const nlohmann::json &config,
 					const mongo::client::Options &options = mongo::client::Options());
+	
+	
+	inline mongo::DBClientBase & connection();
 protected:
 	// Parameters
 	std::string mongo_uri_;	// Required
@@ -37,7 +40,7 @@ class enable_global_instance_ref
 public:
 	inline enable_global_instance_ref(global_instance &logic_gi) noexcept;
 protected:
-	inline ::logic::global_instance & logic_gi() noexcept;
+	inline ::logic::global_instance & logic_gi() const noexcept;
 private:
 	// Data
 	global_instance &logic_gi_;

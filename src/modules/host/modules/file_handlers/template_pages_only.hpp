@@ -58,7 +58,6 @@ host::file_handlers::template_pages_only::operator()(const FileHost &host,
 	// Content-Length
 	response_ptr->add_header(server::protocol::http::header::content_length, std::to_string(content_len));
 	
-	response_ptr->finish();
 	
 	return std::move(response_ptr);
 }

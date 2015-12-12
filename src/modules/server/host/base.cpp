@@ -83,9 +83,57 @@ server::host::base::phony_response(const ::server::worker &worker,
 		response_ptr->add_body(::base::buffer(response_ptr->cache(std::move(body))));
 	}
 	
-	response_ptr->finish();
 	
 	return response_ptr;
+}
+
+
+// Prepares a redirection response for client
+std::unique_ptr<server::protocol::http::response>
+server::host::base::redirect_response(const ::server::worker &worker,
+									  ::server::protocol::http::request &request,
+									  const std::string &location,
+									  const ::server::protocol::http::status &status) const
+{
+	auto response_ptr = std::make_unique<::server::protocol::http::response>(status, request.version);
+	::server::host::base::add_server_name(worker, *response_ptr);
+	response_ptr->add_header(::server::protocol::http::header::location, location);
+	
+	return response_ptr;
+}
+
+
+std::unique_ptr<::server::protocol::http::response>
+server::host::base::handle_error(const worker &worker,
+								 const ::server::protocol::http::request &request,
+								 const std::string &what,
+								 const ::server::protocol::http::status &status) const
+{
+	using namespace std::literals;
+	logger::stream(logger::level::error)
+		<< "Client: "s << request.client_address
+		<< ": Host: \""s << this->name()
+		<< "\": "s << what
+		<< " => "s << status.code() << '.';
+	
+	return this->phony_response(worker, request, status);
+}
+
+
+std::unique_ptr<::server::protocol::http::response>
+server::host::base::handle_error(const worker &worker,
+								 const ::server::protocol::http::request &request,
+								 const char *what,
+								 const ::server::protocol::http::status &status) const
+{
+	using namespace std::literals;
+	logger::stream(logger::level::error)
+		<< "Client: "s << request.client_address
+		<< ": Host: \""s << this->name()
+		<< "\": "s << what
+		<< " => "s << status.code() << '.';
+	
+	return this->phony_response(worker, request, status);
 }
 
 

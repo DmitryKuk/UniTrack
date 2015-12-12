@@ -37,20 +37,6 @@ public:
 		 const HostType &handler);
 	
 	
-	// Non-copy/-move constructible/assignable. Use ptrs.
-	template<class HostType1>
-	file(const file<HostType1> &other) = delete;
-	
-	template<class HostType1>
-	file(file<HostType1> &&other) = delete;
-	
-	template<class HostType1>
-	file<HostType> & operator=(const file<HostType1> &other) = delete;
-	
-	template<class HostType1>
-	file<HostType> & operator=(file<HostType1> &&other) = delete;
-	
-	
 	virtual
 	std::unique_ptr<::server::protocol::http::response>
 	response(const worker &worker,
@@ -59,21 +45,6 @@ protected:
 	// Validators
 	inline void validate_method(::server::protocol::http::method method) const;
 	void validate_path(const std::string &path) const;
-	
-	
-	// Error handlers
-	std::unique_ptr<::server::protocol::http::response>
-	handle_error(const worker &worker,
-				 const ::server::protocol::http::request &request,
-				 const char *what,
-				 const ::server::protocol::http::status &status) const;
-	
-	inline
-	std::unique_ptr<::server::protocol::http::response>
-	handle_error(const worker &worker,
-				 const ::server::protocol::http::request &request,
-				 const std::exception &e,
-				 const ::server::protocol::http::status &status) const;
 	
 	
 	// Config parser

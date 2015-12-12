@@ -39,12 +39,43 @@ std::unique_ptr<server::protocol::http::response>
 host::logic::registration::response(const server::worker &worker,
 									server::protocol::http::request &request) const
 {
-	if (request.method == server::protocol::http::method::POST) {
-		this->register_user(std::string{request.body.data(), request.body.size()});
-		return this->phony_response(worker, request, server::protocol::http::status::ok);
+	if (request.method != server::protocol::http::method::POST)
+		return this->file_host::response(worker, request);
+	
+	
+	// Register new users by POST request only
+	std::string data{request.body.data(), request.body.size()};
+	if (data.size() != request.body.size())
+		return this->handle_error(worker,
+								  request,
+								  "Non-string-convertible data in registration request body"s,
+								  server::protocol::http::status::bad_request);
+	
+	
+	::logic::registration::form form;
+	
+	bool parsed = server::protocol::http::decode_uri_args(
+		data,
+		[&](std::string &&key, std::string &&value) { form.emplace(std::move(key), std::move(value)); },
+		[&](const std::string &) {}
+	);
+	
+	if (!parsed)
+		return this->handle_error(worker,
+								  request,
+								  "Can\'t decode registration request body"s,
+								  server::protocol::http::status::bad_request);
+	
+	
+	std::string user_id, session_id;
+	if (this->register_user(form, user_id, session_id)) {
+		auto response_ptr = this->redirect_response(worker, request, "/user/"s + user_id);
+		response_ptr->add_header(server::protocol::http::header::set_cookie, "sid="s + session_id);
+		
+		return response_ptr;
 	}
 	
-	return this->file_host::response(worker, request);
+	return this->phony_response(worker, request, server::protocol::http::status::ok);
 }
 
 

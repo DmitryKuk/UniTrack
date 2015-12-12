@@ -4,6 +4,7 @@
 #define SERVER_PROTOCOL_HTTP_H
 
 #include <server/protocol/http/http.h>
+#include <server/protocol/http/utils.h>
 #include <server/protocol/http/request.h>
 #include <server/protocol/http/response.h>
 

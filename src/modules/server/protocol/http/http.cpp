@@ -37,6 +37,7 @@ const std::string
 	server::protocol::http::header::connection			= "Connection"s,
 	server::protocol::http::header::host				= "Host"s,
 	server::protocol::http::header::cookie				= "Cookie"s,
+	server::protocol::http::header::set_cookie			= "Set-Cookie"s,
 	server::protocol::http::header::location			= "Location"s;
 
 

@@ -49,6 +49,7 @@ extern const std::string
 	connection,
 	host,
 	cookie,
+	set_cookie,
 	location;
 
 

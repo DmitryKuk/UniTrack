@@ -157,36 +157,6 @@ server::host::file<HostType>::validate_path(const std::string &path) const
 }
 
 
-template<class HostType>
-std::unique_ptr<::server::protocol::http::response>
-server::host::file<HostType>::handle_error(const worker &worker,
-										   const ::server::protocol::http::request &request,
-										   const char *what,
-										   const ::server::protocol::http::status &status) const
-{
-	using namespace std::literals;
-	logger::stream(logger::level::error)
-		<< "File host: \""s << this->name()
-		<< "\" (client: "s << request.client_address
-		<< "): "s << what
-		<< " => "s << status.code() << '.';
-	
-	return this->phony_response(worker, request, status);
-}
-
-
-template<class HostType>
-inline
-std::unique_ptr<::server::protocol::http::response>
-server::host::file<HostType>::handle_error(const worker &worker,
-										   const ::server::protocol::http::request &request,
-										   const std::exception &e,
-										   const ::server::protocol::http::status &status) const
-{
-	return this->handle_error(worker, request, e.what(), status);
-}
-
-
 // Config parser
 template<class HostType>
 void

@@ -33,6 +33,14 @@ public:
 	virtual ~base() = default;
 	
 	
+	// Non-copy/-move constructible/assignable. Use ptrs.
+	base(const base &other) = delete;
+	base(base &&other) = delete;
+	
+	base & operator=(const base &other) = delete;
+	base & operator=(base &&other) = delete;
+	
+	
 	// Returns host's name (name does not include port information!).
 	inline const std::string & name() const noexcept;
 	
@@ -54,6 +62,37 @@ public:
 	phony_response(const worker &worker,
 				   const ::server::protocol::http::request &request,
 				   const ::server::protocol::http::status &status) const;
+	
+	
+	// Prepares a redirection response for client
+	std::unique_ptr<::server::protocol::http::response>
+	redirect_response(const worker &worker,
+					  ::server::protocol::http::request &request,
+					  const std::string &location,
+					  const ::server::protocol::http::status &status
+						  = ::server::protocol::http::status::see_other) const;
+	
+	
+	// Does some logging and prepares phony response for client
+	// What can be "const std::string &", "const char *" or "const std::exception &"
+	std::unique_ptr<::server::protocol::http::response>
+	handle_error(const worker &worker,
+				 const ::server::protocol::http::request &request,
+				 const std::string &what,
+				 const ::server::protocol::http::status &status) const;
+	
+	std::unique_ptr<::server::protocol::http::response>
+	handle_error(const worker &worker,
+				 const ::server::protocol::http::request &request,
+				 const char *what,
+				 const ::server::protocol::http::status &status) const;
+	
+	inline
+	std::unique_ptr<::server::protocol::http::response>
+	handle_error(const worker &worker,
+				 const ::server::protocol::http::request &request,
+				 const std::exception &what,
+				 const ::server::protocol::http::status &status) const;
 	
 	
 	// Gets server name from worker and adds it to headers in response.

@@ -2,8 +2,13 @@
 
 #include <logic/registration.h>
 
+#include <mongo/bson/bsonobj.h>
+#include <mongo/bson/bsonobjbuilder.h>
+#include <mongo/bson/bsonelement.h>
+
 #include <logger/logger.h>
-#include <server/protocol/http/utils.h>
+
+using namespace std::literals;
 
 
 // virtual
@@ -26,29 +31,28 @@ logic::registration::page_model(const server::protocol::http::request &request,
 }
 
 
-void
-logic::registration::register_user(const std::string &data) const
+bool
+logic::registration::register_user(const logic::registration::form &fields,
+								   std::string &user_id,
+								   std::string &session_id) const
 {
-	std::unordered_map<std::string, std::string> map;
-	std::unordered_set<std::string> set;
-	
-	logger::stream(logger::level::info)
-		<< "New user registration (" << data.size() << "): \"" << data << "\".";
-	
-	bool parsed = server::protocol::http::decode_uri_args(
-		data,
-		[&](std::string &&key, std::string &&value) { map.emplace(std::move(key), std::move(value)); },
-		[&](std::string &&key) { set.insert(std::move(key)); }
-	);
-	
-	if (parsed) {
-		auto &&stream = logger::stream(logger::level::info);
-		stream << " Parsed:";
+	try {
+		mongo::BSONObjBuilder bson_obj_builder;
+		bson_obj_builder.genOID();
+		for (const std::string &key: {"name"s, "surname"s}) {
+			const std::string &value = fields.at(key);
+			bson_obj_builder.append(key, value);
+		}
 		
-		for (const auto &x: map)
-			stream << " [" << x.first << ": " << x.second << ']';
+		mongo::BSONObj bson_obj = bson_obj_builder.done();
+		mongo::BSONElement e;
 		
-		for (const auto &x: set)
-			stream << " {" << x << '}';
+		bson_obj.getObjectID(e);
+		user_id = e.toString();
+		
+		this->logic_gi().connection().insert("unitrack.users"s, bson_obj);
+	} catch (const std::out_of_range &) {
+		return false;
 	}
+	return true;
 }

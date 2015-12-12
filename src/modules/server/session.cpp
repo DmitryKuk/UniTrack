@@ -166,14 +166,14 @@ server::session::process_request() noexcept
 		this->handle_error(e, status::not_found);
 	}
 	catch (const ::server::host::error &e) {
-		this->handle_error(e, status::internal_server_error);
+		this->handle_error(e, status::bad_request);
 	}
 	
 	// Other errors
 	catch (const std::exception &e) {
 		this->handle_error(e, status::internal_server_error);
 	}
-	catch (...) {	// Impossible (maybe, logger?..)
+	catch (...) {	// Impossible
 		static const char e[] = "Unknown error";
 		this->handle_error(e, status::internal_server_error);
 	}

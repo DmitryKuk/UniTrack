@@ -63,7 +63,6 @@ server::host::file_handlers::files_only::operator()(const FileHost &host,
 		if (need_body)
 			response_ptr->add_body(::base::buffer(file_content, file_size));
 		
-		response_ptr->finish();
 		
 		return std::move(response_ptr);
 	}

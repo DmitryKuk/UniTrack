@@ -38,24 +38,45 @@ public:
 };
 
 
-class cant_create_cursor: public error
+class incorrect_cursor: public error
 {
 public:
-	explicit cant_create_cursor();
+	explicit incorrect_cursor();
 };
 
 
-class login_not_found: public error
+class user_not_found: public error
+{
+public:
+	explicit user_not_found(const std::string &description);
+};
+
+
+class id_not_found: public user_not_found
+{
+public:
+	explicit id_not_found(const std::string &user_id, const std::string &user_password);
+};
+
+
+class login_not_found: public user_not_found
 {
 public:
 	explicit login_not_found(const std::string &user_login, const std::string &user_password);
 };
 
 
+class email_not_found: public user_not_found
+{
+public:
+	explicit email_not_found(const std::string &user_email, const std::string &user_password);
+};
+
+
 class password_not_match: public error
 {
 public:
-	explicit password_not_match(const std::string &user_login, const std::string &user_password);
+	explicit password_not_match(const std::string &user_id, const std::string &user_password);
 };
 
 
@@ -63,6 +84,20 @@ class session_not_found: public error
 {
 public:
 	explicit session_not_found(const std::string &session_id);
+};
+
+
+class session_error: public error
+{
+public:
+	explicit session_error(const std::string &session_id, const std::string &err_message);
+};
+
+
+class cant_start_session: public error
+{
+public:
+	explicit cant_start_session(const std::string &user_id);
 };
 
 

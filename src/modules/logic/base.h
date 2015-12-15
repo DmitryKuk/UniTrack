@@ -6,6 +6,11 @@
 #include <string>
 #include <utility>
 
+#include <mongo/client/redef_macros.h>
+#include <mongo/bson/bsonobj.h>
+#include <mongo/bson/bsonobjbuilder.h>
+#include <mongo/bson/bsonelement.h>
+
 #include <logic/global_instance.h>
 
 
@@ -21,14 +26,24 @@ public:
 	
 	
 	// Starts a new session for user by id.
-	// Returns session id or throws.
-	std::string start_session(const std::string &user_id) const;
+	// Returns pair of user id and session id or throws.
+	std::pair<std::string, std::string>
+	start_session_for_id(const std::string &user_id,
+						 const std::string &user_password) const;
 	
 	
 	// Starts a new session for user by login and password.
 	// Returns pair of user id and session id or throws.
-	std::pair<std::string, std::string> start_session(const std::string &user_login,
-													  const std::string &user_password) const;
+	std::pair<std::string, std::string>
+	start_session_for_login(const std::string &user_login,
+							const std::string &user_password) const;
+	
+	
+	// Starts a new session for user by email and password.
+	// Returns pair of user id and session id or throws.
+	std::pair<std::string, std::string>
+	start_session_for_email(const std::string &user_email,
+							const std::string &user_password) const;
 	
 	
 	// Continues user session.
@@ -38,6 +53,12 @@ public:
 	
 	// Finishes user session.
 	void finish_session(const std::string &session_id) const;
+private:
+	// Starts a new session for user by cursor.
+	// Returns pair of user id and session id or throws.
+	std::pair<std::string, std::string>
+	start_session_for_obj(const mongo::BSONObj &user_obj,
+						  const std::string &user_password) const;
 };	// class base
 
 

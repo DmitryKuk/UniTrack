@@ -36,6 +36,12 @@ logic::global_instance::global_instance(const nlohmann::json &config,
 	if (!base::json_utils::extract(*mongo_config_ptr, this->mongo_collection_sessions_, "collection_sessions"s))
 		throw logic::global_instance_init_error{"Required key: \"collection_sessions\" missed (in mongo parameters)"s};
 	
+	// Optional parameters
+	base::json_utils::extract(*mongo_config_ptr, this->session_lifetime_, "session_lifetime"s);
+	base::json_utils::extract(*mongo_config_ptr, this->session_forget_time_, "session_forget_time"s);
+	
+	base::json_utils::extract(*mongo_config_ptr, this->session_create_attempts_, "session_create_attempts"s);
+	
 	
 	// Connection to MongoDB
 	{
@@ -51,4 +57,12 @@ logic::global_instance::global_instance(const nlohmann::json &config,
 			throw logic::mongodb_connection_error{error_message};
 		}
 	}
+}
+
+
+
+std::string
+logic::generate_session_id(const std::string &user_id, std::random_device &rd)
+{
+	return logic::generate_random_hash<CryptoPP::SHA3_512>(user_id, rd);
 }

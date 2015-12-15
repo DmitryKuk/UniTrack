@@ -6,7 +6,9 @@
 
 #include <mongo/bson/bsonobj.h>
 #include <mongo/bson/bsonobjbuilder.h>
+#include <mongo/bson/bsonelement.h>
 
+#include <base/time.h>
 #include <logger/logger.h>
 #include <logic/exceptions.h>
 
@@ -14,74 +16,74 @@ using namespace std::literals;
 
 
 // Starts a new session for user by id.
-// Returns session id or throws.
-std::string
-logic::base::start_session(const std::string &user_id) const
+// Returns pair of user id and session id or throws.
+std::pair<std::string, std::string>
+logic::base::start_session_for_id(const std::string &user_id,
+								  const std::string &user_password) const
 {
-	// WARNING! This section must be atomic!
-	// Search for existing session
-	{
-		logic::cursor_ptr_type sessions_cursor_ptr =
-			this->logic_gi().connection().query(
-				this->logic_gi().collection_sessions(),
-				MONGO_QUERY("user_id"s << user_id),	// Search by user id
-				1									// Need only 1 BSON object
-			);
-		
-		if (sessions_cursor_ptr == nullptr)
-			throw logic::cant_create_cursor{};
-		
-		if (sessions_cursor_ptr->more()) {	// Previous session found
-			std::string session_id = sessions_cursor_ptr->next()["_id"s].OID().toString();
-			logger::log(logger::level::info, "Logic: Continue session: " + session_id);
-			return std::move(session_id);
-		}
-	}
+	logic::cursor_ptr_type users_cursor_ptr = this->logic_gi().connection().query(
+		this->logic_gi().collection_users(),
+		MONGO_QUERY("_id"s << mongo::OID{user_id}),	// Search by login
+		1											// Need only 1 BSON object
+	);
 	
-	// Creating new session
-	{
-		mongo::BSONObjBuilder session_obj_builder;
-		session_obj_builder.genOID();
-		session_obj_builder.append("user_id"s, user_id);
-		
-		mongo::BSONObj session_obj = session_obj_builder.done();
-		std::string session_id = session_obj["_id"s].OID().toString();
-		
-		this->logic_gi().connection().insert(this->logic_gi().collection_sessions(), session_obj);
-		
-		logger::log(logger::level::info, "Logic: Starting new session: " + session_id);
-		return std::move(session_id);
-	}
-	// WARNING! Until this!
+	if (users_cursor_ptr == nullptr)
+		throw logic::incorrect_cursor{};
+	
+	if (!users_cursor_ptr->more())
+		throw logic::id_not_found{user_id, user_password};
+	
+	mongo::BSONObj user_obj = users_cursor_ptr->nextSafe();
+	
+	return this->start_session_for_obj(user_obj, user_password);
 }
 
 
 // Starts a new session for user by login and password.
 // Returns pair of user id and session id or throws.
 std::pair<std::string, std::string>
-logic::base::start_session(const std::string &user_login,
-						   const std::string &user_password) const
+logic::base::start_session_for_login(const std::string &user_login,
+									 const std::string &user_password) const
 {
-	logic::cursor_ptr_type users_cursor_ptr =
-		this->logic_gi().connection().query(
-			this->logic_gi().collection_users(),
-			MONGO_QUERY("login"s << user_login),	// Search by login
-			1										// Need only 1 BSON object
-		);
+	logic::cursor_ptr_type users_cursor_ptr = this->logic_gi().connection().query(
+		this->logic_gi().collection_users(),
+		MONGO_QUERY("login"s << user_login),	// Search by login
+		1										// Need only 1 BSON object
+	);
 	
 	if (users_cursor_ptr == nullptr)
-		throw logic::cant_create_cursor{};
+		throw logic::incorrect_cursor{};
 	
 	if (!users_cursor_ptr->more())
 		throw logic::login_not_found{user_login, user_password};
 	
-	mongo::BSONObj user_obj = users_cursor_ptr->next();
-	if (user_obj["password"s].str() != user_password)
-		throw logic::password_not_match(user_login, user_password);
+	mongo::BSONObj user_obj = users_cursor_ptr->nextSafe();
 	
-	std::string user_id = user_obj["_id"s].OID().toString();
+	return this->start_session_for_obj(user_obj, user_password);
+}
+
+
+// Starts a new session for user by email and password.
+// Returns pair of user id and session id or throws.
+std::pair<std::string, std::string>
+logic::base::start_session_for_email(const std::string &user_email,
+									 const std::string &user_password) const
+{
+	logic::cursor_ptr_type users_cursor_ptr = this->logic_gi().connection().query(
+		this->logic_gi().collection_users(),
+		MONGO_QUERY("email"s << user_email),	// Search by login
+		1										// Need only 1 BSON object
+	);
 	
-	return std::make_pair(std::move(user_id), this->start_session(user_id));
+	if (users_cursor_ptr == nullptr)
+		throw logic::incorrect_cursor{};
+	
+	if (!users_cursor_ptr->more())
+		throw logic::email_not_found{user_email, user_password};
+	
+	mongo::BSONObj user_obj = users_cursor_ptr->nextSafe();
+	
+	return this->start_session_for_obj(user_obj, user_password);
 }
 
 
@@ -90,18 +92,22 @@ logic::base::start_session(const std::string &user_login,
 std::string
 logic::base::continue_session(const std::string &session_id) const
 {
-	logic::cursor_ptr_type sessions_cursor_ptr =
-		this->logic_gi().connection().query(
-			this->logic_gi().collection_sessions(),
-			MONGO_QUERY("_id"s << session_id),	// Search by session id
-			1								// Need only 1 BSON object
-		);
+	logic::cursor_ptr_type sessions_cursor_ptr = this->logic_gi().connection().query(
+		this->logic_gi().collection_sessions(),
+		MONGO_QUERY("session_id"s << session_id),	// Search by session id (NOT _id!!!)
+		1											// Need only 1 BSON object
+	);
 	
 	if (sessions_cursor_ptr == nullptr)
-		throw logic::cant_create_cursor{};
+		throw logic::incorrect_cursor{};
 	
-	if (sessions_cursor_ptr->more())	// Previous session found
-		return sessions_cursor_ptr->next()["user_id"s].str();
+	if (sessions_cursor_ptr->more()) {	// Current session found
+		mongo::BSONObj session_obj = sessions_cursor_ptr->nextSafe();
+		
+		if (static_cast<unsigned long long>(::base::utc_time()) <
+			session_obj["valid_until"s].Date().asInt64())	// If session is valid
+			return session_obj["user_id"s].OID().toString();
+	}
 	
 	throw logic::session_not_found{session_id};
 }
@@ -111,9 +117,114 @@ logic::base::continue_session(const std::string &session_id) const
 void
 logic::base::finish_session(const std::string &session_id) const
 {
+	mongo::Date_t time_now{static_cast<unsigned long long>(::base::utc_time())};
+	
+	mongo::BSONObj session_obj = this->logic_gi().connection().findAndModify(
+		this->logic_gi().collection_sessions(),
+		BSON("session_id"s	<< session_id),					// Search by session id (NOT _id!!!)
+		BSON("$min"s << BSON("valid_until"s	<< time_now)),	// Update if session valid
+		false,												// Not upsert
+		false,												// Return old version
+		mongo::BSONObj{},									// Not sort
+		BSON("_id"s << 1 << "user_id"s << 1)				// Return user_id field
+	);
+	
+	// Check session_obj for errors
+	if (session_obj.hasField("$err"s))
+		throw logic::session_error{session_id, session_obj["$err"s].String()};
+	
+	
+	// Register session in user object
+	this->logic_gi().connection().findAndModify(
+		this->logic_gi().collection_users(),							// In users collection
+		BSON("_id"s << session_obj["user_id"s].OID()),					// Find user by OID
+		BSON("$pop"s << BSON("sessions"s << session_obj["_id"s].OID()))	// And remove session OID from "sessions" array
+	);
+}
+
+
+// private
+// Starts a new session for user by cursor.
+// Returns pair of user id and session id or throws.
+std::pair<std::string, std::string>
+logic::base::start_session_for_obj(const mongo::BSONObj &user_obj,
+								   const std::string &user_password) const
+{
+	// Warning: this method should be atomic!
+	mongo::OID user_oid = user_obj["_id"s].OID();
+	std::string user_id = user_oid.toString();
+	
+	
+	// Password check
+	if (user_obj["password"s].str() != user_password)
+		throw logic::password_not_match(user_id, user_password);
+	
+	
+	std::string session_id;
+	
+	int attempts_availible = this->logic_gi().session_create_attempts();
+	do {
+		--attempts_availible;
+		session_id = this->logic_gi().generate_session_id(user_id);
+		
+		logic::cursor_ptr_type sessions_cursor_ptr =
+			this->logic_gi().connection().query(
+				this->logic_gi().collection_sessions(),
+				MONGO_QUERY("session_id"s << session_id),	// Search by session id (NOT _id!!!)
+				1											// Need only 1 BSON object
+			);
+		
+		if (sessions_cursor_ptr == nullptr)
+			throw logic::incorrect_cursor{};
+		
+		if (sessions_cursor_ptr->more())	// Duplicate found, regenerating session id
+			session_id.clear();	// Will continue, if attempts availible
+	} while (session_id.empty() && attempts_availible > 0);
+	
+	if (session_id.empty())
+		throw logic::cant_start_session{user_id};
+	// After this we have unique session id
+	
+	
+	std::time_t time_now = ::base::utc_time();
+	
 	mongo::BSONObjBuilder session_obj_builder;
-	session_obj_builder.append("_id"s, session_id);
+	session_obj_builder.genOID();
+	session_obj_builder.append("session_id"s,	session_id);
+	session_obj_builder.append("user_id"s,		user_oid);
+	
+	{
+		mongo::Date_t valid_until{static_cast<unsigned long long>(time_now + this->logic_gi().session_lifetime())};
+		session_obj_builder.append("valid_until"s,	valid_until);
+	}
+	
+	{
+		mongo::Date_t forget_at{static_cast<unsigned long long>(time_now + this->logic_gi().session_forget_time())};
+		session_obj_builder.append("forget_at"s,	forget_at);
+	}
+	
+	{
+		mongo::Date_t started_at{static_cast<unsigned long long>(time_now)};
+		session_obj_builder.append("started_at"s,	started_at);
+	}
 	
 	mongo::BSONObj session_obj = session_obj_builder.done();
-	this->logic_gi().connection().remove(this->logic_gi().collection_sessions(), session_obj);
+	mongo::OID session_oid = session_obj["_id"s].OID();	// Warning: NOT the same as session_id!
+	
+	
+	// Insert session object
+	this->logic_gi().connection().insert(
+		this->logic_gi().collection_sessions(),
+		session_obj
+	);
+	
+	// Register session in user object
+	this->logic_gi().connection().findAndModify(
+		this->logic_gi().collection_users(),				// In users collection
+		BSON("_id"s << user_oid),							// Find user by OID
+		BSON("$push"s << BSON("sessions"s << session_oid))	// And append session OID to "sessions" array
+	);
+	
+	
+	return std::make_pair(std::move(user_id), std::move(session_id));
 }

@@ -13,7 +13,7 @@ ifeq ($(SYSTEM),Darwin)
 else
 	EXTERNAL_LIBS			= boost_system pthread boost_filesystem
 endif
-EXTERNAL_LIBS				+= mongoclient
+EXTERNAL_LIBS				+= mongoclient cryptopp
 
 
 # Disable warnings in Boost.Asio for new version of Clang and mongo driver

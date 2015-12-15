@@ -12,17 +12,44 @@
 using namespace std::literals;
 
 
-void
-logic::registration::register_user(const logic::registration::form &form,
-								   std::string &user_id,
-								   std::string &session_id) const
+// Registers new user using data from registration form.
+// Returns user ref and session id, if user registered successfully.
+// Otherwise, throws.
+std::pair<std::string, std::string>
+logic::registration::register_user(const logic::registration::form &form) const
 {
+	mongo::OID user_oid = mongo::OID::gen();
+	std::string user_id = user_oid.toString();
+	
+	
+	std::string user_ref;
+	int attempts_availible = this->logic_gi().session_id_create_attempts();
+	do {
+		--attempts_availible;
+		user_ref = this->logic_gi().generate_user_ref(user_id);
+		
+		logic::cursor_ptr_type users_cursor_ptr =
+			this->logic_gi().connection().query(
+				this->logic_gi().collection_users(),
+				MONGO_QUERY("ref"s << user_ref),	// Search by user ref
+				1									// Need only 1 BSON object
+			);
+		
+		if (users_cursor_ptr == nullptr)
+			throw logic::incorrect_cursor{};
+		
+		if (users_cursor_ptr->more())	// Duplicate found, regenerating session id
+			user_ref.clear();	// Will continue, if attempts availible
+	} while (user_ref.empty() && attempts_availible > 0);
+	
+	if (user_ref.empty())
+		throw logic::cant_create_user_ref{user_id};
+	// After this we have unique session id
+	
+	
 	mongo::BSONObjBuilder user_obj_builder;
-	user_obj_builder.genOID();
-	
-	user_id = user_obj_builder.done()["_id"s].OID().toString();
-	
-	user_obj_builder.append("login"s, user_id);	// Default login is id (as string)
+	user_obj_builder.append("_id"s, user_oid);
+	user_obj_builder.append("ref"s, user_ref);
 	
 	for (const std::string &key: {"password"s, "email"s, "name"s, "surname"s}) {
 		const std::string &value = form.at(key);
@@ -41,5 +68,5 @@ logic::registration::register_user(const logic::registration::form &form,
 	this->logic_gi().connection().insert(this->logic_gi().collection_users(), user_obj_builder.done());
 	
 	// Start new session for registered user
-	session_id = this->start_session_for_id(user_id, form.at("password"s)).second;
+	return this->start_session_for_email(form.at("email"s), form.at("password"s));
 }

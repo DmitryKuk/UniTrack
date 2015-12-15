@@ -37,10 +37,12 @@ logic::global_instance::global_instance(const nlohmann::json &config,
 		throw logic::global_instance_init_error{"Required key: \"collection_sessions\" missed (in mongo parameters)"s};
 	
 	// Optional parameters
-	base::json_utils::extract(*mongo_config_ptr, this->session_lifetime_, "session_lifetime"s);
-	base::json_utils::extract(*mongo_config_ptr, this->session_forget_time_, "session_forget_time"s);
+	base::json_utils::extract(*mongo_config_ptr, this->session_lifetime_,			"session_lifetime"s);
+	base::json_utils::extract(*mongo_config_ptr, this->session_restart_after_,		"session_restart_after"s);
+	base::json_utils::extract(*mongo_config_ptr, this->session_forget_after_,		"session_forget_after"s);
 	
-	base::json_utils::extract(*mongo_config_ptr, this->session_create_attempts_, "session_create_attempts"s);
+	base::json_utils::extract(*mongo_config_ptr, this->session_id_create_attempts_,	"session_id_create_attempts"s);
+	base::json_utils::extract(*mongo_config_ptr, this->user_ref_create_attempts_,	"user_ref_create_attempts"s);
 	
 	
 	// Connection to MongoDB
@@ -65,4 +67,11 @@ std::string
 logic::generate_session_id(const std::string &user_id, std::random_device &rd)
 {
 	return logic::generate_random_hash<CryptoPP::SHA3_512>(user_id, rd);
+}
+
+
+std::string
+logic::generate_user_ref(const std::string &user_id, std::random_device &rd)
+{
+	return logic::generate_random_hash<CryptoPP::SHA3_256>(user_id, rd);
 }

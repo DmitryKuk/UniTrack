@@ -28,9 +28,6 @@ public:
 	std::unique_ptr<server::protocol::http::response>
 	response(const server::worker &worker,
 			 server::protocol::http::request &request) const override;
-protected:
-	// Validators
-	void validate_request_body(const std::vector<char> &body) const;
 };	// class registration
 
 

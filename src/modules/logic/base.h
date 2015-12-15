@@ -25,40 +25,40 @@ public:
 	using ::logic::enable_global_instance_ref::enable_global_instance_ref;
 	
 	
-	// Starts a new session for user by id.
-	// Returns pair of user id and session id or throws.
-	std::pair<std::string, std::string>
-	start_session_for_id(const std::string &user_id,
-						 const std::string &user_password) const;
-	
-	
-	// Starts a new session for user by login and password.
-	// Returns pair of user id and session id or throws.
-	std::pair<std::string, std::string>
-	start_session_for_login(const std::string &user_login,
-							const std::string &user_password) const;
-	
-	
 	// Starts a new session for user by email and password.
-	// Returns pair of user id and session id or throws.
+	// Returns pair of user ref and session id or throws.
 	std::pair<std::string, std::string>
 	start_session_for_email(const std::string &user_email,
 							const std::string &user_password) const;
 	
 	
 	// Continues user session.
-	// Returns correct user id or throws.
-	std::string continue_session(const std::string &session_id) const;
+	// Returns pair of user ref and session id or throws.
+	std::pair<std::string, std::string>
+	continue_session(const std::string &session_id) const;
 	
 	
 	// Finishes user session.
 	void finish_session(const std::string &session_id) const;
 private:
-	// Starts a new session for user by cursor.
-	// Returns pair of user id and session id or throws.
+	// Starts a new session for user.
+	// Returns pair of user ref and session id or throws.
 	std::pair<std::string, std::string>
 	start_session_for_obj(const mongo::BSONObj &user_obj,
 						  const std::string &user_password) const;
+	
+	
+	// Starts a new session for user.
+	// Returns pair of user ref and session id or throws.
+	std::pair<std::string, std::string>
+	start_session_for_obj_without_password_check(const mongo::BSONObj &user_obj) const;
+	
+	
+	// Restarts the session.
+	// Returns pair of user ref and new session id or throws.
+	std::pair<std::string, std::string>
+	restart_session(const std::string &session_id,
+					const mongo::BSONObj &session_obj) const;
 };	// class base
 
 

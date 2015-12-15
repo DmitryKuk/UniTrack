@@ -35,21 +35,6 @@ logic::user_not_found::user_not_found(const std::string &description):
 {}
 
 
-logic::id_not_found::id_not_found(const std::string &user_id, const std::string &user_password):
-	logic::user_not_found{"ID: \""s + user_id + "\"; password: \""s + user_password + '\"'}
-{}
-
-
-logic::login_not_found::login_not_found(const std::string &user_login, const std::string &user_password):
-	logic::user_not_found{"Login: \""s + user_login + "\"; password: \""s + user_password + '\"'}
-{}
-
-
-logic::email_not_found::email_not_found(const std::string &user_email, const std::string &user_password):
-	logic::user_not_found{"Email: \""s + user_email + "\"; password: \""s + user_password + '\"'}
-{}
-
-
 logic::password_not_match::password_not_match(const std::string &user_id, const std::string &user_password):
 	logic::error{"Password not match for id: \""s + user_id + "\" and password: \""s + user_password + '\"'}
 {}
@@ -67,6 +52,11 @@ logic::session_error::session_error(const std::string &session_id, const std::st
 
 logic::cant_start_session::cant_start_session(const std::string &user_id):
 	logic::error{"Can\'t start session for user id: \""s + user_id + '\"'}
+{}
+
+
+logic::cant_create_user_ref::cant_create_user_ref(const std::string &user_id):
+	logic::error{"Can\'t create user ref for user id: \""s + user_id + '\"'}
 {}
 
 

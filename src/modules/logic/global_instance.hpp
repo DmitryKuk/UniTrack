@@ -35,17 +35,33 @@ logic::global_instance::session_lifetime() const noexcept
 
 inline
 std::time_t
-logic::global_instance::session_forget_time() const noexcept
+logic::global_instance::session_restart_after() const noexcept
 {
-	return this->session_forget_time_;
+	return this->session_restart_after_;
+}
+
+
+inline
+std::time_t
+logic::global_instance::session_forget_after() const noexcept
+{
+	return this->session_forget_after_;
 }
 
 
 inline
 unsigned int
-logic::global_instance::session_create_attempts() const noexcept
+logic::global_instance::session_id_create_attempts() const noexcept
 {
-	return this->session_create_attempts_;
+	return this->session_id_create_attempts_;
+}
+
+
+inline
+unsigned int
+logic::global_instance::user_ref_create_attempts() const noexcept
+{
+	return this->user_ref_create_attempts_;
 }
 
 
@@ -54,6 +70,14 @@ std::string
 logic::global_instance::generate_session_id(const std::string &user_id)
 {
 	return logic::generate_session_id(user_id, this->random_device_);
+}
+
+
+inline
+std::string
+logic::global_instance::generate_user_ref(const std::string &user_id)
+{
+	return logic::generate_user_ref(user_id, this->random_device_);
 }
 
 

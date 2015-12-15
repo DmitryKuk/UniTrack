@@ -24,11 +24,10 @@ public:
 	
 	
 	// Registers new user using data from registration form.
-	// Sets user_id and session_id to correct values, if user registered successfully.
+	// Returns user ref and session id, if user registered successfully.
 	// Otherwise, throws.
-	void register_user(const form &form,
-					   std::string &user_id,
-					   std::string &session_id) const;
+	std::pair<std::string, std::string>
+	register_user(const form &form) const;
 };	// class registration
 
 

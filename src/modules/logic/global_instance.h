@@ -37,23 +37,32 @@ public:
 	inline const std::string & collection_sessions() const noexcept;
 	
 	inline std::time_t session_lifetime() const noexcept;
-	inline std::time_t session_forget_time() const noexcept;
+	inline std::time_t session_restart_after() const noexcept;
+	inline std::time_t session_forget_after() const noexcept;
 	
-	inline unsigned int session_create_attempts() const noexcept;
+	inline unsigned int session_id_create_attempts() const noexcept;
+	inline unsigned int user_ref_create_attempts() const noexcept;
 	
 	
 	inline std::string generate_session_id(const std::string &user_id);
+	inline std::string generate_user_ref(const std::string &user_id);
 protected:
+	static constexpr std::time_t one_month		= 30 * 24 * 60 * 60 * 1000ull;	// Constant, in milliseconds
+	
+	
 	// Parameters
-	std::string		mongo_uri_;												// Required
+	std::string		mongo_uri_;										// Required
 	
-	std::string		mongo_collection_users_,								// Required
-					mongo_collection_sessions_;								// Required
+	std::string		mongo_collection_users_,						// Required
+					mongo_collection_sessions_;						// Required
 	
-	std::time_t		session_lifetime_			=  1 * 30 * 24 * 60 * 60,	// Optional (by default: 1 month)
-					session_forget_time_		= 12 * 30 * 24 * 60 * 60;	// Optional (by default: 1 year)
+	// In milliseconds!
+	std::time_t		session_lifetime_			= one_month *  1,	// Optional (by default: 1 month)
+					session_restart_after_		= one_month /  2,	// Optional (by default: 2 weeks)
+					session_forget_after_		= one_month * 12;	// Optional (by default: 1 year)
 	
-	unsigned int	session_create_attempts_	= 3;						// Optional
+	unsigned int	session_id_create_attempts_	= 3;				// Optional
+	unsigned int	user_ref_create_attempts_	= 5;				// Optional
 	
 	
 	// Data
@@ -81,6 +90,10 @@ private:
 
 std::string
 generate_session_id(const std::string &user_id, std::random_device &rd);
+
+
+std::string
+generate_user_ref(const std::string &user_id, std::random_device &rd);
 
 
 };	// namespace logic

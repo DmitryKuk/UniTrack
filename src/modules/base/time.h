@@ -3,16 +3,19 @@
 #ifndef BASE_TIME_H
 #define BASE_TIME_H
 
-#include <ctime>
+#include <chrono>
 
 
 namespace base {
 
 
-std::time_t utc_time() noexcept;
+// Return current time in milliseconds
+inline std::time_t utc_time() noexcept;
 
 
 };	// namespace base
 
+
+#include <base/time.hpp>
 
 #endif	// BASE_TIME_H

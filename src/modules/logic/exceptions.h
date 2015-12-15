@@ -52,27 +52,6 @@ public:
 };
 
 
-class id_not_found: public user_not_found
-{
-public:
-	explicit id_not_found(const std::string &user_id, const std::string &user_password);
-};
-
-
-class login_not_found: public user_not_found
-{
-public:
-	explicit login_not_found(const std::string &user_login, const std::string &user_password);
-};
-
-
-class email_not_found: public user_not_found
-{
-public:
-	explicit email_not_found(const std::string &user_email, const std::string &user_password);
-};
-
-
 class password_not_match: public error
 {
 public:
@@ -98,6 +77,13 @@ class cant_start_session: public error
 {
 public:
 	explicit cant_start_session(const std::string &user_id);
+};
+
+
+class cant_create_user_ref: public error
+{
+public:
+	explicit cant_create_user_ref(const std::string &user_id);
 };
 
 

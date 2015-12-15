@@ -2,6 +2,8 @@
 
 #include <host/modules/logic/registration.h>
 
+#include <tuple>
+
 #include <server/worker.h>
 #include <host/module.h>
 
@@ -67,24 +69,14 @@ host::logic::registration::response(const server::worker &worker,
 								  server::protocol::http::status::bad_request);
 	
 	try {
-		std::string user_id, session_id;
-		this->register_user(form, user_id, session_id);
+		std::string user_ref, session_id;
+		std::tie(user_ref, session_id) = this->register_user(form);
 		
-		auto response_ptr = this->redirect_response(worker, request, "/user/"s + user_id);
+		auto response_ptr = this->redirect_response(worker, request, "/user/"s + user_ref);
 		response_ptr->add_header(server::protocol::http::header::set_cookie, "sid="s + session_id);
 		
 		return response_ptr;
 	} catch (const std::exception &e) {
-		return this->handle_error(worker, request, e.what(), server::protocol::http::status::internal_server_error);
+		return this->handle_error(worker, request, e.what(), server::protocol::http::status::bad_request);
 	}
-	
-	return this->phony_response(worker, request, server::protocol::http::status::ok);
-}
-
-
-// private
-void
-host::logic::registration::validate_request_body(const std::vector<char> &body) const
-{
-	
 }

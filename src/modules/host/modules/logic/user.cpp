@@ -30,7 +30,7 @@ host::module<host::logic::user> module{
 host::logic::user::user(const nlohmann::json &config,
 						::logic::global_instance &logic):
 	::logic::user{logic},
-	file_host{config, {config, *this}}
+	base_host{config}
 {}
 
 
@@ -39,5 +39,5 @@ host::logic::user::user(const nlohmann::json &config,
 // host::logic::user::response(const server::worker &worker,
 // 							server::protocol::http::request &request) const
 // {
-// 	return this->server::host::base::response(worker, request);
+// 	return this->base_host::response(worker, request);
 // }

@@ -1,6 +1,6 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#include <host/modules/logic/registration.h>
+#include <host/modules/logic/login.h>
 
 #include <tuple>
 
@@ -14,11 +14,11 @@ using namespace std::literals;
 namespace {
 
 
-host::module<host::logic::registration> module{
-	"logic/registration"s,
+host::module<host::logic::login> module{
+	"logic/login"s,
 	[](const nlohmann::json &host_config, ::logic::global_instance &logic)
 	{
-		return std::make_shared<host::logic::registration>(
+		return std::make_shared<host::logic::login>(
 			host_config,
 			logic
 		);
@@ -30,17 +30,17 @@ host::module<host::logic::registration> module{
 
 
 
-host::logic::registration::registration(const nlohmann::json &config,
-										::logic::global_instance &logic):
-	::logic::registration{logic},
+host::logic::login::login(const nlohmann::json &config,
+						  ::logic::global_instance &logic):
+	::logic::login{logic},
 	base_host{config}
 {}
 
 
 // virtual
 std::unique_ptr<server::protocol::http::response>
-host::logic::registration::response(const server::worker &worker,
-									server::protocol::http::request &request) const
+host::logic::login::response(const server::worker &worker,
+							 server::protocol::http::request &request) const
 {
 	using namespace server::protocol::http;
 	
@@ -64,11 +64,11 @@ host::logic::registration::response(const server::worker &worker,
 	// Register new users by POST request only
 	std::string data{request.body.data(), request.body.size()};
 	if (data.size() != request.body.size())
-		return handle_error("Non-string-convertible data in registration request body"s, bad_request_body);
+		return handle_error("Non-string-convertible data in login request body"s, bad_request_body);
 	
 	
-	// Parsing registration form
-	::logic::registration::form form;
+	// Parsing login form
+	::logic::login::form form;
 	bool parsed = server::protocol::http::decode_uri_args(
 		data,
 		[&](std::string &&key, std::string &&value) { form.emplace(std::move(key), std::move(value)); },
@@ -76,13 +76,13 @@ host::logic::registration::response(const server::worker &worker,
 	);
 	
 	if (!parsed)
-		return handle_error("Can\'t decode registration request body"s, bad_request_body);
+		return handle_error("Can\'t decode login request body"s, bad_request_body);
 	
 	
-	// Processing registration form
+	// Processing login form
 	try {
 		std::string user_ref, session_cookie;
-		std::tie(user_ref, session_cookie) = this->register_user(form);
+		std::tie(user_ref, session_cookie) = this->login_user(form);
 		
 		std::string response_body = "{\"status\":\"ok\",\"location\":\"/user/"s + user_ref + "\"}"s;
 		auto response_ptr = this->response_with_body(worker, request, status::ok, std::move(response_body));

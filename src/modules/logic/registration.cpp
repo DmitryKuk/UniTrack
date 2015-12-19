@@ -51,7 +51,7 @@ logic::registration::register_user(const logic::registration::form &form) const
 	user_obj_builder.append("_id"s, user_oid);
 	user_obj_builder.append("ref"s, user_ref);
 	
-	for (const std::string &key: {"password"s, "email"s, "name"s, "surname"s}) {
+	for (const std::string &key: {"email"s, "password"s, "name"s, "surname"s}) {
 		const std::string &value = form.at(key);
 		if (value.empty())
 			throw logic::incorrect_form{"Field empty: \""s + key + '\"'};

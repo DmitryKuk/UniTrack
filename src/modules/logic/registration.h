@@ -18,6 +18,12 @@ class registration:
 public:
 	using form = std::unordered_map<std::string, std::string>;
 	
+	// Form should contain:
+	// - email
+	// - password
+	// - name
+	// - surname
+	
 	
 	// Constructor
 	using ::logic::base::base;

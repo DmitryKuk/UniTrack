@@ -6,39 +6,39 @@
 #include <string>
 #include <unordered_map>
 
-#include <logic/page_model_generator.h>
+#include <logic/base.h>
 
 
 namespace logic {
 
 
 class login:
-	public ::logic::page_model_generator
+	public ::logic::base
 {
 public:
 	using form = std::unordered_map<std::string, std::string>;
 	
+	// Form should contain:
+	// - email
+	// - password
+	
 	
 	// Constructor
-	using ::logic::page_model_generator::page_model_generator;
+	using ::logic::base::base;
 	
 	
-	virtual
-	logic::page_model
-	page_model(const server::protocol::http::request &request,
-			   const boost::filesystem::path &path) const override;
-	
-	
-	// Logging in user using data from login form.
-	// Sets user_id and session_id to correct values, if user logged insuccessfully.
+	// Starts new session for user using data from login form.
+	// Returns user ref and session cookie, if user logged in successfully.
 	// Otherwise, throws.
-	void login_user(const form &fields,
-					std::string &user_id,
-					std::string &session_id) const;
+	inline
+	std::pair<std::string, std::string>
+	login_user(const form &form) const;
 };	// class login
 
 
 };	// namespace logic
 
+
+#include <logic/login.hpp>
 
 #endif	// LOGIC_LOGIN_H

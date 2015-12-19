@@ -83,7 +83,7 @@ logic::base::finish_session(const std::string &session_id) const
 		false,												// Not upsert
 		false,												// Return old version
 		mongo::BSONObj{},									// Not sort
-		BSON("_id"s << 1 << "user_id"s << 1)				// Return user_id field
+		BSON("_id"s << 1 << "user_id"s << 1)				// Return _id and user_id fields
 	);
 	
 	// Check session_obj for errors
@@ -107,15 +107,9 @@ std::pair<std::string, std::string>
 logic::base::start_session_for_obj(const mongo::BSONObj &user_obj,
 								   const std::string &user_password) const
 {
-	// Warning: this method should be atomic!
-	mongo::OID user_oid = user_obj["_id"s].OID();
-	std::string user_id = user_oid.toString();
-	
-	
 	// Password check
 	if (user_obj["password"s].str() != user_password)
-		throw logic::password_not_match(user_id, user_password);
-	
+		throw logic::password_not_match(user_obj["_id"s].OID().toString(), user_password);
 	
 	return this->start_session_for_obj_without_password_check(user_obj);
 }
@@ -215,7 +209,6 @@ logic::base::restart_session(const std::string &session_id,
 							 const mongo::BSONObj &session_obj) const
 {
 	mongo::OID user_oid = session_obj["_id"s].OID();
-	std::string user_id = user_oid.toString();
 	
 	logic::cursor_ptr_type users_cursor_ptr = this->logic_gi().connection().query(
 		this->logic_gi().collection_users(),
@@ -227,7 +220,7 @@ logic::base::restart_session(const std::string &session_id,
 		throw logic::incorrect_cursor{};
 	
 	if (!users_cursor_ptr->more())
-		throw logic::user_not_found{"For id: \""s + user_id + '\"'};
+		throw logic::user_not_found{"For id: \""s + user_oid.toString() + '\"'};
 	
 	this->finish_session(session_id);
 	return this->start_session_for_obj_without_password_check(users_cursor_ptr->next());

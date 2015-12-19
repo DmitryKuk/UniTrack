@@ -38,23 +38,15 @@
 			
 			"content": {
 				"user": {
-					"type": "logic/user",
-					"root": "/var/unitrack/www/user",
-					"default_index_file": "index.html",
-					"allow_match_mode": "any",
-					"allow_regexes": [ "/.*" ],
-					"default_behavior": "files",
-					"change_behavior_regex": ".*\\.html"
+					"type": "logic/user"
+				},
+				
+				"login": {
+					"type": "logic/login"
 				},
 				
 				"registration": {
-					"type": "logic/registration",
-					"root": "/var/unitrack/www/registration",
-					"default_index_file": "index.html",
-					"allow_match_mode": "any",
-					"allow_regexes": [ "/.*" ],
-					"default_behavior": "files",
-					"change_behavior_regex": ".*\\.html"
+					"type": "logic/registration"
 				}
 			}
 		}

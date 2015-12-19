@@ -3,8 +3,7 @@
 #ifndef HOST_MODULES_LOGIC_USER_H
 #define HOST_MODULES_LOGIC_USER_H
 
-#include <server/host/file.h>
-#include <host/modules/file_handlers/files_and_template_pages.h>
+#include <server/host/base.h>
 #include <logic/user.h>
 
 
@@ -14,10 +13,10 @@ namespace logic {
 
 class user:
 	public ::logic::user,
-	public server::host::file<host::file_handlers::files_and_template_pages>
+	public server::host::base
 {
 public:
-	using file_host = server::host::file<host::file_handlers::files_and_template_pages>;
+	using base_host = server::host::base;
 	
 	
 	user(const nlohmann::json &config,

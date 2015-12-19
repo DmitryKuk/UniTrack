@@ -3,8 +3,7 @@
 #ifndef HOST_MODULES_LOGIC_REGISTRATION_H
 #define HOST_MODULES_LOGIC_REGISTRATION_H
 
-#include <server/host/file.h>
-#include <server/host/file_handlers/files_only.h>
+#include <server/host/base.h>
 #include <logic/registration.h>
 
 
@@ -14,10 +13,10 @@ namespace logic {
 
 class registration:
 	public ::logic::registration,
-	public server::host::file<server::host::file_handlers::files_only>
+	public server::host::base
 {
 public:
-	using file_host = server::host::file<server::host::file_handlers::files_only>;
+	using base_host = server::host::base;
 	
 	
 	registration(const nlohmann::json &config,

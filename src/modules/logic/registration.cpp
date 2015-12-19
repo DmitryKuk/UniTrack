@@ -13,7 +13,7 @@ using namespace std::literals;
 
 
 // Registers new user using data from registration form.
-// Returns user ref and session id, if user registered successfully.
+// Returns user ref and session cookie, if user registered successfully.
 // Otherwise, throws.
 std::pair<std::string, std::string>
 logic::registration::register_user(const logic::registration::form &form) const
@@ -65,7 +65,11 @@ logic::registration::register_user(const logic::registration::form &form) const
 	user_obj_builder.append("registered_at"s, time_now);
 	
 	// Insert user object into users collection
-	this->logic_gi().connection().insert(this->logic_gi().collection_users(), user_obj_builder.done());
+	try {
+		this->logic_gi().connection().insert(this->logic_gi().collection_users(), user_obj_builder.done());
+	} catch (const mongo::OperationException &e) {
+		throw logic::duplicate_user_found{e.what()};
+	}
 	
 	// Start new session for registered user
 	return this->start_session_for_email(form.at("email"s), form.at("password"s));

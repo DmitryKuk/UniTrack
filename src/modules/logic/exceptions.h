@@ -52,6 +52,13 @@ public:
 };
 
 
+class duplicate_user_found: public error
+{
+public:
+	explicit duplicate_user_found(const std::string &description);
+};
+
+
 class password_not_match: public error
 {
 public:

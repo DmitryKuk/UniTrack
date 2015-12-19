@@ -28,7 +28,7 @@ server::host::base::port_allowed(::server::port_type port) const noexcept
 }
 
 
-// Prepares a correct response to the client.
+// Prepares a correct response.
 // NOTE: By default -- phony "404 Not Found". Redefine this function in child classes.
 // virtual
 std::unique_ptr<::server::protocol::http::response>
@@ -39,7 +39,7 @@ server::host::base::response(const ::server::worker &worker,
 }
 
 
-// Prepares a phony response to the client.
+// Prepares a phony response.
 std::unique_ptr<::server::protocol::http::response>
 server::host::base::phony_response(const ::server::worker &worker,
 								   const ::server::protocol::http::request &request,
@@ -88,7 +88,7 @@ server::host::base::phony_response(const ::server::worker &worker,
 }
 
 
-// Prepares a redirection response for client
+// Prepares a redirection response.
 std::unique_ptr<server::protocol::http::response>
 server::host::base::redirect_response(const ::server::worker &worker,
 									  ::server::protocol::http::request &request,
@@ -104,35 +104,23 @@ server::host::base::redirect_response(const ::server::worker &worker,
 
 
 std::unique_ptr<::server::protocol::http::response>
-server::host::base::handle_error(const worker &worker,
+server::host::base::handle_error(const ::server::worker &worker,
 								 const ::server::protocol::http::request &request,
 								 const std::string &what,
 								 const ::server::protocol::http::status &status) const
 {
-	using namespace std::literals;
-	logger::stream(logger::level::error)
-		<< "Client: "s << request.client_address
-		<< ": Host: \""s << this->name()
-		<< "\": "s << what
-		<< " => "s << status.code() << '.';
-	
+	this->log_error(worker, request, what, status);
 	return this->phony_response(worker, request, status);
 }
 
 
 std::unique_ptr<::server::protocol::http::response>
-server::host::base::handle_error(const worker &worker,
+server::host::base::handle_error(const ::server::worker &worker,
 								 const ::server::protocol::http::request &request,
 								 const char *what,
 								 const ::server::protocol::http::status &status) const
 {
-	using namespace std::literals;
-	logger::stream(logger::level::error)
-		<< "Client: "s << request.client_address
-		<< ": Host: \""s << this->name()
-		<< "\": "s << what
-		<< " => "s << status.code() << '.';
-	
+	this->log_error(worker, request, what, status);
 	return this->phony_response(worker, request, status);
 }
 

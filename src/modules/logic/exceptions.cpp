@@ -35,6 +35,11 @@ logic::user_not_found::user_not_found(const std::string &description):
 {}
 
 
+logic::duplicate_user_found::duplicate_user_found(const std::string &description):
+	logic::error{"Duplicate user found: "s + description}
+{}
+
+
 logic::password_not_match::password_not_match(const std::string &user_id, const std::string &user_password):
 	logic::error{"Password not match for id: \""s + user_id + "\" and password: \""s + user_password + '\"'}
 {}

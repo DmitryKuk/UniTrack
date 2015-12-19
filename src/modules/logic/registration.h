@@ -24,7 +24,7 @@ public:
 	
 	
 	// Registers new user using data from registration form.
-	// Returns user ref and session id, if user registered successfully.
+	// Returns user ref and session cookie, if user registered successfully.
 	// Otherwise, throws.
 	std::pair<std::string, std::string>
 	register_user(const form &form) const;

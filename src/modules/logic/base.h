@@ -26,14 +26,15 @@ public:
 	
 	
 	// Starts a new session for user by email and password.
-	// Returns pair of user ref and session id or throws.
+	// Returns pair of user ref and session cookie or throws.
 	std::pair<std::string, std::string>
 	start_session_for_email(const std::string &user_email,
 							const std::string &user_password) const;
 	
 	
 	// Continues user session.
-	// Returns pair of user ref and session id or throws.
+	// Returns pair of user ref and session cookie or throws.
+	// If session is valid, session cookie is empty.
 	std::pair<std::string, std::string>
 	continue_session(const std::string &session_id) const;
 	
@@ -42,20 +43,20 @@ public:
 	void finish_session(const std::string &session_id) const;
 private:
 	// Starts a new session for user.
-	// Returns pair of user ref and session id or throws.
+	// Returns pair of user ref and session cookie or throws.
 	std::pair<std::string, std::string>
 	start_session_for_obj(const mongo::BSONObj &user_obj,
 						  const std::string &user_password) const;
 	
 	
 	// Starts a new session for user.
-	// Returns pair of user ref and session id or throws.
+	// Returns pair of user ref and session cookie or throws.
 	std::pair<std::string, std::string>
 	start_session_for_obj_without_password_check(const mongo::BSONObj &user_obj) const;
 	
 	
 	// Restarts the session.
-	// Returns pair of user ref and new session id or throws.
+	// Returns pair of user ref and new session cookie or throws.
 	std::pair<std::string, std::string>
 	restart_session(const std::string &session_id,
 					const mongo::BSONObj &session_obj) const;

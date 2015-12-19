@@ -4,13 +4,17 @@
 #define BASE_TIME_H
 
 #include <chrono>
+#include <string>
 
 
 namespace base {
 
 
-// Return current time in milliseconds
+// Returns current time in milliseconds
 inline std::time_t utc_time() noexcept;
+
+// Returns time as a string in GMT format
+std::string time_for_cookie(std::time_t milliseconds);
 
 
 };	// namespace base

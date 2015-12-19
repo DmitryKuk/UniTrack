@@ -6,6 +6,7 @@
 
 #include <server/worker.h>
 #include <host/module.h>
+#include <logic/exceptions.h>
 
 using namespace std::literals;
 
@@ -32,7 +33,7 @@ host::module<host::logic::registration> module{
 host::logic::registration::registration(const nlohmann::json &config,
 										::logic::global_instance &logic):
 	::logic::registration{logic},
-	file_host{config}
+	base_host{config}
 {}
 
 
@@ -41,21 +42,35 @@ std::unique_ptr<server::protocol::http::response>
 host::logic::registration::response(const server::worker &worker,
 									server::protocol::http::request &request) const
 {
-	if (request.method != server::protocol::http::method::POST)
-		return this->file_host::response(worker, request);
+	using namespace server::protocol::http;
+	
+	static const std::string bad_request_body = "{\"status\":\"bad_request\"}"s;
+	
+	
+	if (request.cookies.count("sid"s))	// User have session id => don't need register him
+		return this->redirect_response(worker, request, "/"s);
+	
+	
+	if (request.method != method::POST)	// This host can process only POST requests
+		return this->base_host::response(worker, request);
+	
+	
+	const auto handle_error =
+		[&](const auto &log_message, const std::string &response_body)
+		{
+			this->log_error(worker, request, log_message, status::ok);
+			return this->response_with_body(worker, request, status::ok, response_body, false);
+		};
 	
 	
 	// Register new users by POST request only
 	std::string data{request.body.data(), request.body.size()};
 	if (data.size() != request.body.size())
-		return this->handle_error(worker,
-								  request,
-								  "Non-string-convertible data in registration request body"s,
-								  server::protocol::http::status::bad_request);
+		return handle_error("Non-string-convertible data in registration request body"s, bad_request_body);
 	
 	
+	// Parsing registration form
 	::logic::registration::form form;
-	
 	bool parsed = server::protocol::http::decode_uri_args(
 		data,
 		[&](std::string &&key, std::string &&value) { form.emplace(std::move(key), std::move(value)); },
@@ -63,20 +78,24 @@ host::logic::registration::response(const server::worker &worker,
 	);
 	
 	if (!parsed)
-		return this->handle_error(worker,
-								  request,
-								  "Can\'t decode registration request body"s,
-								  server::protocol::http::status::bad_request);
+		return handle_error("Can\'t decode registration request body"s, bad_request_body);
 	
+	
+	// Processing registration form
 	try {
-		std::string user_ref, session_id;
-		std::tie(user_ref, session_id) = this->register_user(form);
+		std::string user_ref, session_cookie;
+		std::tie(user_ref, session_cookie) = this->register_user(form);
 		
-		auto response_ptr = this->redirect_response(worker, request, "/user/"s + user_ref);
-		response_ptr->add_header(server::protocol::http::header::set_cookie, "sid="s + session_id);
+		std::string response_body = "{\"status\":\"ok\",\"location\":\"/user/"s + user_ref + "\"}"s;
+		auto response_ptr = this->response_with_body(worker, request, status::ok, std::move(response_body));
+		response_ptr->add_header(header::set_cookie, session_cookie);
 		
-		return response_ptr;
+		return std::move(response_ptr);
+	} catch (const ::logic::duplicate_user_found &e) {
+		static const std::string response_body = "{\"status\":\"duplicate_user_found\"}"s;
+		return handle_error(e.what(), response_body);
 	} catch (const std::exception &e) {
-		return this->handle_error(worker, request, e.what(), server::protocol::http::status::bad_request);
+		static const std::string response_body = "{\"status\":\"unknown_error\"}"s;
+		return handle_error(e.what(), response_body);
 	}
 }

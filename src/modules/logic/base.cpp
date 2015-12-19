@@ -16,7 +16,7 @@ using namespace std::literals;
 
 
 // Starts a new session for user by email and password.
-// Returns pair of user ref and session id or throws.
+// Returns pair of user ref and session cookie or throws.
 std::pair<std::string, std::string>
 logic::base::start_session_for_email(const std::string &user_email,
 									 const std::string &user_password) const
@@ -40,7 +40,8 @@ logic::base::start_session_for_email(const std::string &user_email,
 
 
 // Continues user session.
-// Returns pair of user ref and session id or throws.
+// Returns pair of user ref and session cookie or throws.
+// If session is valid, session cookie is empty.
 std::pair<std::string, std::string>
 logic::base::continue_session(const std::string &session_id) const
 {
@@ -59,7 +60,7 @@ logic::base::continue_session(const std::string &session_id) const
 		
 		if (time_now < session_obj["valid_until"s].Date().asInt64()) {	// If session is valid
 			if (time_now < session_obj["restart_at"s].Date().asInt64())	// Don't need to restart
-				return std::make_pair(session_obj["user_ref"s].str(), session_id);
+				return std::make_pair(session_obj["user_ref"s].str(), ""s);
 			else														// Need to restart session
 				return this->restart_session(session_id, session_obj);
 		}
@@ -101,7 +102,7 @@ logic::base::finish_session(const std::string &session_id) const
 
 // private
 // Starts a new session for user.
-// Returns pair of user ref and session id or throws.
+// Returns pair of user ref and session cookie or throws.
 std::pair<std::string, std::string>
 logic::base::start_session_for_obj(const mongo::BSONObj &user_obj,
 								   const std::string &user_password) const
@@ -113,7 +114,7 @@ logic::base::start_session_for_obj(const mongo::BSONObj &user_obj,
 	
 	// Password check
 	if (user_obj["password"s].str() != user_password)
-		throw logic::password_not_match(user_id, user_password + '/' + user_obj["password"s].str());
+		throw logic::password_not_match(user_id, user_password);
 	
 	
 	return this->start_session_for_obj_without_password_check(user_obj);
@@ -121,7 +122,7 @@ logic::base::start_session_for_obj(const mongo::BSONObj &user_obj,
 
 
 // Starts a new session for user.
-// Returns pair of user ref and session id or throws.
+// Returns pair of user ref and session cookie or throws.
 std::pair<std::string, std::string>
 logic::base::start_session_for_obj_without_password_check(const mongo::BSONObj &user_obj) const
 {
@@ -156,6 +157,9 @@ logic::base::start_session_for_obj_without_password_check(const mongo::BSONObj &
 	
 	
 	std::time_t time_now = ::base::utc_time();
+	
+	std::string session_cookie = "sid="s + session_id + "; expires="s
+								 + ::base::time_for_cookie(time_now + this->logic_gi().session_lifetime()) + ';';
 	
 	mongo::BSONObjBuilder session_obj_builder;
 	session_obj_builder.genOID();
@@ -200,12 +204,12 @@ logic::base::start_session_for_obj_without_password_check(const mongo::BSONObj &
 	);
 	
 	
-	return std::make_pair(std::move(user_obj["ref"s].str()), std::move(session_id));
+	return std::make_pair(std::move(user_obj["ref"s].str()), std::move(session_cookie));
 }
 
 
 // Restarts the session.
-// Returns pair of user ref and new session id or throws.
+// Returns pair of user ref and new session cookie or throws.
 std::pair<std::string, std::string>
 logic::base::restart_session(const std::string &session_id,
 							 const mongo::BSONObj &session_obj) const

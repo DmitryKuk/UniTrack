@@ -49,7 +49,7 @@ public:
 	bool port_allowed(::server::port_type port) const noexcept;
 	
 	
-	// Prepares a correct response to the client.
+	// Prepares a correct response.
 	// NOTE: By default -- phony "404 Not Found". Redefine this function in child classes.
 	virtual
 	std::unique_ptr<::server::protocol::http::response>
@@ -57,20 +57,44 @@ public:
 			 ::server::protocol::http::request &request) const;
 	
 	
-	// Prepares a phony response to the client.
+	// Prepares a phony response.
 	std::unique_ptr<::server::protocol::http::response>
 	phony_response(const worker &worker,
 				   const ::server::protocol::http::request &request,
 				   const ::server::protocol::http::status &status) const;
 	
 	
-	// Prepares a redirection response for client
+	// Prepares a response with body.
+	template<class String>
+	std::unique_ptr<::server::protocol::http::response>
+	response_with_body(const worker &worker,
+					   const ::server::protocol::http::request &request,
+					   const ::server::protocol::http::status &status,
+					   String &&response_body,
+					   bool need_cache = true) const;
+	
+	
+	// Prepares a redirection response.
 	std::unique_ptr<::server::protocol::http::response>
 	redirect_response(const worker &worker,
 					  ::server::protocol::http::request &request,
 					  const std::string &location,
 					  const ::server::protocol::http::status &status
 						  = ::server::protocol::http::status::see_other) const;
+	
+	
+	// Error logging
+	template<class WhatArgs>
+	inline void log_error(const ::server::worker &worker,
+						  const ::server::protocol::http::request &request,
+						  const WhatArgs &what) const;
+	
+	
+	template<class WhatArgs>
+	inline void log_error(const ::server::worker &worker,
+						  const ::server::protocol::http::request &request,
+						  const WhatArgs &what,
+						  const ::server::protocol::http::status &status) const;	// With status
 	
 	
 	// Does some logging and prepares phony response for client

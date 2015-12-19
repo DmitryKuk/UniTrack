@@ -1,7 +1,7 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
 
-// Return current time in milliseconds
+// Returns current time in milliseconds
 inline
 std::time_t
 base::utc_time() noexcept

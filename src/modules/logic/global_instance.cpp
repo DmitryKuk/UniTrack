@@ -66,12 +66,12 @@ logic::global_instance::global_instance(const nlohmann::json &config,
 std::string
 logic::generate_session_id(const std::string &user_id, std::random_device &rd)
 {
-	return logic::generate_random_hash<CryptoPP::SHA3_512>(user_id, rd);
+	return logic::generate_random_hash<CryptoPP::SHA512>(user_id, rd);
 }
 
 
 std::string
 logic::generate_user_ref(const std::string &user_id, std::random_device &rd)
 {
-	return logic::generate_random_hash<CryptoPP::SHA3_256>(user_id, rd);
+	return logic::generate_random_hash<CryptoPP::SHA256>(user_id, rd);
 }

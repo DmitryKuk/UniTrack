@@ -6,18 +6,18 @@
 #include <string>
 #include <random>
 
-#include <cryptopp/sha3.h>
+#include <cryptopp/sha.h>
 
 
 namespace logic {
 
 
-template<class HashType = CryptoPP::SHA3_512>
+template<class HashType = CryptoPP::SHA512>
 std::string
 generate_random_hash(const byte *data, size_t data_len, std::random_device &rd);
 
 
-template<class HashType = CryptoPP::SHA3_512>
+template<class HashType = CryptoPP::SHA512>
 inline
 std::string
 generate_random_hash(const std::string &str, std::random_device &rd);

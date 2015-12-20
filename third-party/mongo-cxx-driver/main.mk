@@ -59,7 +59,7 @@ install:
 	else																				\
 		echo '$(COLOR_FAIL)==> MongoDB C++ driver installation failed'					\
 			 "(status: $$STATUS)."														\
-			 '(See $(realpath $(MONGO_INSTALL_LOG_FILE)) for details)$(COLOR_RESET)';	\
+			 '(See $(MONGO_INSTALL_LOG_FILE) for details)$(COLOR_RESET)';				\
 	fi
 
 

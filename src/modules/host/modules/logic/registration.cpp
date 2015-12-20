@@ -50,7 +50,7 @@ host::logic::registration::response(const server::worker &worker,
 	// User have session id => don't need login him
 	// This host can process only POST requests
 	if (request.method != method::POST || request.cookies.count("sid"s))
-		return this->redirect_response(worker, request, "/"s);
+		return this->redirect_response(worker, request, "/"s);	// Hard redirect
 	
 	
 	const auto handle_error =

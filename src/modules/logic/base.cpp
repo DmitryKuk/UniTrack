@@ -40,7 +40,7 @@ logic::base::start_session_for_email(const std::string &user_email,
 
 
 // Continues user session.
-// Returns pair of user ref and session cookie or throws.
+// Returns pair of user id and session cookie or throws.
 // If session is valid, session cookie is empty.
 std::pair<std::string, std::string>
 logic::base::continue_session(const std::string &session_id) const
@@ -60,7 +60,7 @@ logic::base::continue_session(const std::string &session_id) const
 		
 		if (time_now < session_obj["valid_until"s].Date().asInt64()) {	// If session is valid
 			if (time_now < session_obj["restart_at"s].Date().asInt64())	// Don't need to restart
-				return std::make_pair(session_obj["user_ref"s].str(), ""s);
+				return std::make_pair(session_obj["user_id"s].OID().toString(), ""s);
 			else														// Need to restart session
 				return this->restart_session(session_id, session_obj);
 		}

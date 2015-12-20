@@ -3,24 +3,28 @@
 #ifndef LOGIC_USER_H
 #define LOGIC_USER_H
 
-#include <logic/page_model_generator.h>
+#include <string>
+#include <utility>
+
+#include <logic/base.h>
 
 
 namespace logic {
 
 
 class user:
-	public ::logic::page_model_generator
+	public ::logic::base
 {
 public:
 	// Constructor
-	using ::logic::page_model_generator::page_model_generator;
+	using ::logic::base::base;
 	
 	
-	virtual
-	logic::page_model
-	page_model(const server::protocol::http::request &request,
-			   const boost::filesystem::path &path) const override;
+	// Returns user information as json string and new session cookie or throws.
+	// If session is valid, session cookie is empty.
+	// If user_ref is empty, returns user info for current user (by session_id).
+	std::pair<std::string, std::string>
+	user_info(const std::string &user_ref, const std::string &session_id) const;
 };	// class user
 
 

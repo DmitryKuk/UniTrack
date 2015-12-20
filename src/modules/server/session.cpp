@@ -122,40 +122,41 @@ server::session::process_request() noexcept
 		// After this request is ready for work
 		
 		
-		logger::stream(logger::level::info) << this->request_;
-		
-		
-		try {
-			if (this->request_.port != this->server_port())
-				throw ::server::protocol::http::incorrect_port{std::to_string(this->request_.port)};
-		} catch (const ::server::protocol::http::incorrect_port &e) {
-			logger::stream(logger::level::sec_warning)
-				<< "Client: "s << this->request_.client_address << ": "s << e.what() << '.';
-			throw;
+		bool process_request_again = true;
+		while (process_request_again) {	// To process again request, if need
+			process_request_again = false;
+			
+			logger::stream(logger::level::info) << this->request_;
+			
+			
+			try {
+				if (this->request_.port != this->server_port())
+					throw ::server::protocol::http::incorrect_port{std::to_string(this->request_.port)};
+			} catch (const ::server::protocol::http::incorrect_port &e) {
+				logger::stream(logger::level::sec_warning)
+					<< "Client: "s << this->request_.client_address << ": "s << e.what() << '.';
+				throw;
+			}
+			
+			
+			// NOTE: BEFORE get response and add it to the queue
+			auto host_ptr = this->worker_.host_manager().host(this->worker_, this->request_.host, this->request_.port);
+			auto response_ptr = host_ptr->response(this->worker_, this->request_);
+			if (response_ptr == nullptr) {	// Request was rewrote => process it again
+				process_request_again = true;
+				continue;
+			}
+			
+			
+			// Continue normal processing
+			this->send_response(std::move(response_ptr));
+			
+			// NOTE: AFTER replace old request with the new one
+			if (this->request_.keep_alive)
+				session::add_request_handler(this->shared_from_this());
+			
+			// NOTE: Here old request does not exist, it is replaced by new request (if keep-alive enabled)
 		}
-		
-		
-		// NOTE: BEFORE get response and add it to the queue
-		auto host_ptr = this->worker_.host_manager().host(this->worker_, this->request_.host, this->request_.port);
-		this->send_response(host_ptr->response(this->worker_, this->request_));
-		
-		
-		// NOTE: AFTER replace old request with the new one
-		if (this->request_.keep_alive)
-			session::add_request_handler(this->shared_from_this());
-		
-		// NOTE: Here old request does not exist, it is replaced by new request (if keep-alive enabled)
-	}
-	
-	// Protocol errors
-	catch (const ::server::protocol::http::unimplemented_method &e) {
-		this->handle_error(e, status::not_implemented);
-	}
-	catch (const ::server::protocol::http::unsupported_protocol_version &e) {
-		this->handle_error(e, status::http_version_not_supported);
-	}
-	catch (const ::server::protocol::http::error &e) {
-		this->handle_error(e, status::bad_request);
 	}
 	
 	// Host errors
@@ -166,6 +167,17 @@ server::session::process_request() noexcept
 		this->handle_error(e, status::not_found);
 	}
 	catch (const ::server::host::error &e) {
+		this->handle_error(e, status::bad_request);
+	}
+	
+	// Protocol errors
+	catch (const ::server::protocol::http::unimplemented_method &e) {
+		this->handle_error(e, status::not_implemented);
+	}
+	catch (const ::server::protocol::http::unsupported_protocol_version &e) {
+		this->handle_error(e, status::http_version_not_supported);
+	}
+	catch (const ::server::protocol::http::error &e) {
 		this->handle_error(e, status::bad_request);
 	}
 	

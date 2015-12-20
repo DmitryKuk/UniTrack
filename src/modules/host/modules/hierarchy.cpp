@@ -2,12 +2,14 @@
 
 #include <host/modules/hierarchy.h>
 
-#include <regex>
+#include <tuple>
+#include <stdexcept>
 
 #include <base/json_utils.h>
 #include <server/worker.h>
 #include <host/generator.h>
 #include <host/module.h>
+#include <host/path_utils.h>
 
 using namespace std::literals;
 using namespace std::placeholders;
@@ -76,45 +78,33 @@ std::unique_ptr<server::protocol::http::response>
 host::hierarchy::response(const server::worker &worker,
 						  server::protocol::http::request &request) const
 {
-	static const std::regex regex{	// Example: "/user/photo?params=values..."
-		"^"
-		"/"							//     Leading '/' symbol
-		"([^/?]*)"					// [1] Leading section name: "user"
-		"([/?].*)?"					// [2] Trailing path: "/photo?params=values..."
-		"$"s,
-		std::regex::optimize
-	};
-	
-	
-	// Parsing requested path
-	std::smatch m;
-	if (!std::regex_match(request.path, m, regex))
+	std::string first_section, trailing_path;
+	try {
+		std::tie(first_section, trailing_path) = host::split_first_section(request.path);
+	} catch (const std::logic_error &) {	// Incorrect path
 		throw server::host::path_not_found{request.path};
+	}
 	
 	
 	// Searching for requested section
-	std::string section_name = m[1];
-	auto next_host_it = this->hosts_.find(section_name);
-	if (next_host_it == this->hosts_.end()) {
+	auto handler_host_it = this->hosts_.find(first_section);
+	if (handler_host_it == this->hosts_.end()) {
 		if (this->default_host_ != nullptr)
 			return this->default_host_->response(worker, request);
 		
-		throw server::host::host_not_found{section_name};
+		throw server::host::host_not_found{first_section};
 	}
 	
 	
-	// Generating correct path for next host
-	{
-		std::string trailling_path = m[2];
-		if (trailling_path.empty() || trailling_path[0] != '/') {
-			request.path = '/';
-			request.path += trailling_path;
-		} else {
-			request.path = std::move(trailling_path);
-		}
+	// Generating correct path for handler host
+	if (trailing_path.empty() || trailing_path[0] != '/') {
+		request.path = '/';
+		request.path += trailing_path;
+	} else {
+		request.path = std::move(trailing_path);
 	}
 	
 	
-	// Returning response from next host
-	return next_host_it->second->response(worker, request);
+	// Returning response from handler host
+	return handler_host_it->second->response(worker, request);
 }

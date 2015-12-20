@@ -33,7 +33,7 @@ public:
 	
 	
 	// Continues user session.
-	// Returns pair of user ref and session cookie or throws.
+	// Returns pair of user id and session cookie or throws.
 	// If session is valid, session cookie is empty.
 	std::pair<std::string, std::string>
 	continue_session(const std::string &session_id) const;

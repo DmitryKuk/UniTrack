@@ -2,22 +2,56 @@
 
 #include <logic/user.h>
 
+#include <tuple>
 
-// virtual
-logic::page_model
-logic::user::page_model(const server::protocol::http::request &request,
-						const boost::filesystem::path &path) const
+#include <logic/exceptions.h>
+
+using namespace std::literals;
+
+
+// Returns user information as json string and new session cookie or throws.
+// If session is valid, session cookie is empty.
+// If user_ref is empty, returns user info for current user (by session_id).
+std::pair<std::string, std::string>
+logic::user::user_info(const std::string &user_ref, const std::string &session_id) const
 {
-	auto &&stream = logger::stream(logger::level::info);
-	stream << "Here! " << request.path;
+	std::string user_id, session_cookie;
+	std::tie(user_id, session_cookie) = this->continue_session(session_id);
 	
 	
-	logic::page_model model;
+	logic::cursor_ptr_type users_cursor_ptr;
+	if (user_ref.empty())	// Info for current user
+		users_cursor_ptr = this->logic_gi().connection().query(
+			this->logic_gi().collection_users(),
+			MONGO_QUERY("_id"s << mongo::OID(user_id)),	// Search by _id
+			1											// Need only 1 BSON object
+		);
+	else					// Info for specified user
+		users_cursor_ptr = this->logic_gi().connection().query(
+			this->logic_gi().collection_users(),
+			MONGO_QUERY("ref"s << user_ref),			// Search by ref
+			1											// Need only 1 BSON object
+		);
 	
-	model.emplace("USERNAME", "Dmitry Kukovinets");
-	model.emplace("UNIVERSITY", "STANKIN");
-	model.emplace("DEPARTMENT", "Inteh");
-	model.emplace("TAGS", "Student");
 	
-	return model;
+	if (users_cursor_ptr == nullptr)
+		throw logic::incorrect_cursor{};
+	
+	if (!users_cursor_ptr->more())
+		throw logic::user_not_found{"For id: \""s + user_id + '\"'};
+	
+	
+	mongo::BSONObj user_obj = users_cursor_ptr->nextSafe();
+	std::string user_info = "{\"status\":\"ok\""s;
+	for (const std::string &key: {"name"s, "surname"s}) {
+		user_info += ",\""s;
+		user_info += key;
+		user_info += "\":\""s;
+		user_info += user_obj[key].str();
+		user_info += '\"';
+	}
+	user_info += '}';
+	
+	
+	return std::make_pair(std::move(user_info), std::move(session_id));
 }

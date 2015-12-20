@@ -30,6 +30,8 @@ server::host::base::port_allowed(::server::port_type port) const noexcept
 
 // Prepares a correct response.
 // NOTE: By default -- phony "404 Not Found". Redefine this function in child classes.
+// Should return non-nullptr for sending response.
+// If nullptr was returned, server will process request again.
 // virtual
 std::unique_ptr<::server::protocol::http::response>
 server::host::base::response(const ::server::worker &worker,

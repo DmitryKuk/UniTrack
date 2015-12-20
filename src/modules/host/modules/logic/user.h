@@ -23,10 +23,27 @@ public:
 		 ::logic::global_instance &logic);
 	
 	
-	// virtual
-	// std::unique_ptr<server::protocol::http::response>
-	// response(const server::worker &worker,
-	// 		 server::protocol::http::request &request) const override;
+	virtual
+	std::unique_ptr<server::protocol::http::response>
+	response(const server::worker &worker,
+			 server::protocol::http::request &request) const override;
+	
+	
+	using section_handler_type = std::unique_ptr<server::protocol::http::response>
+								 (user::*)(const server::worker &,
+											server::protocol::http::request &,
+											const std::string &,
+											const std::string &) const;
+private:
+	static const std::unordered_map<std::string, section_handler_type> section_handlers_;
+	
+	
+	// Section handlers
+	std::unique_ptr<server::protocol::http::response>
+	section_root(const server::worker &worker,
+				 server::protocol::http::request &request,
+				 const std::string &user_ref,
+				 const std::string &section) const;
 };	// class user
 
 

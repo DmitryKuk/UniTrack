@@ -205,21 +205,20 @@ uninstall-all: uninstall-bin uninstall-www uninstall-third-party uninstall-confi
 
 # Running
 run: targets
-	$(def_print_status_table);														\
-	NUM_SUCCESS=0; NUM_FAIL=0;														\
-	for T in $(TARGETS); do															\
-		echo -e "$(COLOR_RUN)Running: $$T...$(COLOR_RESET)";						\
-		"./$(BIN_DIR)/$$T";															\
-		STATUS=$$?;																	\
-		if [ "X$$STATUS" = 'X0' ]; then												\
-			echo -e "$(COLOR_PASS)==> Done successfully: $$T.$(COLOR_RESET)";		\
-			let ++NUM_SUCCESS;														\
-		else																		\
-			echo -e "$(COLOR_FAIL)==> Running failed: $$T"							\
-					'(status: $$STATUS).$(COLOR_RESET)';							\
-			let ++NUM_FAIL;															\
-		fi;																			\
-	done;																			\
+	$(def_print_status_table);																	\
+	NUM_SUCCESS=0; NUM_FAIL=0;																	\
+	for T in $(TARGETS); do																		\
+		echo -e "$(COLOR_RUN)Running: $$T...$(COLOR_RESET)";									\
+		"./$(BIN_DIR)/$$T";																		\
+		STATUS=$$?;																				\
+		if [ "X$$STATUS" = 'X0' ]; then															\
+			echo -e "$(COLOR_PASS)==> Done successfully: $$T.$(COLOR_RESET)";					\
+			let ++NUM_SUCCESS;																	\
+		else																					\
+			echo -e "$(COLOR_FAIL)==> Running failed: $$T (status: $$STATUS).$(COLOR_RESET)";	\
+			let ++NUM_FAIL;																		\
+		fi;																						\
+	done;																						\
 	print_status_table
 
 
@@ -229,21 +228,20 @@ check: run-tests
 
 
 run-tests: tests
-	$(def_print_status_table);														\
-	NUM_SUCCESS=0; NUM_FAIL=0;														\
-	for T in $(TEST_TARGET_FILES); do												\
-		TNAME=$$( echo "$$T" | sed 's,^$(TEST_DIR)/,,' );							\
-		echo -e "$(COLOR_RUN)Running: $$TNAME...$(COLOR_RESET)";					\
-		"./$$T";																	\
-		STATUS=$$?;																	\
-		if [ "X$$STATUS" = 'X0' ]; then												\
-			let ++NUM_SUCCESS;														\
-		else																		\
-			echo -e "$(COLOR_FAIL)==> Test failed: $$TNAME"							\
-					'(status: $$STATUS).$(COLOR_RESET)';							\
-			let ++NUM_FAIL;															\
-		fi;																			\
-	done;																			\
+	$(def_print_status_table);																	\
+	NUM_SUCCESS=0; NUM_FAIL=0;																	\
+	for T in $(TEST_TARGET_FILES); do															\
+		TNAME=$$( echo "$$T" | sed 's,^$(TEST_DIR)/,,' );										\
+		echo -e "$(COLOR_RUN)Running: $$TNAME...$(COLOR_RESET)";								\
+		"./$$T";																				\
+		STATUS=$$?;																				\
+		if [ "X$$STATUS" = 'X0' ]; then															\
+			let ++NUM_SUCCESS;																	\
+		else																					\
+			echo -e "$(COLOR_FAIL)==> Test failed: $$TNAME (status: $$STATUS).$(COLOR_RESET)";	\
+			let ++NUM_FAIL;																		\
+		fi;																						\
+	done;																						\
 	print_status_table
 
 
@@ -280,7 +278,7 @@ upgrade:
 	# Building and installation
 	$(MAKE) one-step-make
 	
-	echo -e '$(COLOR_RUN)Please, enter the password (if need) for installation ' \
+	echo -e '$(COLOR_RUN)Please, enter the password (if need) for installation' \
 			'or press Ctrl+C...$(COLOR_RESET)'
 	sudo make install-bin install-www
 	
@@ -291,15 +289,15 @@ upgrade:
 happy: git-pull
 	$(MAKE) one-step-make
 	
-	echo -e '$(COLOR_RUN)Please, enter the password (if need) for installation ' \
+	echo -e '$(COLOR_RUN)Please, enter the password (if need) for installation' \
 			'or press Ctrl+C...$(COLOR_RESET)'
 	sudo make install
 	
 	echo -e '$(COLOR_PASS)==> Successfully built and installed.$(COLOR_RESET)'
 	
 	
-	echo -e '$(COLOR_PASS)NOTE:$(COLOR_RESET) To work with $(PROJECT_NAME) try following commands:' \
-			'$(addprefix \n    ,$(MAIN_TARGET))'
+	echo -e '$(COLOR_PASS)NOTE:$(COLOR_RESET) To work with $(PROJECT_NAME) try following commands:'
+	echo -e '$(addprefix \n    ,$(MAIN_TARGET))'
 	
 	echo -e '$(COLOR_PASS)NOTE:$(COLOR_RESET) Next times you can simply do:'
 	echo -e '    make upgrade'

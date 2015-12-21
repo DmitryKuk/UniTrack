@@ -2,6 +2,8 @@
 
 # Makefile for third-party parts of this program.
 
+export SHELL				= /bin/bash
+
 
 export LOGS_DIR				= $(shell pwd)/log
 
@@ -49,13 +51,13 @@ clean:
 
 
 install:
-	@echo "$(COLOR_RUN)Installing third-party files to \"$(PREFIX_THIRDPARTY)\"...$(COLOR_RESET)"
+	echo -e "$(COLOR_RUN)Installing third-party files to \"$(PREFIX_THIRDPARTY)\"...$(COLOR_RESET)"
 	$(call for_each_tp,install)
 
 
 uninstall:
 	rm -rf '$(PREFIX_THIRDPARTY)' 2>/dev/null || true
-	@echo "$(COLOR_PASS)==> Third-party files removed.$(COLOR_RESET)"
+	echo -e "$(COLOR_PASS)==> Third-party files removed.$(COLOR_RESET)"
 
 
 update:

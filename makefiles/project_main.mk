@@ -121,17 +121,17 @@ install: install-bin install-config install-www
 
 
 install-bin:
-	for T in $(TARGETS); do																				\
-		echo "$(COLOR_RUN)Installing: $(PREFIX_BIN)/$$T...$(COLOR_RESET)";								\
-		install "$(BIN_DIR)/$$T" '$(PREFIX_BIN)';														\
+	for T in $(TARGETS); do																					\
+		echo -e "$(COLOR_RUN)Installing: $(PREFIX_BIN)/$$T...$(COLOR_RESET)";								\
+		install "$(BIN_DIR)/$$T" '$(PREFIX_BIN)';															\
 	done
 	
-	for T in $(MODULES); do																				\
-		echo "$(COLOR_RUN)Installing: $(PREFIX_LIB)/lib$(PROJECT_LIB_PREFIX)$$T.so...$(COLOR_RESET)";	\
-		install "$(LIB_DIR)/lib$(PROJECT_LIB_PREFIX)$$T.so" '$(PREFIX_LIB)';							\
+	for T in $(MODULES); do																					\
+		echo -e "$(COLOR_RUN)Installing: $(PREFIX_LIB)/lib$(PROJECT_LIB_PREFIX)$$T.so...$(COLOR_RESET)";	\
+		install "$(LIB_DIR)/lib$(PROJECT_LIB_PREFIX)$$T.so" '$(PREFIX_LIB)';								\
 	done
 	
-	@echo "$(COLOR_RUN)==> Executables and shared libs installed.$(COLOR_RESET)"
+	echo -e '$(COLOR_RUN)==> Executables and shared libs installed.$(COLOR_RESET)'
 
 
 install-third-party:
@@ -139,33 +139,33 @@ install-third-party:
 
 
 install-config:
-	@echo "$(COLOR_RUN)Creating directories in \"$(PREFIX_CONFIG)\"...$(COLOR_RESET)"
+	echo -e "$(COLOR_RUN)Creating directories in \"$(PREFIX_CONFIG)\"...$(COLOR_RESET)"
 	find '$(CONFIG_DIR)' -type d -not -name '.*' |									\
 	while read DIR; do install -d "$(PREFIX_CONFIG)/$$DIR"; done
 	
-	@echo "$(COLOR_RUN)Installing WWW files to \"$(PREFIX_CONFIG)\"...$(COLOR_RESET)"
+	echo -e "$(COLOR_RUN)Installing WWW files to \"$(PREFIX_CONFIG)\"...$(COLOR_RESET)"
 	find '$(CONFIG_DIR)' -type f -not -name '.*' |									\
 	while read FILE; do install "$$FILE" "$(PREFIX_CONFIG)/$$FILE"; done
 	
-	@echo "$(COLOR_PASS)==> Config installed.$(COLOR_RESET)"
+	echo -e '$(COLOR_PASS)==> Config installed.$(COLOR_RESET)'
 
 
 install-www:
-	@echo "$(COLOR_RUN)Creating directories in \"$(PREFIX_WWW)\"...$(COLOR_RESET)"
+	echo -e "$(COLOR_RUN)Creating directories in \"$(PREFIX_WWW)\"...$(COLOR_RESET)"
 	find '$(WWW_DIR)' -type d -not -name '.*' |										\
 	while read DIR; do install -d "$(PREFIX_WWW)/$$DIR"; done
 	
-	@echo "$(COLOR_RUN)Installing WWW files to \"$(PREFIX_WWW)\"...$(COLOR_RESET)"
+	echo -e "$(COLOR_RUN)Installing WWW files to \"$(PREFIX_WWW)\"...$(COLOR_RESET)"
 	find '$(WWW_DIR)' -type f -not -name '.*' |										\
 	while read FILE; do install "$$FILE" "$(PREFIX_WWW)/$$FILE"; done
 	
-	@echo "$(COLOR_PASS)==> WWW data installed.$(COLOR_RESET)"
+	echo -e '$(COLOR_PASS)==> WWW data installed.$(COLOR_RESET)'
 
 
 # install-log:
-# 	@echo "$(COLOR_RUN)Creating directory: \"$(PREFIX_LOG)\"...$(COLOR_RESET)"
+# 	echo -e "$(COLOR_RUN)Creating directory: \"$(PREFIX_LOG)\"...$(COLOR_RESET)"
 # 	install -d '$(PREFIX_LOG)'
-# 	@echo "$(COLOR_PASS)==> Log directory installed.$(COLOR_RESET)"
+# 	echo -e "$(COLOR_PASS)==> Log directory installed.$(COLOR_RESET)"
 
 
 
@@ -176,7 +176,7 @@ uninstall: uninstall-bin uninstall-www
 uninstall-bin:
 	rm $(addprefix $(PREFIX_BIN)/,$(TARGETS))
 	rm $(addprefix $(PREFIX_LIB)/lib$(PROJECT_LIB_PREFIX),$(addsuffix .so,$(MODULES)))
-	@echo "$(COLOR_PASS)==> Executables and shared libs removed.$(COLOR_RESET)"
+	echo -e '$(COLOR_PASS)==> Executables and shared libs removed.$(COLOR_RESET)'
 
 
 uninstall-third-party:
@@ -185,17 +185,17 @@ uninstall-third-party:
 
 uninstall-config:
 	rm -r '$(PREFIX_CONFIG)'
-	@echo "$(COLOR_PASS)==> Config removed.$(COLOR_RESET)"
+	echo -e '$(COLOR_PASS)==> Config removed.$(COLOR_RESET)'
 
 
 uninstall-www:
 	rm -r '$(PREFIX_WWW)'
-	@echo "$(COLOR_PASS)==> WWW data removed.$(COLOR_RESET)"
+	echo -e '$(COLOR_PASS)==> WWW data removed.$(COLOR_RESET)'
 
 
 # uninstall-log:
 # 	rm -r '$(PREFIX_LOG)'
-# 	@echo "$(COLOR_PASS)==> Log directory removed.$(COLOR_RESET)"
+# 	echo -e '$(COLOR_PASS)==> Log directory removed.$(COLOR_RESET)'
 
 
 
@@ -208,15 +208,15 @@ run: targets
 	$(def_print_status_table);														\
 	NUM_SUCCESS=0; NUM_FAIL=0;														\
 	for T in $(TARGETS); do															\
-		echo "$(COLOR_RUN)Running: $$T...$(COLOR_RESET)";							\
+		echo -e "$(COLOR_RUN)Running: $$T...$(COLOR_RESET)";						\
 		"./$(BIN_DIR)/$$T";															\
 		STATUS=$$?;																	\
 		if [ "X$$STATUS" = 'X0' ]; then												\
-			echo "$(COLOR_PASS)==> Done successfully: $$T.$(COLOR_RESET)";			\
+			echo -e "$(COLOR_PASS)==> Done successfully: $$T.$(COLOR_RESET)";		\
 			let ++NUM_SUCCESS;														\
 		else																		\
-			echo "$(COLOR_FAIL)==> Running failed: $$T"								\
-				 "(status: $$STATUS).$(COLOR_RESET)";								\
+			echo -e "$(COLOR_FAIL)==> Running failed: $$T"							\
+					'(status: $$STATUS).$(COLOR_RESET)';							\
 			let ++NUM_FAIL;															\
 		fi;																			\
 	done;																			\
@@ -233,14 +233,14 @@ run-tests: tests
 	NUM_SUCCESS=0; NUM_FAIL=0;														\
 	for T in $(TEST_TARGET_FILES); do												\
 		TNAME=$$( echo "$$T" | sed 's,^$(TEST_DIR)/,,' );							\
-		echo "$(COLOR_RUN)Running: $$TNAME...$(COLOR_RESET)";						\
+		echo -e "$(COLOR_RUN)Running: $$TNAME...$(COLOR_RESET)";					\
 		"./$$T";																	\
 		STATUS=$$?;																	\
 		if [ "X$$STATUS" = 'X0' ]; then												\
 			let ++NUM_SUCCESS;														\
 		else																		\
-			echo "$(COLOR_FAIL)==> Test failed: $$TNAME"							\
-				 "(status: $$STATUS).$(COLOR_RESET)";								\
+			echo -e "$(COLOR_FAIL)==> Test failed: $$TNAME"							\
+					'(status: $$STATUS).$(COLOR_RESET)';							\
 			let ++NUM_FAIL;															\
 		fi;																			\
 	done;																			\
@@ -253,8 +253,8 @@ one-step-make:
 	# Third-party
 	$(MAKE) third-party
 	
-	@echo "$(COLOR_RUN)Please, enter the password (if need) for installation of third-party " \
-		  "modules or press Ctrl+C...$(COLOR_RESET)"
+	echo -e '$(COLOR_RUN)Please, enter the password (if need) for installation of third-party ' \
+			'modules or press Ctrl+C...$(COLOR_RESET)'
 	sudo make install-third-party
 	
 	
@@ -264,8 +264,8 @@ one-step-make:
 
 upgrade:
 	# Uninstallation
-	@echo "$(COLOR_RUN)Please, enter the password (if need) for uninstallation " \
-		  "of the old version or press Ctrl+C...$(COLOR_RESET)"
+	echo -e '$(COLOR_RUN)Please, enter the password (if need) for uninstallation ' \
+			'of the old version or press Ctrl+C...$(COLOR_RESET)'
 	sudo make uninstall-bin uninstall-www uninstall-third-party
 	
 	
@@ -280,39 +280,39 @@ upgrade:
 	# Building and installation
 	$(MAKE) one-step-make
 	
-	@echo "$(COLOR_RUN)Please, enter the password (if need) for installation " \
-		  "or press Ctrl+C...$(COLOR_RESET)"
+	echo -e '$(COLOR_RUN)Please, enter the password (if need) for installation ' \
+			'or press Ctrl+C...$(COLOR_RESET)'
 	sudo make install-bin install-www
 	
 	
-	@echo "$(COLOR_PASS)==> Successfully upgraded.$(COLOR_RESET)"
+	echo -e '$(COLOR_PASS)==> Successfully upgraded.$(COLOR_RESET)'
 
 
 happy: git-pull
 	$(MAKE) one-step-make
 	
-	@echo "$(COLOR_RUN)Please, enter the password (if need) for installation " \
-		  "or press Ctrl+C...$(COLOR_RESET)"
+	echo -e '$(COLOR_RUN)Please, enter the password (if need) for installation ' \
+			'or press Ctrl+C...$(COLOR_RESET)'
 	sudo make install
 	
-	@echo "$(COLOR_PASS)==> Successfully built and installed.$(COLOR_RESET)"
+	echo -e '$(COLOR_PASS)==> Successfully built and installed.$(COLOR_RESET)'
 	
 	
-	@echo "$(COLOR_PASS)NOTE:$(COLOR_RESET) To work with $(PROJECT_NAME) try following commands:" \
-		  "$(addprefix \n    ,$(MAIN_TARGET))"
+	echo -e '$(COLOR_PASS)NOTE:$(COLOR_RESET) To work with $(PROJECT_NAME) try following commands:' \
+			'$(addprefix \n    ,$(MAIN_TARGET))'
 	
-	@echo "$(COLOR_PASS)NOTE:$(COLOR_RESET) Next times you can simply do:"
-	@echo '    make upgrade'
+	echo -e '$(COLOR_PASS)NOTE:$(COLOR_RESET) Next times you can simply do:'
+	echo -e '    make upgrade'
 
 
 git-pull:
-	echo '$(COLOR_RUN)Downloading new version...$(COLOR_RESET)';								\
+	echo -e '$(COLOR_RUN)Downloading new version...$(COLOR_RESET)';								\
 	git pull --recurse-submodules=yes;															\
 	STATUS=$$?;																					\
 	if [ "X$$STATUS" = 'X0' ]; then																\
-		echo '$(COLOR_PASS)==> New version downloaded.$(COLOR_RESET)';							\
+		echo -e '$(COLOR_PASS)==> New version downloaded.$(COLOR_RESET)';						\
 	else																						\
-		echo "$(COLOR_FAIL)==> Download failed with status: $$STATUS.$(COLOR_RESET)";			\
+		echo -e "$(COLOR_FAIL)==> Download failed with status: $$STATUS.$(COLOR_RESET)";		\
 	fi
 
 
@@ -321,5 +321,5 @@ lines:
 		( find -E $$2 $$3 -type f -regex "$$1" -exec grep -ch '^' {} \; |						\
 	 	  tr "\n" '+' && echo '0' ) | bc;														\
 	};																							\
-	echo "Total lines of all C++ sources: $$( lines_count '.*\.(cpp|h|hpp)' $(SRC_DIR) )";		\
-	echo "Total lines of all Makefiles:   $$( lines_count '.*\.mk' $(MK_DIR) $(SRC_DIR) )"
+	echo -e "Total lines of all C++ sources: $$( lines_count '.*\.(cpp|h|hpp)' $(SRC_DIR) )";	\
+	echo -e "Total lines of all Makefiles:   $$( lines_count '.*\.mk' $(MK_DIR) $(SRC_DIR) )"

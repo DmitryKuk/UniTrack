@@ -66,11 +66,11 @@ def_print_status_table	=																\
 		done;																			\
 																						\
 		FMT="";																			\
-		FMT+="===> Status:  |  $(COLOR_PASS)%$${LEN}s$(COLOR_RESET)  |  ";				\
+		FMT+="==> Status:  |  $(COLOR_PASS)%$${LEN}s$(COLOR_RESET)  |  ";				\
 		FMT+="$(COLOR_FAIL)%$${LEN}s$(COLOR_RESET)  |  %$${LEN}s  |\n";					\
-		FMT+="              |  $(COLOR_PASS)%$${LEN}s$(COLOR_RESET)  |  ";				\
+		FMT+="             |  $(COLOR_PASS)%$${LEN}s$(COLOR_RESET)  |  ";				\
 		FMT+="$(COLOR_FAIL)%$${LEN}s$(COLOR_RESET)  |  %$${LEN}s  |\n";					\
-		FMT+="              |  $(COLOR_PASS)%$${LEN}s$(COLOR_RESET)  |  ";				\
+		FMT+="             |  $(COLOR_PASS)%$${LEN}s$(COLOR_RESET)  |  ";				\
 		FMT+="$(COLOR_FAIL)%$${LEN}s$(COLOR_RESET)  |  %$${LEN}s  |\n";					\
 																						\
 		printf "$$FMT" "$$HEADER_SUCCESS" "$$HEADER_FAIL" "$$HEADER_TOTAL"				\

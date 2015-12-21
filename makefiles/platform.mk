@@ -8,7 +8,7 @@ export SYSTEM				= $(shell uname -s)
 
 
 # Use g++-5 because of c++14 features
-export GPP					= g++-5
+export GPP					= clang++-3.6
 
 
 # Compiler flags

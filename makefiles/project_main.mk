@@ -6,6 +6,8 @@
 # Helper function. Returns name of current makefile
 where-am-i					= $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
 
+export SHELL				= /bin/bash
+
 
 # Directory with makefiles
 MK_DIR						= makefiles
@@ -119,14 +121,14 @@ install: install-bin install-config install-www
 
 
 install-bin:
-	for T in $(TARGETS); do															\
-		echo "$(COLOR_RUN)Installing: $(PREFIX_BIN)/$$T...$(COLOR_RESET)";			\
-		install "$(BIN_DIR)/$$T" '$(PREFIX_BIN)';									\
+	for T in $(TARGETS); do																				\
+		echo "$(COLOR_RUN)Installing: $(PREFIX_BIN)/$$T...$(COLOR_RESET)";								\
+		install "$(BIN_DIR)/$$T" '$(PREFIX_BIN)';														\
 	done
 	
-	for T in $(MODULES); do															\
-		echo "$(COLOR_RUN)Installing: $(PREFIX_LIB)/lib$$T.so...$(COLOR_RESET)";	\
-		install "$(LIB_DIR)/lib$(PROJECT_LIB_PREFIX)$$T.so" '$(PREFIX_BIN)';		\
+	for T in $(MODULES); do																				\
+		echo "$(COLOR_RUN)Installing: $(PREFIX_LIB)/lib$(PROJECT_LIB_PREFIX)$$T.so...$(COLOR_RESET)";	\
+		install "$(LIB_DIR)/lib$(PROJECT_LIB_PREFIX)$$T.so" '$(PREFIX_LIB)';							\
 	done
 	
 	@echo "$(COLOR_RUN)==> Executables and shared libs installed.$(COLOR_RESET)"

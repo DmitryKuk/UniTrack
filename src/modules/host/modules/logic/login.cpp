@@ -89,8 +89,11 @@ host::logic::login::response(const server::worker &worker,
 		response_ptr->add_header(header::set_cookie, session_cookie);
 		
 		return std::move(response_ptr);
-	} catch (const ::logic::duplicate_user_found &e) {
-		static const std::string response_body = "{\"status\":\"duplicate_user_found\"}"s;
+	} catch (const ::logic::password_not_match &e) {
+		static const std::string response_body = "{\"status\":\"incorrect_logpass\"}"s;
+		return handle_error(e.what(), response_body);
+	} catch (const ::logic::user_not_found &e) {
+		static const std::string response_body = "{\"status\":\"incorrect_logpass\"}"s;
 		return handle_error(e.what(), response_body);
 	} catch (const std::exception &e) {
 		static const std::string response_body = "{\"status\":\"unknown_error\"}"s;

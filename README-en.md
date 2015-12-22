@@ -48,19 +48,22 @@ The project is under my own license:
         + `make`
         + `sudo make install`
     - *any of these methods will install default configuration and site data*
+3. Prepare to work:
+    - Prepare MongoDB:
+        + `./mongo/prepare.sh`
     - (For Linux only) Now add this line to your ~/.bashrc (or ~/.bash_profile):
         `export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/local/unitrack/lib"`
     - (For Mac OS only) Maybe, you will have some troubles with libcryptopp.so. Simple add this lines to your ~/.bash_profile:
         `export LDPATH="/usr/lib:/usr/local/lib:/opt/local/lib:$LDPATH"`
         `export DYLD_FALLBACK_LIBRARY_PATH="~/lib:/lib:$LDPATH"`
-3. Running:
+4. Running:
 	- `unitrack` (by default, `/usr/bin/unitrack`)
-4. Upgrading:
+5. Upgrading:
 	- `make upgrade` for automatic uninstalling the old version, dowloading updates, building and installing the new one (uses `sudo`)
-5. Uninstalling:
+6. Uninstalling:
 	- `sudo make uninstall` for uninstalling all libs and executables from your system
     - or `sudo make uninstall-all` for completely uninstalling (executables, default configuration, WWW-data and third-party dependencies)
-6. Manual management (**do not use, if you don't know, why you need it**):
+7. Manual management (**do not use, if you don't know, why you need it**):
     - **Use only if you want to recover corrupted configuration file or site!**
     - **NOT required with any of installation method above!**
     - `make install-config` to install configuration by default

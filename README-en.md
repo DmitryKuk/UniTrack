@@ -22,13 +22,20 @@ The project is under my own license:
 
 
 ### Requirements:
-- g++-5 or best (or clang++-3.6 or best, or any other C++14 compiler supporting std::regex, move-semantics and many more, *full support is best*).
+- clang++-3.6 (not for Mac OS).
+- Crypto++.
 - Boost (tested version: 1.58).
 - GNU Make (and a piece of shell) for building this.
-- Scons for building [Mongo-cxx-driver (Legacy with C++11)](https://github.com/mongodb/mongo-cxx-driver/tree/legacy).
+- Scons for building [Mongo-cxx-driver (Legacy with C++11)](https://github.com/mongodb/mongo-cxx-driver/tree/legacy) (Mongo-cxx-driver included into the project).
+- MongoDB for work.
 
 
 ### Building and Installation
+0. Install external dependencies not included into the project:
+    - Debian-based systems:
+        `sudo apt-get install libboost-all-dev libcrypto++-dev mongodb-server scons clang-3.6 git`
+    - Mac OS:
+        `sudo port install boost libcryptopp mongodb scons`
 1. Get the sources:
 	- `git clone --recursive https://github.com/DmitryKuk/UniTrack`
         + или `git clone https://github.com/DmitryKuk/UniTrack` (third-party dependencies will be loaded when building)
@@ -41,6 +48,11 @@ The project is under my own license:
         + `make`
         + `sudo make install`
     - *any of these methods will install default configuration and site data*
+    - (For Linux only) Now add this line to your ~/.bashrc (or ~/.bash_profile):
+        `export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/opt/local/unitrack/lib"`
+    - (For Mac OS only) Maybe, you will have some troubles with libcryptopp.so. Simple add this lines to your ~/.bash_profile:
+        `export LDPATH="/usr/lib:/usr/local/lib:/opt/local/lib:$LDPATH"`
+        `export DYLD_FALLBACK_LIBRARY_PATH="~/lib:/lib:$LDPATH"`
 3. Running:
 	- `unitrack` (by default, `/usr/bin/unitrack`)
 4. Upgrading:
@@ -57,6 +69,7 @@ The project is under my own license:
 
 ### Dependencies
 - [Boost](http://www.boost.org/) *(tested version: 1.58)*
+- [Crypto++](http://www.cryptopp.com/)
 - [JSON for Modern C++](https://github.com/nlohmann/json) *Niels Lohmann*
     + Automatically managed dependency (via git submodules).
 - [Mongo-cxx-driver (Legacy with C++11)](https://github.com/mongodb/mongo-cxx-driver/tree/legacy)
@@ -66,7 +79,7 @@ The project is under my own license:
 ### Development
 - The project consists of sub-modules (see `src/module-name`).
 - Please, build the project only from root directory of the project.
-- You can try to run the program without installation: `make run` in the root of the project. But this might not work on some systems. If it is so, try `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/path-to-project/libs`. Installed version runs normally.
+- You can try to run the program without installation: `make run` in the root of the project. But this might not work on some systems. If it is so, try `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/path-to-project/build/lib`. Installed version runs normally.
 
 
 ### Authors

@@ -5,6 +5,7 @@
 
 #include <string>
 #include <utility>
+#include <random>
 
 #include <logic/base.h>
 
@@ -17,7 +18,7 @@ class user:
 {
 public:
 	// Constructor
-	using ::logic::base::base;
+	user(::logic::global_instance &logic_gi);
 	
 	
 	// Returns user information as json string and new session cookie or throws.
@@ -25,6 +26,8 @@ public:
 	// If user_ref is empty, returns user info for current user (by session_id).
 	std::pair<std::string, std::string>
 	user_info(const std::string &user_ref, const std::string &session_id) const;
+protected:
+	mutable std::default_random_engine generator_;
 };	// class user
 
 

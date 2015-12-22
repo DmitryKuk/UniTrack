@@ -59,10 +59,18 @@ logic::registration::register_user(const logic::registration::form &form) const
 		user_obj_builder.append(key, value);
 	}
 	
+	mongo::BSONArray empty_array;
+	user_obj_builder.append("sessions"s, empty_array);
+	
 	auto time_now = mongo::Date_t(static_cast<unsigned long long>(::base::utc_time()));
 	user_obj_builder.append("last_visit_at"s, time_now);
-	user_obj_builder.append("sessions"s, mongo::BSONArray{});
 	user_obj_builder.append("registered_at"s, time_now);
+	
+	user_obj_builder.append("birthday"s, ""s);	// Just empty string or YYYY-MM-DD
+	
+	user_obj_builder.append("friends"s, empty_array);
+	user_obj_builder.append("friend_of"s, empty_array);
+	
 	
 	// Insert user object into users collection
 	try {

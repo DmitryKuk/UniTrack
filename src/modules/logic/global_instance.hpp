@@ -94,3 +94,11 @@ logic::enable_global_instance_ref::logic_gi() const noexcept
 {
 	return this->logic_gi_;
 }
+
+
+inline
+std::random_device &
+logic::global_instance::random_device()
+{
+	return this->random_device_;
+}

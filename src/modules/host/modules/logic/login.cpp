@@ -84,7 +84,7 @@ host::logic::login::response(const server::worker &worker,
 		std::string user_ref, session_cookie;
 		std::tie(user_ref, session_cookie) = this->login_user(form);
 		
-		std::string response_body = "{\"status\":\"ok\",\"location\":\"/user/"s + user_ref + "\"}"s;
+		std::string response_body = "{\"status\":\"ok\",\"ref\":\""s + user_ref + "\"}"s;
 		auto response_ptr = this->response_with_body(worker, request, status::ok, std::move(response_body));
 		response_ptr->add_header(header::set_cookie, session_cookie);
 		

@@ -46,6 +46,8 @@ public:
 	
 	inline std::string generate_session_id(const std::string &user_id);
 	inline std::string generate_user_ref(const std::string &user_id);
+	
+	inline std::random_device & random_device();
 protected:
 	static constexpr std::time_t one_month		= 30 * 24 * 60 * 60 * 1000ull;	// Constant, in milliseconds
 	

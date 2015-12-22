@@ -43,6 +43,21 @@ logic::user::user_info(const std::string &user_ref, const std::string &session_i
 	
 	mongo::BSONObj user_obj = users_cursor_ptr->nextSafe();
 	std::string user_info = "{\"status\":\"ok\""s;
+	
+	// Adding location
+	{
+		user_info += ",\"location\":\"/user/"s;
+		user_info += user_obj["ref"s].str();
+		user_info += '\"';
+	}
+	
+	// Adding email for user, if it is his email
+	if (user_obj["_id"s].OID().toString() == user_id) {
+		user_info += ",\"email\":\""s;
+		user_info += user_obj["email"s].str();
+		user_info += '\"';
+	}
+	
 	for (const std::string &key: {"name"s, "surname"s}) {
 		user_info += ",\""s;
 		user_info += key;

@@ -48,7 +48,7 @@ public:
 	inline const std::vector<std::string> & names() const noexcept;
 protected:
 	// Parameters
-	::server::port_set_type		ports_		= {};	// Optional
+	::server::port_set_type		ports_;				// Optional
 	unsigned int				workers_	= 1;	// Optional
 	
 	std::vector<std::string>	names_		=		// Optional

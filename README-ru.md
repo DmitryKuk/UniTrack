@@ -44,7 +44,7 @@ Please, see [README-en.md](https://github.com/DmitryKuk/UniTrack/blob/master/REA
     - просто `make happy` (использует `sudo` для установки; необходимо будет ввести пароль)
     - или:
         + `make third-party`
-        + `sudo make install third-party`
+        + `sudo make install-third-party`
         + `make`
         + `sudo make install`
     - *любой из способов автоматически установит конфигурацию по умолчанию и данные сайта*

@@ -44,7 +44,7 @@ The project is under my own license:
 	- just do `make happy` (uses `sudo` for installing; you will be required to enter the password)
 	- or:
         + `make third-party`
-        + `sudo make install third-party`
+        + `sudo make install-third-party`
         + `make`
         + `sudo make install`
     - *any of these methods will install default configuration and site data*

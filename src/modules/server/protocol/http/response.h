@@ -8,7 +8,6 @@
 #include <base/buffer.h>
 #include <base/strings_cache.h>
 #include <server/protocol/response.h>
-#include <server/protocol/http/http.h>
 
 
 namespace server {

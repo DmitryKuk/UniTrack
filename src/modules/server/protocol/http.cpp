@@ -1,15 +1,11 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#include <server/protocol/http/http.h>
+#include <server/protocol/http.h>
 
 #include <vector>
 #include <unordered_map>
 #include <regex>
 #include <cctype>
-
-#include <server/protocol/http/exceptions.h>
-
-#include <server/protocol/http/statuses.hpp>
 
 using namespace std::literals;
 
@@ -143,13 +139,3 @@ server::protocol::http::str_to_version(const std::string &str) noexcept
 		return server::protocol::http::version::unknown;
 	return it->second;
 }
-
-
-server::protocol::http::status::status(unsigned int code,
-									   const std::string &description,
-									   const std::string &start_string) noexcept:
-	code_{code},
-	code_str_{std::to_string(this->code_)},
-	description_{description},
-	start_string_{start_string}
-{}

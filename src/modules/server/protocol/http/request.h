@@ -13,7 +13,7 @@
 
 #include <base/buffer.h>
 #include <server/protocol/request.h>
-#include <server/protocol/http/http.h>
+#include <server/protocol/http.h>
 
 
 namespace server {

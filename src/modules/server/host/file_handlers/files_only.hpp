@@ -9,13 +9,13 @@
 
 inline
 server::host::file_handlers::files_only::response::response(
-	std::shared_ptr<const ::base::mapped_file> &&mapped_file_ptr,
+	std::shared_ptr<const std::pair<::base::mapped_file, std::string>> &&fm_pair_ptr,
 	const ::server::protocol::http::status &status,
 	::server::protocol::http::version version
 ):
 	::server::protocol::http::response{status, version},
 	
-	mapped_file_ptr_{std::move(mapped_file_ptr)}
+	fm_pair_ptr_{std::move(fm_pair_ptr)}
 {}
 
 
@@ -54,9 +54,14 @@ server::host::file_handlers::files_only::operator()(const FileHost &host,
 		
 		::server::host::base::add_server_name(worker, *response_ptr);	// Server name
 		
+		// Adding Content-Type header
+		if (!response_ptr->fm_pair_ptr_->second.empty())
+			response_ptr->add_header(::server::protocol::http::header::content_type,
+									 response_ptr->fm_pair_ptr_->second);
 		
-		const void *file_content = response_ptr->mapped_file_ptr_->data();
-		size_t file_size = response_ptr->mapped_file_ptr_->size();
+		
+		const void *file_content = response_ptr->fm_pair_ptr_->first.data();
+		size_t file_size = response_ptr->fm_pair_ptr_->first.size();
 		
 		response_ptr->add_header(::server::protocol::http::header::content_length, std::to_string(file_size));
 		

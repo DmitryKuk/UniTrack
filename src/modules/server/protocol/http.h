@@ -43,6 +43,7 @@ namespace header {
 
 extern const std::string
 	content_length,
+	content_type,
 	server,
 	allow,
 	connection,

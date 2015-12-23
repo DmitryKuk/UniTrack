@@ -4,6 +4,7 @@
 #define SERVER_HOST_FILE_HANDLERS_FILES_ONLY_H
 
 #include <memory>
+#include <string>
 
 #include <boost/filesystem/path.hpp>
 
@@ -30,14 +31,14 @@ public:
 		public ::server::protocol::http::response
 	{
 	public:
-		inline response(std::shared_ptr<const ::base::mapped_file> &&mapped_file_ptr,
+		inline response(std::shared_ptr<const std::pair<::base::mapped_file, std::string>> &&fm_pair_ptr,
 						const ::server::protocol::http::status &status,
 						::server::protocol::http::version version = ::server::protocol::http::version::v_1_1);
 	private:
 		friend class files_only;
 		
 		// Data
-		std::shared_ptr<const ::base::mapped_file> mapped_file_ptr_;
+		std::shared_ptr<const std::pair<::base::mapped_file, std::string>> fm_pair_ptr_;
 	};	// class response
 	
 	
@@ -48,13 +49,16 @@ public:
 			   const ::server::protocol::http::request &request,
 			   const ::boost::filesystem::path &path) const;
 private:
-	static std::shared_ptr<::base::mapped_file> load_file(const boost::filesystem::path &path);
+	using file_and_mime_pair = std::pair<::base::mapped_file, std::string>;
+	
+	
+	static std::shared_ptr<file_and_mime_pair> load_file(const boost::filesystem::path &path);
 	
 	
 	// Data
 	mutable ::base::file_cache<
-		::base::mapped_file,
-		std::shared_ptr<::base::mapped_file> (*)(const boost::filesystem::path &)
+		file_and_mime_pair,
+		std::shared_ptr<file_and_mime_pair> (*)(const boost::filesystem::path &path)
 	> cache_{
 		load_file
 	};

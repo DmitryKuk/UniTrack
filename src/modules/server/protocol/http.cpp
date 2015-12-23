@@ -7,8 +7,6 @@
 #include <regex>
 #include <cctype>
 
-using namespace std::literals;
-
 
 const server::port_type
 	server::protocol::http::default_port				= 80;
@@ -16,42 +14,43 @@ const server::port_type
 
 const std::string
 	server::protocol::http::str::default_port			= std::to_string(server::protocol::http::default_port),
-	server::protocol::http::str::space					= " "s,
-	server::protocol::http::str::newline				= "\r\n"s,
-	server::protocol::http::str::HTTP					= "HTTP"s,
-	server::protocol::http::str::slash					= "/"s,
-	server::protocol::http::str::header_separator		= ": "s;
+	server::protocol::http::str::space					= " ",
+	server::protocol::http::str::newline				= "\r\n",
+	server::protocol::http::str::HTTP					= "HTTP",
+	server::protocol::http::str::slash					= "/",
+	server::protocol::http::str::header_separator		= ": ";
 
 const std::string
-	server::protocol::http::str::header_body_separator	= "\r\n\r\n"s;
+	server::protocol::http::str::header_body_separator	= "\r\n\r\n";
 
 
 const std::string
-	server::protocol::http::header::content_length		= "Content-Length"s,
-	server::protocol::http::header::server				= "Server"s,
-	server::protocol::http::header::allow				= "Allow"s,
-	server::protocol::http::header::connection			= "Connection"s,
-	server::protocol::http::header::host				= "Host"s,
-	server::protocol::http::header::cookie				= "Cookie"s,
-	server::protocol::http::header::set_cookie			= "Set-Cookie"s,
-	server::protocol::http::header::location			= "Location"s;
+	server::protocol::http::header::content_length		= "Content-Length",
+	server::protocol::http::header::content_type		= "Content-Type",
+	server::protocol::http::header::server				= "Server",
+	server::protocol::http::header::allow				= "Allow",
+	server::protocol::http::header::connection			= "Connection",
+	server::protocol::http::header::host				= "Host",
+	server::protocol::http::header::cookie				= "Cookie",
+	server::protocol::http::header::set_cookie			= "Set-Cookie",
+	server::protocol::http::header::location			= "Location";
 
 
 namespace {
 
 
 const std::string
-	method_unknown	= "unknown"s,	// 0
+	method_unknown	= "unknown",	// 0
 	
-	method_GET		= "GET"s,		// 1
-	method_HEAD		= "HEAD"s,		// 2
-	method_POST		= "POST"s,		// 3
-	method_DELETE	= "DELETE"s;	// 4
+	method_GET		= "GET",		// 1
+	method_HEAD		= "HEAD",		// 2
+	method_POST		= "POST",		// 3
+	method_DELETE	= "DELETE";	// 4
 
 const std::string
-	version_unknown	= "unknown"s,	// 0
+	version_unknown	= "unknown",	// 0
 	
-	version_v_1_1	= "1.1"s;		// 1
+	version_v_1_1	= "1.1";		// 1
 
 
 };	// namespace

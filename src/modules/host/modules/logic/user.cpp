@@ -58,14 +58,25 @@ host::logic::user::response(const server::worker &worker,
 	using namespace server::protocol::http;
 	
 	
-	// User have not session id => don't show any page him!
+	// Validation
 	// This host can process only GET and HEAD requests with "?json" suffix in uri
-	if ((request.method != method::GET && request.method != method::HEAD)
-		|| request.cookies.count("sid"s) == 0
-		|| request.args_set.count("json"s) == 0) {
+	if (request.args_set.count("json"s) == 0) {	// Requested non-json
 		request.path = "/"s;
 		return nullptr;	// Soft redirect
 	}
+	
+	// Process only GET and HEAD methods
+	if (request.method != method::GET && request.method != method::HEAD) {
+		static const std::string bad_request = "{\"status\":\"bad_request\"}"s;
+		return this->response_with_body(worker, request, status::ok, bad_request, false);
+	}
+	
+	// User have not session id => don't show him any page!
+	if (request.cookies.count("sid"s) == 0) {
+		static const std::string not_logged_in = "{\"status\":\"not_logged_in\"}"s;
+		return this->response_with_body(worker, request, status::ok, not_logged_in, false);
+	}
+	
 	
 	
 	std::string user_ref, section;

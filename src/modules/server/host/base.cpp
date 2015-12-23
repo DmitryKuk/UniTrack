@@ -57,31 +57,36 @@ server::host::base::phony_response(const ::server::worker &worker,
 	// Server name (even, if it is empty)
 	const auto &server_name = *(::server::host::base::add_server_name(worker, *response_ptr).first);
 	
+	// Content-Type header
+	response_ptr->add_header(header::content_type, "text/html"s);
+	
+	
+	std::string status_str = status.code_str() + str::space + status.description();
+	
+	// Page body
+	std::string body =
+		"<html>"
+		"<head>"
+			"<meta charset=\"utf-8\">"
+			"<title>"s
+			+ status_str +
+			"</title>"
+		"</head>"
+		"<body>"
+			"<h1>"s
+			+ status_str +
+			"</h1>"
+			"<hr width=\"100%\">"
+			"<p>"s
+			+ server_name +
+			"</p>"
+		"</body>"
+		"</html>"s;
+	
+	response_ptr->add_header(header::content_length, std::to_string(body.size()));
+	
 	// Adding body
-	if (request.method != ::server::protocol::http::method::HEAD) {
-		std::string status_str = status.code_str() + str::space + status.description();
-		
-		// Page body
-		std::string body =
-			"<html>"
-			"<head>"
-				"<meta charset=\"utf-8\">"
-				"<title>"s
-				+ status_str +
-				"</title>"
-			"</head>"
-			"<body>"
-				"<h1>"s
-				+ status_str +
-				"</h1>"
-				"<hr width=\"100%\">"
-				"<p>"s
-				+ server_name +
-				"</p>"
-			"</body>"
-			"</html>"s;
-		
-		response_ptr->add_header(header::content_length, std::to_string(body.size()));
+	if (request.method != method::HEAD) {
 		response_ptr->add_body(::base::buffer(response_ptr->cache(std::move(body))));
 	}
 	
@@ -100,6 +105,7 @@ server::host::base::redirect_response(const ::server::worker &worker,
 	auto response_ptr = std::make_unique<::server::protocol::http::response>(status, request.version);
 	::server::host::base::add_server_name(worker, *response_ptr);
 	response_ptr->add_header(::server::protocol::http::header::location, location);
+	response_ptr->add_header(::server::protocol::http::header::content_length, "0"s);
 	
 	return response_ptr;
 }

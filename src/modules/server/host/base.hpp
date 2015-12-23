@@ -21,8 +21,11 @@ server::host::base::response_with_body(const ::server::worker &worker,
 									   const ::server::protocol::http::request &request,
 									   const ::server::protocol::http::status &status,
 									   String &&response_body,
-									   bool need_cache) const
+									   bool need_cache,
+									   const std::string &content_type) const
 {
+	using namespace ::server::protocol::http;
+	
 	auto response_ptr = std::make_unique<::server::protocol::http::response>(status, request.version);
 	::server::host::base::add_server_name(worker, *response_ptr);
 	
@@ -30,10 +33,13 @@ server::host::base::response_with_body(const ::server::worker &worker,
 	if (need_cache)	buffer = ::base::buffer(response_ptr->cache(std::forward<String>(response_body)));
 	else			buffer = ::base::buffer(std::forward<String>(response_body));
 	
-	response_ptr->add_header(::server::protocol::http::header::content_length,
-							 std::to_string(::base::buffer_size(buffer)));
+	// Content-Type header
+	if (!content_type.empty())
+		response_ptr->add_header(header::content_type, content_type);
 	
-	if (request.method != ::server::protocol::http::method::HEAD)
+	response_ptr->add_header(header::content_length, std::to_string(::base::buffer_size(buffer)));
+	
+	if (request.method != method::HEAD)
 		response_ptr->add_body(std::move(buffer));
 	
 	return std::move(response_ptr);

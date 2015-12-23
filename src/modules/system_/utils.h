@@ -11,7 +11,7 @@ namespace system_ {
 
 // Returns given file mime type as a string or throws system_::unknown_error.
 std::string get_file_mime(const std::string &path,
-						  const std::string &command = "file -Ib");	// Using external file utility
+						  const std::string &command = "file -b --mime");	// Using external file utility
 
 
 };	// namespace system_

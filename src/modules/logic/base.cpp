@@ -21,19 +21,24 @@ std::pair<std::string, std::string>
 logic::base::start_session_for_email(const std::string &user_email,
 									 const std::string &user_password) const
 {
-	logic::cursor_ptr_type users_cursor_ptr = this->logic_gi().connection().query(
+	static const mongo::BSONObj
+		user_fields_to_return = BSON(
+			"_id"s << 1 <<
+			"ref"s << 1 <<
+			"password"s << 1
+		);
+	
+	
+	// Find user
+	mongo::BSONObj user_obj = this->logic_gi().connection().findOne(
 		this->logic_gi().collection_users(),
 		MONGO_QUERY("email"s << user_email),	// Search by email
-		1										// Need only 1 BSON object
+		&user_fields_to_return
 	);
 	
-	if (users_cursor_ptr == nullptr)
-		throw logic::incorrect_cursor{};
-	
-	if (!users_cursor_ptr->more())
+	if (user_obj.isEmpty())
 		throw logic::user_not_found{"For email: \""s + user_email + "and password: \""s + user_password + '\"'};
 	
-	mongo::BSONObj user_obj = users_cursor_ptr->nextSafe();
 	
 	return this->start_session_for_obj(user_obj, user_password);
 }
@@ -45,24 +50,38 @@ logic::base::start_session_for_email(const std::string &user_email,
 std::pair<std::string, std::string>
 logic::base::continue_session(const std::string &session_id) const
 {
-	logic::cursor_ptr_type sessions_cursor_ptr = this->logic_gi().connection().query(
+	static const mongo::BSONObj
+		session_fields_to_return = BSON(
+			"user_id"s		<< 1 <<
+			"valid_until"s	<< 1 <<
+			"restart_at"s	<< 1
+		);
+	
+	
+	mongo::BSONObj session_obj = this->logic_gi().connection().findOne(
 		this->logic_gi().collection_sessions(),
 		MONGO_QUERY("session_id"s << session_id),	// Search by session id (NOT _id!!!)
-		1											// Need only 1 BSON object
+		&session_fields_to_return
 	);
 	
-	if (sessions_cursor_ptr == nullptr)
-		throw logic::incorrect_cursor{};
 	
-	if (sessions_cursor_ptr->more()) {	// Current session found
-		mongo::BSONObj session_obj = sessions_cursor_ptr->nextSafe();
-		unsigned long long time_now = static_cast<unsigned long long>(::base::utc_time());
+	if (!session_obj.isEmpty()) {	// Session found
+		mongo::Date_t time_now{static_cast<unsigned long long>(::base::utc_time())};
 		
-		if (time_now < session_obj["valid_until"s].Date().asInt64()) {	// If session is valid
-			if (time_now < session_obj["restart_at"s].Date().asInt64())	// Don't need to restart
+		if (time_now < session_obj["valid_until"s].Date()) {	// If session is valid
+			if (time_now < session_obj["restart_at"s].Date()) {	// Don't need to restart
+				// Update last_visit_at
+				this->logic_gi().connection().findAndModify(
+					this->logic_gi().collection_users(),				// In users collection
+					BSON("_id"s << session_obj["user_id"s].OID()),		// Find user by OID
+					BSON("$set"s << BSON("last_visit_at"s << time_now))	// Set last_visit_at to current time
+				);
+				
+				// And return current session
 				return std::make_pair(session_obj["user_id"s].OID().toString(), ""s);
-			else														// Need to restart session
+			} else {														// Need to restart session
 				return this->restart_session(session_id, session_obj);
+			}
 		}
 	}
 	
@@ -79,7 +98,7 @@ logic::base::finish_session(const std::string &session_id) const
 	mongo::BSONObj session_obj = this->logic_gi().connection().findAndModify(
 		this->logic_gi().collection_sessions(),
 		BSON("session_id"s	<< session_id),					// Search by session id (NOT _id!!!)
-		BSON("$min"s << BSON("valid_until"s	<< time_now)),	// Update if session valid
+		BSON("$min"s << BSON("valid_until"s	<< time_now)),	// Update if session is valid
 		false,												// Not upsert
 		false,												// Return old version
 		mongo::BSONObj{},									// Not sort
@@ -87,15 +106,19 @@ logic::base::finish_session(const std::string &session_id) const
 	);
 	
 	// Check session_obj for errors
+	if (session_obj.isEmpty())
+		throw logic::session_not_found{session_id};
+	
 	if (session_obj.hasField("$err"s))
 		throw logic::session_error{session_id, session_obj["$err"s].String()};
 	
 	
-	// Register session in user object
+	// Unregister session in user object
 	this->logic_gi().connection().findAndModify(
 		this->logic_gi().collection_users(),								// In users collection
 		BSON("_id"s << session_obj["user_id"s].OID()),						// Find user by OID
-		BSON("$pull"s << BSON("sessions"s << session_obj["_id"s].OID()))	// Remove session OID from "sessions" array
+		BSON("$pull"s << BSON("sessions"s << session_obj["_id"s].OID()) <<	// Remove session OID from "sessions" array
+			 "$set"s << BSON("last_visit_at"s << time_now))					// Set last_visit_at to current time
 	);
 }
 
@@ -131,17 +154,12 @@ logic::base::start_session_for_obj_without_password_check(const mongo::BSONObj &
 		--attempts_availible;
 		session_id = this->logic_gi().generate_session_id(user_id);
 		
-		logic::cursor_ptr_type sessions_cursor_ptr =
-			this->logic_gi().connection().query(
-				this->logic_gi().collection_sessions(),
-				MONGO_QUERY("session_id"s << session_id),	// Search by session id (NOT _id!!!)
-				1											// Need only 1 BSON object
-			);
+		mongo::BSONObj session_obj = this->logic_gi().connection().findOne(
+			this->logic_gi().collection_sessions(),
+			MONGO_QUERY("session_id"s << session_id)	// Search by session id (NOT _id!!!)
+		);
 		
-		if (sessions_cursor_ptr == nullptr)
-			throw logic::incorrect_cursor{};
-		
-		if (sessions_cursor_ptr->more())	// Duplicate found, regenerating session id
+		if (!session_obj.isEmpty())	// Duplicate found, regenerating session id
 			session_id.clear();	// Will continue, if attempts availible
 	} while (session_id.empty() && attempts_availible > 0);
 	
@@ -154,6 +172,9 @@ logic::base::start_session_for_obj_without_password_check(const mongo::BSONObj &
 	
 	std::string session_cookie = "sid="s + session_id + "; expires="s
 								 + ::base::time_for_cookie(time_now + this->logic_gi().session_lifetime()) + ';';
+	
+	mongo::Date_t last_visit_at{static_cast<unsigned long long>(time_now)};
+	
 	
 	mongo::BSONObjBuilder session_obj_builder;
 	session_obj_builder.genOID();
@@ -176,9 +197,10 @@ logic::base::start_session_for_obj_without_password_check(const mongo::BSONObj &
 	}
 	
 	{
-		mongo::Date_t started_at{static_cast<unsigned long long>(time_now)};
+		const auto &started_at = last_visit_at;
 		session_obj_builder.append("started_at"s,	started_at);
 	}
+	
 	
 	mongo::BSONObj session_obj = session_obj_builder.done();
 	mongo::OID session_oid = session_obj["_id"s].OID();	// Warning: NOT the same as session_id!
@@ -192,9 +214,10 @@ logic::base::start_session_for_obj_without_password_check(const mongo::BSONObj &
 	
 	// Register session in user object
 	this->logic_gi().connection().findAndModify(
-		this->logic_gi().collection_users(),				// In users collection
-		BSON("_id"s << user_oid),							// Find user by OID
-		BSON("$push"s << BSON("sessions"s << session_oid))	// And append session OID to "sessions" array
+		this->logic_gi().collection_users(),						// In users collection
+		BSON("_id"s << user_oid),									// Find user by OID
+		BSON("$push"s << BSON("sessions"s << session_oid) <<		// Append session OID to "sessions" array
+			 "$set"s << BSON("last_visit_at"s << last_visit_at))	// Set last_visit_at to current time
 	);
 	
 	
@@ -208,20 +231,16 @@ std::pair<std::string, std::string>
 logic::base::restart_session(const std::string &session_id,
 							 const mongo::BSONObj &session_obj) const
 {
-	mongo::OID user_oid = session_obj["_id"s].OID();
+	mongo::OID user_oid = session_obj["user_id"s].OID();
 	
-	logic::cursor_ptr_type users_cursor_ptr = this->logic_gi().connection().query(
+	mongo::BSONObj user_obj = this->logic_gi().connection().findOne(
 		this->logic_gi().collection_users(),
-		MONGO_QUERY("_id"s << user_oid),	// Search by user _id
-		1									// Need only 1 BSON object
+		MONGO_QUERY("_id"s << user_oid)	// Search by user _id
 	);
 	
-	if (users_cursor_ptr == nullptr)
-		throw logic::incorrect_cursor{};
-	
-	if (!users_cursor_ptr->more())
+	if (user_obj.isEmpty())
 		throw logic::user_not_found{"For id: \""s + user_oid.toString() + '\"'};
 	
 	this->finish_session(session_id);
-	return this->start_session_for_obj_without_password_check(users_cursor_ptr->next());
+	return this->start_session_for_obj_without_password_check(user_obj);
 }

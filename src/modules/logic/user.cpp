@@ -3,7 +3,9 @@
 #include <logic/user.h>
 
 #include <tuple>
+#include <array>
 #include <algorithm>
+#include <functional>
 
 #include <logic/exceptions.h>
 
@@ -23,36 +25,47 @@ logic::user::user(::logic::global_instance &logic_gi):
 std::pair<std::string, std::string>
 logic::user::user_info(const std::string &user_ref, const std::string &session_id) const
 {
-	std::string user_id, session_cookie;
-	std::tie(user_id, session_cookie) = this->continue_session(session_id);
+	std::string current_user_id, session_cookie;
+	std::tie(current_user_id, session_cookie) = this->continue_session(session_id);
 	
 	
-	logic::cursor_ptr_type users_cursor_ptr;
-	if (user_ref.empty())	// Info for current user
-		users_cursor_ptr = this->logic_gi().connection().query(
-			this->logic_gi().collection_users(),
-			MONGO_QUERY("_id"s << mongo::OID(user_id)),	// Search by _id
-			1											// Need only 1 BSON object
-		);
-	else					// Info for specified user
-		users_cursor_ptr = this->logic_gi().connection().query(
-			this->logic_gi().collection_users(),
-			MONGO_QUERY("ref"s << user_ref),			// Search by ref
-			1											// Need only 1 BSON object
-		);
+	mongo::BSONObj user_obj;
+	{
+		static const mongo::BSONObj
+			user_fields_to_return = BSON(
+				"_id"s				<< 1 <<
+				"ref"s				<< 1 <<
+				"email"s			<< 1 <<
+				"name"s				<< 1 <<
+				"surname"s			<< 1 <<
+				"last_visit_at"s	<< 1 <<
+				"birthday"s			<< 1 <<
+				"friends"s			<< 1
+			);
+		
+		
+		if (user_ref.empty())	// Info for current user
+			user_obj = this->logic_gi().connection().findOne(
+				this->logic_gi().collection_users(),
+				MONGO_QUERY("_id"s << mongo::OID(current_user_id)),	// Search by _id
+				&user_fields_to_return
+			);
+		else					// Info for specified user
+			user_obj = this->logic_gi().connection().findOne(
+				this->logic_gi().collection_users(),
+				MONGO_QUERY("ref"s << user_ref),			// Search by ref
+				&user_fields_to_return
+			);
+		
+		
+		if (user_obj.isEmpty())
+			throw logic::user_not_found{"For id: \""s + current_user_id + '\"'};
+	}
 	
 	
-	if (users_cursor_ptr == nullptr)
-		throw logic::incorrect_cursor{};
-	
-	if (!users_cursor_ptr->more())
-		throw logic::user_not_found{"For id: \""s + user_id + '\"'};
-	
-	
-	mongo::BSONObj user_obj = users_cursor_ptr->nextSafe();
 	std::string user_info;
 	user_info.reserve(4096);
-	user_info += "{\"status\":\"ok\""s;
+	
 	
 	const auto add_info =
 		[&](char separator, const std::string &key, const std::string &value)
@@ -71,14 +84,21 @@ logic::user::user_info(const std::string &user_ref, const std::string &session_i
 			add_info(separator, key, obj[key].str());
 		};
 	
-	// Adding location
-	add_info_by_key('{', "ref"s, user_obj);
+	
+	// Adding status
+	user_info += "{\"status\":\"ok\""s;
+	
+	// Adding ref
+	add_info_by_key(',', "ref"s, user_obj);
 	
 	for (const std::string &key: {"name"s, "surname"s})
 		add_info_by_key(',', key, user_obj);
 	
+	// Adding last visit time
+	add_info(',', "last_visit_at"s, mongo::dateToISOStringUTC(user_obj["last_visit_at"s].Date()));
+	
 	// Adding email for user, if it is his email
-	if (user_obj["_id"s].OID().toString() == user_id)
+	if (user_obj["_id"s].OID().toString() == current_user_id)
 		add_info_by_key(',', "email"s, user_obj);
 	
 	// Adding user birthday, if it is set
@@ -88,40 +108,69 @@ logic::user::user_info(const std::string &user_ref, const std::string &session_i
 			add_info(',', "birthday"s, birthday);
 	}
 	
+	
 	// Adding up to max_friends random friends
 	{
-		constexpr size_t max_friends = 6;
+		using index_type = unsigned int;
+		constexpr index_type max_friends = 6;
+		
 		
 		auto friends = user_obj["friends"s].Array();
 		if (!friends.empty()) {	// If user has friends
-			std::uniform_int_distribution<size_t> distribution{0, friends.size()};
+			std::array<index_type, max_friends> indexes;
 			
-			user_info += '{';
-			for (size_t i = 0, i_max = std::min(friends.size(), max_friends); i < i_max; ++i) {
-				size_t index = distribution(this->generator_);
+			// Generating up to max_friends unique random indexes
+			{
+				const index_type friends_size = static_cast<index_type>(friends.size());
+				std::uniform_int_distribution<index_type> distribution{0, friends_size};
+				
+				auto first_it = indexes.begin();
+				for (index_type i = 0, i_max = std::min(friends_size, max_friends); i < i_max; ++i) {
+					auto current_it = first_it + i;
+					do {	// Regenerating, while not unique
+						*current_it = distribution(this->generator_);
+					} while (std::find(first_it, current_it, *current_it) != current_it);
+				}
+			}
+			
+			
+			user_info += ",\"friends\":["s;	// Friends array begin
+				
+			for (const auto index: indexes) {
+				static const mongo::BSONObj
+					friend_fields_to_return = BSON(
+						"_id"s				<< 0 <<	// Don't include _id
+						"ref"s				<< 1 <<
+						"name"s				<< 1 <<
+						"surname"s			<< 1 <<
+						"last_visit_at"s	<< 1
+					);
+				
 				
 				// Searching friend with generated index
-				::logic::cursor_ptr_type friend_cursor_ptr = this->logic_gi().connection().query(
+				mongo::BSONObj friend_obj = this->logic_gi().connection().findOne(
 					this->logic_gi().collection_users(),
 					MONGO_QUERY("_id"s << friends[index].OID()),	// Search by _id
-					1												// Need only 1 BSON object
+					&friend_fields_to_return						// Return only specified fields
 				);
 				
-				if (friend_cursor_ptr == nullptr)
-					throw logic::incorrect_cursor{};
-				
-				if (!friend_cursor_ptr->more())
-					throw logic::user_not_found{"For id: \""s + user_id + '\"'};
-				
-				mongo::BSONObj friend_obj = friend_cursor_ptr->next();
+				if (friend_obj.isEmpty())
+					throw logic::user_not_found{"For id: \""s + friends[index].OID().toString() + '\"'};
 				
 				
+				// Add friend objects separator
+				if (user_info.back() == '}')
+					user_info += ',';
+				
+				// Add json string for current friend
 				add_info_by_key('{', "ref"s, friend_obj);
 				for (const std::string &key: {"name"s, "surname"s})
 					add_info_by_key(',', key, friend_obj);
+				add_info(',', "last_visit_at"s, mongo::dateToISOStringUTC(friend_obj["last_visit_at"s].Date()));
 				user_info += '}';
 			}
-			user_info += '}';
+			
+			user_info += ']';				// Friends array end
 		}
 	}
 	

@@ -1,7 +1,7 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
 
-// Returns status of execution
+// Returns status of execution.
 inline
 int
 application::status() const noexcept

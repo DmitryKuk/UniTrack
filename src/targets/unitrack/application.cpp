@@ -14,13 +14,16 @@ using namespace std::literals;
 
 // class application
 application::application(int argc, char **argv) noexcept:
-	status_{0},
+	argc_{argc},
+	argv_{argv},
 	
-	logger_global_instance_{argv[0]}
+	status_{0}
 {
-	// std::ios::sync_with_stdio(false);
-	
 	try {
+		// Logger
+		this->logger_global_instance_ptr_ = std::make_unique<logger::global_instance>(this->argv_[0]);
+		
+		
 		// Server and hosts config
 		auto config = base::json_utils::json_from_file(project_config::server);
 		
@@ -39,7 +42,17 @@ application::application(int argc, char **argv) noexcept:
 }
 
 
-// Run application in interactive mode (reading std::cin and waiting until it will be closed)
+// Runs application in automatic mode (interactive or not).
+// Returns status of execution.
+int
+application::run() noexcept
+{
+	return this->run_interactive();
+}
+
+
+// Runs application in interactive mode (reading std::cid and waiting until it will be closed).
+// Returns status of execution.
 int
 application::run_interactive() noexcept
 {

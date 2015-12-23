@@ -6,5 +6,5 @@
 int
 main(int argc, char **argv)
 {
-	return application{argc, argv}.run_interactive();
+	return application{argc, argv}.run();
 }

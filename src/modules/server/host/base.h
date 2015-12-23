@@ -73,7 +73,8 @@ public:
 					   const ::server::protocol::http::request &request,
 					   const ::server::protocol::http::status &status,
 					   String &&response_body,
-					   bool need_cache = true) const;
+					   bool need_cache = true,
+					   const std::string &content_type = "text/html") const;
 	
 	
 	// Prepares a redirection response.

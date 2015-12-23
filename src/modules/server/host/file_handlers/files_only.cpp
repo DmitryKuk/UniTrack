@@ -9,6 +9,43 @@
 #include <system_/exceptions.h>
 
 
+// class host::file_handlers::files_only::response
+server::host::file_handlers::files_only::response::response(
+	std::shared_ptr<const std::pair<::base::mapped_file, std::string>> &&fm_pair_ptr,
+	const ::server::worker &worker,
+	const ::server::protocol::http::request &request,
+	const ::server::protocol::http::status &status
+):
+	::server::protocol::http::response{status, request.version},
+	
+	fm_pair_ptr_{std::move(fm_pair_ptr)}
+{
+	using namespace ::server::protocol::http;
+	{}
+	
+	// Adding Server header
+	::server::host::base::add_server_name(worker, *this);
+	
+	
+	// Adding Content-Type header
+	if (!this->fm_pair_ptr_->second.empty())
+		this->add_header(header::content_type, this->fm_pair_ptr_->second);
+	
+	
+	const void *file_content = this->fm_pair_ptr_->first.data();
+	size_t file_size = this->fm_pair_ptr_->first.size();
+	
+	// Adding Content-Length header
+	this->add_header(header::content_length, std::to_string(file_size));
+	
+	
+	if (request.method != method::HEAD)
+		this->add_body(::base::buffer(file_content, file_size));
+}
+
+
+
+// class host::file_handlers::files_only
 // static
 std::shared_ptr<::server::host::file_handlers::files_only::file_and_mime_pair>
 server::host::file_handlers::files_only::load_file(const boost::filesystem::path &path)

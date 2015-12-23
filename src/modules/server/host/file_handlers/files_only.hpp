@@ -7,18 +7,6 @@
 #include <server/worker.h>
 
 
-inline
-server::host::file_handlers::files_only::response::response(
-	std::shared_ptr<const std::pair<::base::mapped_file, std::string>> &&fm_pair_ptr,
-	const ::server::protocol::http::status &status,
-	::server::protocol::http::version version
-):
-	::server::protocol::http::response{status, version},
-	
-	fm_pair_ptr_{std::move(fm_pair_ptr)}
-{}
-
-
 template<class FileHost>
 std::unique_ptr<::server::protocol::http::response>
 server::host::file_handlers::files_only::operator()(const FileHost &host,
@@ -30,46 +18,15 @@ server::host::file_handlers::files_only::operator()(const FileHost &host,
 	
 	
 	try {
-		bool need_body = true;
+		using namespace ::server::protocol::http;
+		if (request.method != method::GET && request.method != method::HEAD)
+			throw ::server::host::method_not_allowed{method_to_str(request.method)};
 		
-		switch (request.method) {
-			case ::server::protocol::http::method::GET:
-				need_body = true;
-				break;
-			case ::server::protocol::http::method::HEAD:
-				need_body = false;
-				break;
-			default:
-				throw ::server::host::method_not_allowed{::server::protocol::http::method_to_str(request.method)};
-				break;
-		}
-		
-		
-		auto response_ptr = std::make_unique<::server::host::file_handlers::files_only::response>(
+		return std::make_unique<::server::host::file_handlers::files_only::response>(
 			this->cache_.at(path),
-			::server::protocol::http::status::ok,
-			request.version
+			worker,
+			request
 		);
-		
-		
-		::server::host::base::add_server_name(worker, *response_ptr);	// Server name
-		
-		// Adding Content-Type header
-		if (!response_ptr->fm_pair_ptr_->second.empty())
-			response_ptr->add_header(::server::protocol::http::header::content_type,
-									 response_ptr->fm_pair_ptr_->second);
-		
-		
-		const void *file_content = response_ptr->fm_pair_ptr_->first.data();
-		size_t file_size = response_ptr->fm_pair_ptr_->first.size();
-		
-		response_ptr->add_header(::server::protocol::http::header::content_length, std::to_string(file_size));
-		
-		if (need_body)
-			response_ptr->add_body(::base::buffer(file_content, file_size));
-		
-		
-		return std::move(response_ptr);
 	}
 	
 	// File mapping error (impossible -- path checked by server::host::file<files_only>::response method)

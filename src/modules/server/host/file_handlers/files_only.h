@@ -31,12 +31,11 @@ public:
 		public ::server::protocol::http::response
 	{
 	public:
-		inline response(std::shared_ptr<const std::pair<::base::mapped_file, std::string>> &&fm_pair_ptr,
-						const ::server::protocol::http::status &status,
-						::server::protocol::http::version version = ::server::protocol::http::version::v_1_1);
+		response(std::shared_ptr<const std::pair<::base::mapped_file, std::string>> &&fm_pair_ptr,
+				 const worker &worker,
+				 const ::server::protocol::http::request &request,
+				 const ::server::protocol::http::status &status = ::server::protocol::http::status::ok);
 	private:
-		friend class files_only;
-		
 		// Data
 		std::shared_ptr<const std::pair<::base::mapped_file, std::string>> fm_pair_ptr_;
 	};	// class response

@@ -4,7 +4,7 @@
 
 
 # Other modules this module depends on
-MODULE_DEPS			 		= base logger server templatizer logic
+MODULE_DEPS			 		= base logger server templatizer logic system_
 
 
 # External libs this module depends on

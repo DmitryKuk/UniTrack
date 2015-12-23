@@ -34,15 +34,14 @@ public:
 		public server::protocol::http::response
 	{
 	public:
-		inline response(std::shared_ptr<const templatizer::page> &&page_ptr,
-						logic::page_model &&model,
-						const server::protocol::http::status &status,
-						server::protocol::http::version version = server::protocol::http::version::v_1_1);
+		response(std::shared_ptr<const std::pair<templatizer::page, std::string>> &&tm_pair_ptr,
+				 logic::page_model &&model,
+				 const server::worker &worker,
+				 const server::protocol::http::request &request,
+				 const server::protocol::http::status &status = server::protocol::http::status::ok);
 	private:
-		friend class template_pages_only;
-		
 		// Data
-		std::shared_ptr<const templatizer::page> page_ptr_;
+		std::shared_ptr<const std::pair<templatizer::page, std::string>> tm_pair_ptr_;
 		
 		logic::page_model page_model_;
 	};	// class response
@@ -53,19 +52,23 @@ public:
 	
 	
 	template<class FileHost>
+	inline
 	std::unique_ptr<server::protocol::http::response>
 	operator()(const FileHost &host,
 			   const server::worker &worker,
 			   const server::protocol::http::request &request,
 			   const boost::filesystem::path &path) const;
 private:
-	static std::shared_ptr<templatizer::page> load_page(const boost::filesystem::path &path);
+	using template_page_and_mime_pair = std::pair<templatizer::page, std::string>;
+	
+	
+	static std::shared_ptr<template_page_and_mime_pair> load_page(const boost::filesystem::path &path);
 	
 	
 	// Data
 	mutable ::base::file_cache<
-		templatizer::page,
-		std::shared_ptr<templatizer::page> (*)(const boost::filesystem::path &)
+		template_page_and_mime_pair,
+		std::shared_ptr<template_page_and_mime_pair> (*)(const boost::filesystem::path &)
 	> cache_{
 		load_page
 	};

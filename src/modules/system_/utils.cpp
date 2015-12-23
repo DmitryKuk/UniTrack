@@ -21,9 +21,10 @@ using p = std::pair<std::string, std::string>;
 
 std::unordered_map<std::string, std::string> mime_types_by_extensions{
 	{
-		p{"html"s,	"text/html"s },
-		p{"css"s,	"text/css"s  },
-		p{"txt"s,	"text/plain"s}
+		p{"html"s,	"text/html"s		},
+		p{"css"s,	"text/css"s			},
+		p{"js"s,	"text/javascript"s	},
+		p{"txt"s,	"text/plain"		}
 	}
 };
 

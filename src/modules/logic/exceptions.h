@@ -66,17 +66,17 @@ public:
 };
 
 
-class session_not_found: public error
-{
-public:
-	explicit session_not_found(const std::string &session_id);
-};
-
-
 class session_error: public error
 {
 public:
 	explicit session_error(const std::string &session_id, const std::string &err_message);
+};
+
+
+class session_not_found: public session_error
+{
+public:
+	explicit session_not_found(const std::string &session_id);
 };
 
 

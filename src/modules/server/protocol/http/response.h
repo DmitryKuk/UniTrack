@@ -45,6 +45,9 @@ public:
 	
 	
 	inline void add_body(const ::base::send_buffer_type &buffer);
+	
+	
+	inline void reset_cookie(const std::string &name);
 protected:
 	using base::strings_cache::operator();	// Allow only cache() method
 private:

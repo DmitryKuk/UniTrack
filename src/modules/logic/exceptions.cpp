@@ -45,13 +45,13 @@ logic::password_not_match::password_not_match(const std::string &user_id, const 
 {}
 
 
-logic::session_not_found::session_not_found(const std::string &session_id):
-	logic::error{"Session not found: \""s + session_id + '\"'}
+logic::session_error::session_error(const std::string &session_id, const std::string &err_message):
+	logic::error{"Session error: \""s + session_id + "\": " + err_message}
 {}
 
 
-logic::session_error::session_error(const std::string &session_id, const std::string &err_message):
-	logic::error{"Session error: \""s + session_id + "\": " + err_message}
+logic::session_not_found::session_not_found(const std::string &session_id):
+	logic::session_error{session_id, "Not found"s}
 {}
 
 

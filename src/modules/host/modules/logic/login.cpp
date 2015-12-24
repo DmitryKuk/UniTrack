@@ -57,11 +57,11 @@ host::logic::login::response(const server::worker &worker,
 		[&](const auto &log_message, const std::string &response_body)
 		{
 			this->log_error(worker, request, log_message, status::ok);
-			return this->response_with_body(worker, request, status::ok, response_body, false);
+			return this->response_with_json_body(worker, request, status::ok, response_body, false);
 		};
 	
 	
-	// Register new users by POST request only
+	// Login users by POST request only
 	std::string data{request.body.data(), request.body.size()};
 	if (data.size() != request.body.size())
 		return handle_error("Non-string-convertible data in login request body"s, bad_request_body);
@@ -85,7 +85,7 @@ host::logic::login::response(const server::worker &worker,
 		std::tie(user_ref, session_cookie) = this->login_user(form);
 		
 		std::string response_body = "{\"status\":\"ok\",\"ref\":\""s + user_ref + "\"}"s;
-		auto response_ptr = this->response_with_body(worker, request, status::ok, std::move(response_body));
+		auto response_ptr = this->response_with_json_body(worker, request, status::ok, std::move(response_body));
 		response_ptr->add_header(header::set_cookie, session_cookie);
 		
 		return std::move(response_ptr);

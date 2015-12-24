@@ -43,6 +43,16 @@ server::protocol::http::response::add_body(const base::send_buffer_type &buffer)
 }
 
 
+inline
+void
+server::protocol::http::response::reset_cookie(const std::string &name)
+{
+	using namespace std::literals;
+	this->add_header(::server::protocol::http::header::set_cookie,
+					 name + "=; expires=Thu, 01 Jan 1970 00:00:01 GMT;"s);
+}
+
+
 // private
 inline
 void

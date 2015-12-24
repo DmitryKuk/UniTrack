@@ -68,13 +68,13 @@ host::logic::user::response(const server::worker &worker,
 	// Process only GET and HEAD methods
 	if (request.method != method::GET && request.method != method::HEAD) {
 		static const std::string bad_request = "{\"status\":\"bad_request\"}"s;
-		return this->response_with_body(worker, request, status::ok, bad_request, false);
+		return this->response_with_json_body(worker, request, status::ok, bad_request, false);
 	}
 	
 	// User have not session id => don't show him any page!
 	if (request.cookies.count("sid"s) == 0) {
 		static const std::string not_logged_in = "{\"status\":\"not_logged_in\"}"s;
-		return this->response_with_body(worker, request, status::ok, not_logged_in, false);
+		return this->response_with_json_body(worker, request, status::ok, not_logged_in, false);
 	}
 	
 	
@@ -129,7 +129,7 @@ host::logic::user::section_root(const server::worker &worker,
 		[&](const auto &log_message, const std::string &response_body)
 		{
 			this->log_error(worker, request, log_message, status::ok);
-			return this->response_with_body(worker, request, status::ok, response_body, false);
+			return this->response_with_json_body(worker, request, status::ok, response_body, false);
 		};
 	
 	
@@ -137,14 +137,14 @@ host::logic::user::section_root(const server::worker &worker,
 		std::string response_body, session_cookie;
 		std::tie(response_body, session_cookie) = this->user_info(user_ref, request.cookies.at("sid"s));
 		
-		auto response_ptr = this->response_with_body(worker, request, status::ok, std::move(response_body));
+		auto response_ptr = this->response_with_json_body(worker, request, status::ok, std::move(response_body));
 		if (!session_cookie.empty())
 			response_ptr->add_header(header::set_cookie, session_cookie);
 		
 		return std::move(response_ptr);
 	} catch (const ::logic::session_not_found &e) {
 		auto response_ptr = this->redirect_response(worker, request, "/"s);
-		response_ptr->add_header(header::set_cookie, "sid=; expires=Thu, 01 Jan 1970 00:00:01 GMT;"s);
+		response_ptr->reset_cookie("sid"s);
 		
 		return std::move(response_ptr);
 	} catch (const std::exception &e) {

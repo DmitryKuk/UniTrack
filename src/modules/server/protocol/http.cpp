@@ -9,31 +9,38 @@
 
 
 const server::port_type
-	server::protocol::http::default_port				= 80;
+	server::protocol::http::default_port					= 80;
 
 
 const std::string
-	server::protocol::http::str::default_port			= std::to_string(server::protocol::http::default_port),
-	server::protocol::http::str::space					= " ",
-	server::protocol::http::str::newline				= "\r\n",
-	server::protocol::http::str::HTTP					= "HTTP",
-	server::protocol::http::str::slash					= "/",
-	server::protocol::http::str::header_separator		= ": ";
+	server::protocol::http::str::default_port				= std::to_string(server::protocol::http::default_port),
+	server::protocol::http::str::space						= " ",
+	server::protocol::http::str::newline					= "\r\n",
+	server::protocol::http::str::HTTP						= "HTTP",
+	server::protocol::http::str::slash						= "/",
+	server::protocol::http::str::header_separator			= ": ";
 
 const std::string
-	server::protocol::http::str::header_body_separator	= "\r\n\r\n";
+	server::protocol::http::str::header_body_separator		= "\r\n\r\n";
 
 
 const std::string
-	server::protocol::http::header::content_length		= "Content-Length",
-	server::protocol::http::header::content_type		= "Content-Type",
-	server::protocol::http::header::server				= "Server",
-	server::protocol::http::header::allow				= "Allow",
-	server::protocol::http::header::connection			= "Connection",
-	server::protocol::http::header::host				= "Host",
-	server::protocol::http::header::cookie				= "Cookie",
-	server::protocol::http::header::set_cookie			= "Set-Cookie",
-	server::protocol::http::header::location			= "Location";
+	server::protocol::http::header::content_length			= "Content-Length",
+	server::protocol::http::header::content_type			= "Content-Type",
+	server::protocol::http::header::server					= "Server",
+	server::protocol::http::header::allow					= "Allow",
+	server::protocol::http::header::connection				= "Connection",
+	server::protocol::http::header::host					= "Host",
+	server::protocol::http::header::cookie					= "Cookie",
+	server::protocol::http::header::set_cookie				= "Set-Cookie",
+	server::protocol::http::header::location				= "Location";
+
+
+const std::string
+	server::protocol::http::content_type::text_plain		= "text/plain",
+	server::protocol::http::content_type::text_html			= "text/html",
+	server::protocol::http::content_type::application_json	= "application/json";
+
 
 
 namespace {

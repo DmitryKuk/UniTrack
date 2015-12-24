@@ -45,6 +45,10 @@
 					"type": "logic/login"
 				},
 				
+				"logout": {
+					"type": "logic/logout"
+				},
+				
 				"registration": {
 					"type": "logic/registration"
 				}

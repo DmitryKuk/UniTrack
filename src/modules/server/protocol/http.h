@@ -57,6 +57,19 @@ extern const std::string
 
 
 
+namespace content_type {
+
+
+extern const std::string
+	text_plain,
+	text_html,
+	application_json;
+
+
+};	// namespace content_type
+
+
+
 enum class method
 {
 	unknown	= 0,

@@ -67,6 +67,7 @@ public:
 	
 	
 	// Prepares a response with body.
+	// If empty content_type string given, Content-Type header will not be added.
 	template<class String>
 	std::unique_ptr<::server::protocol::http::response>
 	response_with_body(const worker &worker,
@@ -74,7 +75,29 @@ public:
 					   const ::server::protocol::http::status &status,
 					   String &&response_body,
 					   bool need_cache = true,
-					   const std::string &content_type = "text/html") const;
+					   const std::string &content_type = ::server::protocol::http::content_type::text_plain) const;
+	
+	
+	// Prepares a response with html body.
+	template<class String>
+	inline
+	std::unique_ptr<::server::protocol::http::response>
+	response_with_html_body(const worker &worker,
+							const ::server::protocol::http::request &request,
+							const ::server::protocol::http::status &status,
+							String &&response_body,
+							bool need_cache = true) const;
+	
+	
+	// Prepares a response with json body.
+	template<class String>
+	inline
+	std::unique_ptr<::server::protocol::http::response>
+	response_with_json_body(const worker &worker,
+							const ::server::protocol::http::request &request,
+							const ::server::protocol::http::status &status,
+							String &&response_body,
+							bool need_cache = true) const;
 	
 	
 	// Prepares a redirection response.

@@ -15,6 +15,7 @@ server::host::base::name() const noexcept
 
 
 // Prepares a response with body.
+// If empty content_type string given, Content-Type header will not be added.
 template<class String>
 std::unique_ptr<::server::protocol::http::response>
 server::host::base::response_with_body(const ::server::worker &worker,
@@ -43,6 +44,38 @@ server::host::base::response_with_body(const ::server::worker &worker,
 		response_ptr->add_body(std::move(buffer));
 	
 	return std::move(response_ptr);
+}
+
+
+// Prepares a response with html body.
+template<class String>
+inline
+std::unique_ptr<::server::protocol::http::response>
+server::host::base::response_with_html_body(const ::server::worker &worker,
+											const ::server::protocol::http::request &request,
+											const ::server::protocol::http::status &status,
+											String &&response_body,
+											bool need_cache) const
+{
+	return this->response_with_body(worker, request, status,
+									std::forward<String>(response_body), need_cache,
+									::server::protocol::http::content_type::text_html);
+}
+
+
+// Prepares a response with json body.
+template<class String>
+inline
+std::unique_ptr<::server::protocol::http::response>
+server::host::base::response_with_json_body(const ::server::worker &worker,
+											const ::server::protocol::http::request &request,
+											const ::server::protocol::http::status &status,
+											String &&response_body,
+											bool need_cache) const
+{
+	return this->response_with_body(worker, request, status,
+									std::forward<String>(response_body), need_cache,
+									::server::protocol::http::content_type::application_json);
 }
 
 

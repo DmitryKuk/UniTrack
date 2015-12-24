@@ -57,7 +57,7 @@ host::logic::registration::response(const server::worker &worker,
 		[&](const auto &log_message, const std::string &response_body)
 		{
 			this->log_error(worker, request, log_message, status::ok);
-			return this->response_with_body(worker, request, status::ok, response_body, false);
+			return this->response_with_json_body(worker, request, status::ok, response_body, false);
 		};
 	
 	
@@ -85,7 +85,7 @@ host::logic::registration::response(const server::worker &worker,
 		std::tie(user_ref, session_cookie) = this->register_user(form);
 		
 		std::string response_body = "{\"status\":\"ok\",\"ref\":\""s + user_ref + "\"}"s;
-		auto response_ptr = this->response_with_body(worker, request, status::ok, std::move(response_body));
+		auto response_ptr = this->response_with_json_body(worker, request, status::ok, std::move(response_body));
 		response_ptr->add_header(header::set_cookie, session_cookie);
 		
 		return std::move(response_ptr);

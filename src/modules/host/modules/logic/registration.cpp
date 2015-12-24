@@ -73,8 +73,14 @@ host::logic::registration::response(const server::worker &worker,
 		data,
 		[&](std::string key, std::string value) {
 			std::cerr << "Parsed 1: " << key << ": " << value << std::endl;
-			form.emplace(key, value);
+			auto p = form.insert(std::make_pair(key, value));
 			std::cerr << "Parsed 2: " << key << ": " << value << std::endl;
+			
+			if (p.second)	std::cerr << "Inserted!" << std::endl;
+			else			std::cerr << "Not inserted!" << std::endl;
+			
+			if (p.first == form.end())	std::cerr << "At end!" << std::endl;
+			else						std::cerr << "Not at end!" << std::endl;
 			
 			std::cerr << " => Form:";
 			for (const auto &p: form)

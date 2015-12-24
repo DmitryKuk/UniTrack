@@ -74,6 +74,11 @@ host::logic::registration::response(const server::worker &worker,
 		[&](std::string key, std::string value) {
 			std::cerr << "Parsed: " << key << ": " << value << std::endl;
 			form.emplace(std::move(key), std::move(value));
+			
+			std::cerr << " => Form:";
+			for (const auto &p: form)
+				std::cerr << "  [" << p.first << ": " << p.second << "]";
+			std::cerr << std::endl;
 		},
 		[&](const std::string &key) {
 			std::cerr << "Parsed: " << key << std::endl;

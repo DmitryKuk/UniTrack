@@ -66,13 +66,18 @@ host::logic::registration::response(const server::worker &worker,
 	if (data.size() != request.body.size())
 		return handle_error("Non-string-convertible data in registration request body"s, bad_request_body);
 	
-	
+	std::cerr << "Raw form: " << data << std::endl;
 	// Parsing registration form
 	::logic::registration::form form;
 	bool parsed = server::protocol::http::decode_uri_args(
 		data,
-		[&](std::string &&key, std::string &&value) { form.emplace(std::move(key), std::move(value)); },
-		[&](const std::string &) {}
+		[&](std::string &&key, std::string &&value) {
+			std::cerr << "Parsed: " << key << ": " << value << std::endl;
+			form.emplace(std::move(key), std::move(value));
+		},
+		[&](const std::string &key) {
+			std::cerr << "Parsed: " << key << std::endl;
+		}
 	);
 	
 	if (!parsed)

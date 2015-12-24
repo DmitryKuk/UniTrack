@@ -92,6 +92,10 @@ host::logic::registration::response(const server::worker &worker,
 	} catch (const ::logic::duplicate_user_found &e) {
 		static const std::string response_body = "{\"status\":\"duplicate_user_found\"}"s;
 		return handle_error(e.what(), response_body);
+	} catch (const std::out_of_range &e) {
+		std::cerr << "Out of range caught: " << e.what() << std::endl;
+		static const std::string response_body = "{\"status\":\"unknown_error\"}"s;
+		return handle_error(e.what(), response_body);
 	} catch (const std::exception &e) {
 		static const std::string response_body = "{\"status\":\"unknown_error\"}"s;
 		return handle_error(e.what(), response_body);

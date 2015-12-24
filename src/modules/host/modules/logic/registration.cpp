@@ -36,7 +36,7 @@ host::logic::registration::registration(const nlohmann::json &config,
 	base_host{config}
 {}
 
-
+#include <iostream>
 // virtual
 std::unique_ptr<server::protocol::http::response>
 host::logic::registration::response(const server::worker &worker,
@@ -77,7 +77,10 @@ host::logic::registration::response(const server::worker &worker,
 	
 	if (!parsed)
 		return handle_error("Can\'t decode registration request body"s, bad_request_body);
-	
+	std::cerr << "Form:";
+	for (const auto &p: form)
+		std::cerr << "  [" << p.first << ": " << p.second << "]";
+	std::cerr << std::endl;
 	
 	// Processing registration form
 	try {

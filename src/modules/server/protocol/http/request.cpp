@@ -317,9 +317,9 @@ server::protocol::http::operator<<(std::ostream &stream, const ::server::protoco
 		<< "Client: "s << request.client_address << ": "s
 		<< ::server::protocol::http::str::HTTP << ::server::protocol::http::str::slash
 		<< ::server::protocol::http::version_to_str(request.version)
-		<< ", " << ::server::protocol::http::method_to_str(request.method)
+		<< ", "s << ::server::protocol::http::method_to_str(request.method)
 		<< ", Requested URI: \""s << request.uri
-		<< "\". Host: \""s << request.host << "\", port: " << request.port << '.';
+		<< "\". Host: \""s << request.host << "\", port: "s << request.port << '.';
 	
 	if (!request.parsed_headers.empty()) {
 		stream << " Parsed headers:"s;
@@ -347,6 +347,9 @@ server::protocol::http::operator<<(std::ostream &stream, const ::server::protoco
 		
 		stream << '.';
 	}
+	
+	if (request.content_length != 0)
+		stream << " Content length: "s << request.content_length << '.';
 	
 	return stream;
 }

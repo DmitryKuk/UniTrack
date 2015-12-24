@@ -93,6 +93,14 @@ logic::base::continue_session(const std::string &session_id) const
 void
 logic::base::finish_session(const std::string &session_id) const
 {
+	static const mongo::BSONObj
+		session_fields_to_return = BSON(
+			"_id"s			<< 1 <<
+			"user_id"s		<< 1 <<
+			"valid_until"s	<< 1
+		);
+	
+	
 	mongo::Date_t time_now{static_cast<unsigned long long>(::base::utc_time())};
 	
 	mongo::BSONObj session_obj = this->logic_gi().connection().findAndModify(
@@ -102,11 +110,11 @@ logic::base::finish_session(const std::string &session_id) const
 		false,												// Not upsert
 		false,												// Return old version
 		mongo::BSONObj{},									// Not sort
-		BSON("_id"s << 1 << "user_id"s << 1)				// Return _id and user_id fields
+		session_fields_to_return
 	);
 	
 	// Check session_obj for errors
-	if (session_obj.isEmpty())
+	if (session_obj.isEmpty() || session_obj["valid_until"s].Date() < time_now)	// Session not found or invalid
 		throw logic::session_not_found{session_id};
 	
 	if (session_obj.hasField("$err"s))

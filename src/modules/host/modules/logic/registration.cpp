@@ -72,8 +72,9 @@ host::logic::registration::response(const server::worker &worker,
 	bool parsed = server::protocol::http::decode_uri_args(
 		data,
 		[&](std::string key, std::string value) {
-			std::cerr << "Parsed: " << key << ": " << value << std::endl;
-			form.emplace(std::move(key), std::move(value));
+			std::cerr << "Parsed 1: " << key << ": " << value << std::endl;
+			form.emplace(key, value);
+			std::cerr << "Parsed 2: " << key << ": " << value << std::endl;
 			
 			std::cerr << " => Form:";
 			for (const auto &p: form)

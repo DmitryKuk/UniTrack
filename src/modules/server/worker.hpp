@@ -52,6 +52,14 @@ server::worker::worker(::server::server &server,
 
 
 inline
+::server::host::manager &
+server::worker::host_manager() noexcept
+{
+	return *this->host_manager_ptr_;
+}
+
+
+inline
 boost::asio::io_service &
 server::worker::io_service() noexcept
 {
@@ -59,9 +67,10 @@ server::worker::io_service() noexcept
 }
 
 
+// Tells all hosts to clear cached data.
 inline
-::server::host::manager &
-server::worker::host_manager() noexcept
+void
+server::worker::clear_cache() noexcept
 {
-	return *this->host_manager_ptr_;
+	this->host_manager().clear_cache();
 }

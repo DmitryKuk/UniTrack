@@ -60,11 +60,15 @@ application::run_interactive() noexcept
 		return this->status();
 	
 	try {
-		logger::log(logger::level::info, "Running interactive mode. Press Ctrl+D to exit..."s);
+		logger::log(logger::level::info, "Running interactive mode. "
+										 "Press Ctrl+D to exit. "
+										 "Press Enter to clear cache..."s);
 		
 		// Waiting for Ctrl+D
-		while (std::cin)
-			std::cin.get();
+		while (std::cin) {
+			if (std::cin.get() == '\n')
+				this->server_ptr_->clear_cache();
+		}
 		
 		this->stop();
 	} catch (const std::exception &e) {

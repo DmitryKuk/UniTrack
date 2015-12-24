@@ -33,6 +33,10 @@ class manager;
 class worker
 {
 public:
+	// Signal, that means clear_cache command for worker.
+	static constexpr int clear_cache_signal = SIGUSR1;
+	
+	
 	// Constructor
 	// NOTE: Host manager generator should return std::unique_ptr<server::host::manager> to correct
 	// and ready-to-response host manager. If it is impossible, please, throw!
@@ -50,6 +54,9 @@ public:
 	inline ::server::host::manager & host_manager() noexcept;
 	inline boost::asio::io_service & io_service() noexcept;
 	
+	// Tells all hosts to clear cached data.
+	inline void clear_cache() noexcept;
+	
 	// Adds new client to the worker
 	void add_client(::server::socket &&socket) noexcept;
 private:
@@ -62,6 +69,7 @@ private:
 	// Primitive signal handlers
 	void exit(int signal, const char *signal_str) noexcept;
 	void ignore(int signal, const char *signal_str) noexcept;
+	void clear_cache_handler(int signal, const char *signal_str) noexcept;
 	
 	// Signal handlers map
 	static

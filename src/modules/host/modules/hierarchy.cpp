@@ -108,3 +108,15 @@ host::hierarchy::response(const server::worker &worker,
 	// Returning response from handler host
 	return handler_host_it->second->response(worker, request);
 }
+
+
+// virtual
+void
+host::hierarchy::clear_cache() noexcept
+{
+	for (auto &host: this->hosts_)
+		host.second->clear_cache();
+	this->default_host_->clear_cache();
+	
+	this->server::host::base::clear_cache();
+}

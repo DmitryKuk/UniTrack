@@ -54,3 +54,13 @@ server::host::manager::host(const ::server::worker &worker,
 	
 	return host_ptr;
 }
+
+
+// Tells all hosts to clear cached data.
+void
+server::host::manager::clear_cache() noexcept
+{
+	for (auto &host: this->hosts_)
+		host.second->clear_cache();
+	this->error_host_.clear_cache();
+}

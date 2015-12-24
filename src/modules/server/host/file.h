@@ -41,6 +41,9 @@ public:
 	std::unique_ptr<::server::protocol::http::response>
 	response(const worker &worker,
 			 ::server::protocol::http::request &request) const override;
+	
+	
+	virtual void clear_cache() noexcept override;
 protected:
 	// Validators
 	inline void validate_method(::server::protocol::http::method method) const;

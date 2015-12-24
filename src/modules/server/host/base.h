@@ -122,6 +122,10 @@ public:
 				 const ::server::protocol::http::status &status) const;
 	
 	
+	// Clears cached data. By default does nothing.
+	virtual void clear_cache() noexcept;
+	
+	
 	// Gets server name from worker and adds it to headers in response.
 	// Returns pointer to used server name string and true, if name was added.
 	// Otherwise, returns pointer to empty string and false (if returned server name is empty).

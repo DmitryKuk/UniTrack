@@ -51,6 +51,9 @@ public:
 			   const server::worker &worker,
 			   const server::protocol::http::request &request,
 			   const boost::filesystem::path &path) const;
+	
+	
+	inline void clear_cache() noexcept;
 protected:
 	// Parameters
 	// By default: interpret all files as plain files...

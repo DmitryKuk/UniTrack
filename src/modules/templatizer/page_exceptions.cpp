@@ -20,3 +20,8 @@ templatizer::file_parsing_error::file_parsing_error(const std::string &file_name
 													const std::string &message):
 	templatizer::page_error{"File \""s + file_name + "\" parsing error: "s + message}
 {}
+
+
+templatizer::path_not_found::path_not_found(const std::string &path):
+	templatizer::page_error{"Path not found: \""s + path + '\"'}
+{}

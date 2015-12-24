@@ -28,6 +28,8 @@ public:
 	server(const nlohmann::json &config,
 		   HMGen &&hm_gen);	// Host manager generator
 	
+	~server();
+	
 	
 	// Non-copy/-move constructible/assignable. Use ptrs.
 	server(const server &other) = delete;
@@ -37,24 +39,33 @@ public:
 	server & operator=(server &&other) = delete;
 	
 	
-	// Stops the server
+	// Detaches all workers: they will NOT be killed, when server object destroyed.
+	void detach_workers() noexcept;
+	
+	
+	// Stops all workers.
 	void stop() noexcept;
+	
+	
+	// Tells all workers to clear cached data.
+	void clear_cache() noexcept;
 	
 	
 	inline boost::asio::io_service & io_service() noexcept;
 	
 	
-	// Returns server names
+	// Returns server names.
 	inline const std::vector<std::string> & names() const noexcept;
 protected:
 	// Parameters
-	::server::port_set_type		ports_;				// Optional
-	unsigned int				workers_	= 1;	// Optional
+	::server::port_set_type		ports_;			// Optional
+	unsigned int				workers_ = 1;	// Optional
 	
-	std::vector<std::string>	names_		=		// Optional
+	std::vector<std::string>	names_{			// Optional
 		{
 #			include <server/default_server_names.hpp>
-		};
+		}
+	};
 private:
 	// Data
 	boost::asio::io_service io_service_;

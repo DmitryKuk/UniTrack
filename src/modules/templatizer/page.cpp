@@ -5,9 +5,9 @@
 #include <regex>
 #include <functional>
 
+#include <base/mapped_file_exceptions.h>
 #include <templatizer/module.h>
 #include <templatizer/modules/var_chunk.h>
-
 #include <templatizer/page_exceptions.h>
 
 
@@ -54,7 +54,7 @@ templatizer::page::operator=(templatizer::page &&other) noexcept
 
 
 // Loads template from file.
-// If an error occured, throws templatizer::file_mapping_error
+// If an error occured, throws templatizer:: page_error, file_mapping_error, file_parsing_error.
 // or templatizer::file_parsing_error.
 void
 templatizer::page::load(const boost::filesystem::path &path)
@@ -64,7 +64,7 @@ templatizer::page::load(const boost::filesystem::path &path)
 
 
 // Loads template from current file.
-// If an error occured, throws templatizer::file_mapping_error
+// If an error occured, throws templatizer:: page_error, file_mapping_error, file_parsing_error.
 // or templatizer::file_parsing_error.
 void
 templatizer::page::load()
@@ -171,6 +171,8 @@ templatizer::page::load()
 			this->set_state(templatizer::page::state::file_error);
 			throw templatizer::file_mapping_error{this->path().string(), e.what()};
 		}
+	} catch (const base::path_not_found &) {
+		throw templatizer::path_not_found{this->path().string()};
 	} catch (const std::exception &e) {
 		throw templatizer::page_error{e.what()};
 	}

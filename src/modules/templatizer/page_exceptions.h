@@ -32,6 +32,13 @@ public:
 };
 
 
+class path_not_found: public page_error
+{
+public:
+	explicit path_not_found(const std::string &path);
+};
+
+
 };	// namespace templatizer
 
 

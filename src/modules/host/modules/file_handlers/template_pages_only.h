@@ -58,6 +58,9 @@ public:
 			   const server::worker &worker,
 			   const server::protocol::http::request &request,
 			   const boost::filesystem::path &path) const;
+	
+	
+	inline void clear_cache() noexcept;
 private:
 	using template_page_and_mime_pair = std::pair<templatizer::page, std::string>;
 	

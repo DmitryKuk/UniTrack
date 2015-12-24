@@ -25,3 +25,12 @@ host::file_handlers::files_and_template_pages::operator()(const FileHost &host,
 	else
 		return this->server::host::file_handlers::files_only::operator()(host, worker, request, path);
 }
+
+
+inline
+void
+host::file_handlers::files_and_template_pages::clear_cache() noexcept
+{
+	this->server::host::file_handlers::files_only::clear_cache();
+	this->host::file_handlers::template_pages_only::clear_cache();
+}

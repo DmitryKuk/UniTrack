@@ -41,12 +41,16 @@ public:
 	};	// class response
 	
 	
+	
 	template<class FileHost>
 	std::unique_ptr<::server::protocol::http::response>
 	operator()(const FileHost &host,
 			   const worker &worker,
 			   const ::server::protocol::http::request &request,
 			   const ::boost::filesystem::path &path) const;
+	
+	
+	inline void clear_cache() noexcept;
 private:
 	using file_and_mime_pair = std::pair<::base::mapped_file, std::string>;
 	

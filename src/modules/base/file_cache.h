@@ -44,6 +44,10 @@ public:
 	
 	// Removes all cached data.
 	inline void clear() noexcept;
+	
+	
+	inline size_t size() const noexcept;
+	inline bool empty() const noexcept;
 private:
 	// Data
 	std::unordered_map<std::string, value_type> cache_;

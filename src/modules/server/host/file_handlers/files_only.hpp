@@ -1,7 +1,6 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
 #include <base/mapped_file_exceptions.h>
-
 #include <server/host/base.h>
 #include <server/host/exceptions.h>
 #include <server/worker.h>
@@ -15,13 +14,14 @@ server::host::file_handlers::files_only::operator()(const FileHost &host,
 													const boost::filesystem::path &path) const
 {
 	using namespace boost::interprocess;
+	using namespace ::server::protocol::http;
+	
+	
+	if (request.method != method::GET && request.method != method::HEAD)
+		throw ::server::host::method_not_allowed{method_to_str(request.method)};
 	
 	
 	try {
-		using namespace ::server::protocol::http;
-		if (request.method != method::GET && request.method != method::HEAD)
-			throw ::server::host::method_not_allowed{method_to_str(request.method)};
-		
 		return std::make_unique<::server::host::file_handlers::files_only::response>(
 			this->cache_.at(path),
 			worker,
@@ -45,4 +45,12 @@ server::host::file_handlers::files_only::operator()(const FileHost &host,
 				throw ::server::host::path_forbidden{path.string(), "file_mapping: "s + e.what()};
 		}
 	}
+}
+
+
+inline
+void
+server::host::file_handlers::files_only::clear_cache() noexcept
+{
+	this->cache_.clear();
 }

@@ -50,12 +50,12 @@ public:
 	
 	
 	// Loads template from file.
-	// If an error occured, throws templatizer::file_mapping_error
+	// If an error occured, throws templatizer:: page_error, file_mapping_error, file_parsing_error.
 	// or templatizer::file_parsing_error.
 	void load(const boost::filesystem::path &path);
 	
 	// Loads template from current file.
-	// If an error occured, throws templatizer::file_mapping_error
+	// If an error occured, throws templatizer:: page_error, file_mapping_error, file_parsing_error.
 	// or templatizer::file_parsing_error.
 	void load();
 	

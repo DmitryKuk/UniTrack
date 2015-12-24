@@ -37,6 +37,9 @@ public:
 	std::unique_ptr<server::protocol::http::response>
 	response(const server::worker &worker,
 			 server::protocol::http::request &request) const override;
+	
+	
+	virtual void clear_cache() noexcept override;
 protected:
 	::logic::global_instance &logic_;
 private:

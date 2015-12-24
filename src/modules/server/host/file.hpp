@@ -109,6 +109,16 @@ server::host::file<HostType>::response(const worker &worker,
 
 
 template<class HostType>
+// virtual
+void
+server::host::file<HostType>::clear_cache() noexcept
+{
+	this->handler_.clear_cache();
+	this->::server::host::base::clear_cache();
+}
+
+
+template<class HostType>
 inline
 void
 server::host::file<HostType>::validate_method(::server::protocol::http::method m) const

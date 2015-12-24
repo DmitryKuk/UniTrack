@@ -50,3 +50,21 @@ base::file_cache<T, Generator>::clear() noexcept
 {
 	this->cache_.clear();
 }
+
+
+template<class T, class Generator>
+inline
+size_t
+base::file_cache<T, Generator>::size() const noexcept
+{
+	return this->cache_.size();
+}
+
+
+template<class T, class Generator>
+inline
+bool
+base::file_cache<T, Generator>::empty() const noexcept
+{
+	return this->cache_.empty();
+}

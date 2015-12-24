@@ -11,21 +11,30 @@
 using namespace std::literals;
 
 
+// Signal, that means clear_cache command for worker.
+// static
+constexpr int ::server::worker::clear_cache_signal;
+
+
 #define SIGNAL_REACTION(signal, reaction)	\
 	std::make_pair(signal, std::make_pair(#signal, &::server::worker::reaction))
 
 // Signal handlers map
 // static
 const std::unordered_map<int, std::pair<const char *, void (server::worker::*)(int, const char *)>>
-	server::worker::signal_handlers_ =
+	server::worker::signal_handlers_{
 		{
-			SIGNAL_REACTION(SIGHUP,		ignore),
+			SIGNAL_REACTION(SIGHUP,								ignore		),
+			
 #ifdef SIGQUIT
-			SIGNAL_REACTION(SIGQUIT,	exit),
+			SIGNAL_REACTION(SIGQUIT,							exit		),
 #endif	// SIGQUIT
-			SIGNAL_REACTION(SIGTERM,	exit),
-			SIGNAL_REACTION(SIGINT,		exit)
-		};
+			SIGNAL_REACTION(SIGTERM,							exit		),
+			SIGNAL_REACTION(SIGINT,								exit		),
+			
+			SIGNAL_REACTION(worker::clear_cache_signal,	clear_cache_handler	)
+		}
+	};
 
 #undef SIGNAL_REACTION
 
@@ -111,6 +120,8 @@ server::worker::signal_handler(const boost::system::error_code &err, int signal)
 		this->status_ = 1;
 		this->io_service().stop();
 	} else {
+		this->add_signal_handler();	// Waiting for the next signal
+		
 		auto it = worker::signal_handlers_.find(signal);
 		if (it == worker::signal_handlers_.end())
 			this->exit(signal, "Unknown");
@@ -136,4 +147,14 @@ server::worker::ignore(int signal, const char *signal_str) noexcept
 {
 	logger::stream(logger::level::info)
 		<< "Recieved signal: "s << signal_str << " ("s << signal << "). Ignoring..."s;
+}
+
+
+void
+server::worker::clear_cache_handler(int signal, const char *signal_str) noexcept
+{
+	logger::stream(logger::level::info)
+		<< "Recieved signal: "s << signal_str << " ("s << signal << "). Cleaning cache..."s;
+	
+	this->clear_cache();
 }

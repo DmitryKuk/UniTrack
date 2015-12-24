@@ -41,6 +41,10 @@ public:
 	
 	// Returns reference to error host object
 	inline const ::server::host::base & error_host() const noexcept;
+	
+	
+	// Tells all hosts to clear cached data.
+	void clear_cache() noexcept;
 private:
 	class equal_to:
 		private std::equal_to<std::string>

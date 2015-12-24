@@ -21,7 +21,7 @@ server::host::file_handlers::files_only::response::response(
 	fm_pair_ptr_{std::move(fm_pair_ptr)}
 {
 	using namespace ::server::protocol::http;
-	{}
+	
 	
 	// Adding Server header
 	::server::host::base::add_server_name(worker, *this);

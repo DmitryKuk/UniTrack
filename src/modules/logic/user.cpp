@@ -8,6 +8,7 @@
 #include <functional>
 
 #include <logic/exceptions.h>
+#include <logger/logger.h>
 
 using namespace std::literals;
 
@@ -111,7 +112,8 @@ logic::user::user_info(const std::string &user_ref, const std::string &session_i
 	
 	// Adding up to max_friends random friends
 	{
-		using index_type = unsigned int;
+		constexpr auto problem_line_no = __LINE__ + 1;
+		using index_type = unsigned int;		// <- Replace "unsigned int" by "size_t" here! (see below)
 		constexpr index_type max_friends = 6;
 		
 		
@@ -119,13 +121,28 @@ logic::user::user_info(const std::string &user_ref, const std::string &session_i
 		if (!friends.empty()) {	// If user has friends
 			std::array<index_type, max_friends> indexes;
 			
+			
+#if defined(__FILE__) && defined(__LINE__)
+			if (friends.size() > std::numeric_limits<index_type>::max())
+				logger::stream(logger::level::critical)
+					<< "DEBUG INFO FOR ADMIN: User logic: In source file: "s << __FILE__ << ':' << __LINE__
+					<< ": too much friends for index_type: "s << friends.size()
+					<< " (max index: "s << std::numeric_limits<index_type>::max()
+					<< "): Go and correct line "s << problem_line_no
+					<< "!. Or don\'t worry, it\'s not critical."s;
+#endif	// defined(__FILE__) && defined(__LINE__)
+			
+			
+			const index_type friends_size = static_cast<index_type>(friends.size());
+			const index_type sample_size = std::min(friends_size, max_friends);
+			
+			
 			// Generating up to max_friends unique random indexes
 			{
-				const index_type friends_size = static_cast<index_type>(friends.size());
-				std::uniform_int_distribution<index_type> distribution{0, friends_size};
+				std::uniform_int_distribution<index_type> distribution{0, friends_size - 1};
 				
 				auto first_it = indexes.begin();
-				for (index_type i = 0, i_max = std::min(friends_size, max_friends); i < i_max; ++i) {
+				for (index_type i = 0; i < sample_size; ++i) {
 					auto current_it = first_it + i;
 					do {	// Regenerating, while not unique
 						*current_it = distribution(this->generator_);
@@ -136,7 +153,7 @@ logic::user::user_info(const std::string &user_ref, const std::string &session_i
 			
 			user_info += ",\"friends\":["s;	// Friends array begin
 				
-			for (const auto index: indexes) {
+			for (index_type i = 0; i < sample_size; ++i) {
 				static const mongo::BSONObj
 					friend_fields_to_return = BSON(
 						"_id"s				<< 0 <<	// Don't include _id
@@ -146,17 +163,15 @@ logic::user::user_info(const std::string &user_ref, const std::string &session_i
 						"last_visit_at"s	<< 1
 					);
 				
-				
-				// Searching friend with generated index
+				// Searching friend
 				mongo::BSONObj friend_obj = this->logic_gi().connection().findOne(
 					this->logic_gi().collection_users(),
-					MONGO_QUERY("_id"s << friends[index].OID()),	// Search by _id
-					&friend_fields_to_return						// Return only specified fields
+					MONGO_QUERY("_id"s << friends[indexes[i]].OID()),	// Search by _id
+					&friend_fields_to_return							// Return only specified fields
 				);
 				
 				if (friend_obj.isEmpty())
-					throw logic::user_not_found{"For id: \""s + friends[index].OID().toString() + '\"'};
-				
+					throw logic::user_not_found{"For id: \""s + friends[indexes[i]].OID().toString() + '\"'};
 				
 				// Add friend objects separator
 				if (user_info.back() == '}')

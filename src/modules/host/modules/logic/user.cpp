@@ -54,39 +54,39 @@ host::logic::user::response(const server::worker &worker, server::protocol::http
 	using namespace server::protocol::http;
 	
 	
-	static const std::string bad_request = "{\"status\":\"bad_request\"}"s;
+	static const std::string bad_request_body = "{\"status\":\"bad_request\"}"s;
 	
 	
 	// Parsing path
 	std::string user_ref, section;
 	try {
-		std::string trailling_path;
+		std::string trailing_path;
 		const auto fix_request_path =
 			[&]
 			{
-				if (trailling_path.empty() || trailling_path[0] != '/') {
+				if (trailing_path.empty() || trailing_path[0] != '/') {
 					request.path = '/';
-					request.path += trailling_path;
+					request.path += trailing_path;
 				} else {
-					request.path = std::move(trailling_path);
+					request.path = std::move(trailing_path);
 				}
 			};
 		
 		
-		std::tie(user_ref, trailling_path) = host::split_first_section(request.path);
+		std::tie(user_ref, trailing_path) = host::split_first_section(request.path);
 		
 		static const std::regex user_ref_regex{"^[[:xdigit:]]*$"s, std::regex::optimize};
 		
 		if (std::regex_match(user_ref, user_ref_regex)) {
 			fix_request_path();
-			std::tie(section, trailling_path) = host::split_first_section(request.path);
+			std::tie(section, trailing_path) = host::split_first_section(request.path);
 			fix_request_path();
 		}
 	} catch (const std::logic_error &) {	// Incorrect path
 		if (request.args_set.count("json"s) == 0)	// Requested non-json
 			return this->redirect_response(worker, request, "/"s);	// Hard redirect
 		else
-			return this->response_with_json_body(worker, request, status::ok, bad_request, false);
+			return this->response_with_json_body(worker, request, status::ok, bad_request_body, false);
 	}
 	
 	
@@ -97,13 +97,13 @@ host::logic::user::response(const server::worker &worker, server::protocol::http
 	
 	// Process only GET and HEAD methods
 	if (request.method != method::GET && request.method != method::HEAD) {
-		return this->response_with_json_body(worker, request, status::ok, bad_request, false);
+		return this->response_with_json_body(worker, request, status::ok, bad_request_body, false);
 	}
 	
 	// User have not session id => don't show him any page!
 	if (request.cookies.count("sid"s) == 0) {
-		static const std::string not_logged_in = "{\"status\":\"not_logged_in\"}"s;
-		return this->response_with_json_body(worker, request, status::ok, not_logged_in, false);
+		static const std::string response_body = "{\"status\":\"not_logged_in\"}"s;
+		return this->response_with_json_body(worker, request, status::ok, response_body, false);
 	}
 	
 	

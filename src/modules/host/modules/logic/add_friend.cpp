@@ -6,6 +6,7 @@
 
 #include <server/worker.h>
 #include <host/module.h>
+#include <host/path_utils.h>
 #include <logic/exceptions.h>
 
 using namespace std::literals;
@@ -39,15 +40,13 @@ host::logic::add_friend::response(const server::worker &worker, server::protocol
 {
 	using namespace server::protocol::http;
 	
-	static const std::string bad_request_body = "{\"status\":\"bad_request\"}"s;
-	
-	static const std::string status_ok = "{\"status\":\"ok\"}"s;
-	
 	
 	// User have not session id => ignore him
 	// This host can process only POST requests
-	if (request.method != method::POST || request.cookies.count("sid"s) == 0)
-		return this->redirect_response(worker, request, "/"s);	// Hard redirect
+	if (request.method != method::POST || request.cookies.count("sid"s) == 0) {
+		static const std::string response_body = "{\"status\":\"not_logged_in\"}"s;
+		return this->response_with_json_body(worker, request, status::ok, response_body, false);
+	}
 	
 	
 	const auto handle_error =
@@ -58,44 +57,29 @@ host::logic::add_friend::response(const server::worker &worker, server::protocol
 		};
 	
 	
-	std::string user_ref, section;
+	std::string friend_ref;
 	try {
-		std::string trailling_path;
-		const auto fix_request_path =
-			[&]
-			{
-				if (trailling_path.empty() || trailling_path[0] != '/') {
-					request.path = '/';
-					request.path += trailling_path;
-				} else {
-					request.path = std::move(trailling_path);
-				}
-			};
+		std::string trailing_path;
+		std::tie(friend_ref, trailing_path) = host::split_first_section(request.path);
 		
-		
-		std::tie(user_ref, trailling_path) = host::split_first_section(request.path);
-		fix_request_path();
-		
-		std::tie(section,  trailling_path) = host::split_first_section(request.path);
-		fix_request_path();
+		if (!trailing_path.empty() && trailing_path != "/"s)
+			throw std::logic_error{""s};
 	} catch (const std::logic_error &) {	// Incorrect path
-		return this->redirect_response(worker, request, "/"s);	// Hard redirect
+		static const std::string response_body = "{\"status\":\"bad_request\"}"s;
+		return this->response_with_json_body(worker, request, status::ok, response_body, false);
 	}
 	
 	
-	// Processing add_friend form
 	try {
-		std::string user_ref, session_cookie;
-		std::tie(user_ref, session_cookie) = this->register_user(form);
+		static const std::string response_body = "{\"status\":\"ok\"}"s;
 		
-		std::string response_body = "{\"status\":\"ok\",\"ref\":\""s + user_ref + "\"}"s;
-		auto response_ptr = this->response_with_json_body(worker, request, status::ok, std::move(response_body));
-		response_ptr->add_header(header::set_cookie, session_cookie);
+		std::string session_cookie = this->add_friend_(friend_ref, request.cookies.at("sid"s));
+		
+		auto response_ptr = this->response_with_json_body(worker, request, status::ok, response_body, false);
+		if (!session_cookie.empty())
+			response_ptr->add_header(header::set_cookie, session_cookie);
 		
 		return std::move(response_ptr);
-	} catch (const ::logic::duplicate_user_found &e) {
-		static const std::string response_body = "{\"status\":\"duplicate_user_found\"}"s;
-		return handle_error(e.what(), response_body);
 	} catch (const std::exception &e) {
 		static const std::string response_body = "{\"status\":\"unknown_error\"}"s;
 		return handle_error(e.what(), response_body);

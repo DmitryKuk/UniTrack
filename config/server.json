@@ -41,6 +41,10 @@
 					"type": "logic/user"
 				},
 				
+				"add_friend": {
+					"type": "logic/add_friend"
+				},
+				
 				"login": {
 					"type": "logic/login"
 				},

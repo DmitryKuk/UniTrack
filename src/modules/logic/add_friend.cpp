@@ -15,7 +15,7 @@ using namespace std::literals;
 // Returns new session cookie or throws.
 // If session is valid, session cookie is empty.
 std::string
-logic::add_friend::add_friend(const std::string &friend_ref, const std::string &session_id) const
+logic::add_friend::add_friend_(const std::string &friend_ref, const std::string &session_id) const
 {
 	std::string current_user_id, session_cookie;
 	std::tie(current_user_id, session_cookie) = this->continue_session(session_id);
@@ -23,7 +23,7 @@ logic::add_friend::add_friend(const std::string &friend_ref, const std::string &
 	mongo::OID current_user_oid = mongo::OID(current_user_id);
 	
 	
-	static const mongo::BSONObjfriend_fields_to_return = BSON("_id"s << 1);
+	static const mongo::BSONObj friend_fields_to_return = BSON("_id"s << 1);
 	
 	mongo::BSONObj friend_obj = this->logic_gi().connection().findAndModify(
 		this->logic_gi().collection_users(),

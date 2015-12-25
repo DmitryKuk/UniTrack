@@ -22,7 +22,7 @@ public:
 	
 	// Returns new session cookie or throws.
 	// If session is valid, session cookie is empty.
-	std::string add_friend(const std::string &friend_ref, const std::string &session_id) const;
+	std::string add_friend_(const std::string &friend_ref, const std::string &session_id) const;
 };	// class add_friend
 
 

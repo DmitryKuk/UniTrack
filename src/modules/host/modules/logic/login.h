@@ -16,17 +16,16 @@ class login:
 	public server::host::base
 {
 public:
-	using base_host = server::host::base;
+	using base_logic	= ::logic::login;
+	using base_host		= server::host::base;
 	
 	
-	login(const nlohmann::json &config,
-		  ::logic::global_instance &logic);
+	login(const nlohmann::json &config, ::logic::global_instance &logic);
 	
 	
 	virtual
 	std::unique_ptr<server::protocol::http::response>
-	response(const server::worker &worker,
-			 server::protocol::http::request &request) const override;
+	response(const server::worker &worker, server::protocol::http::request &request) const override;
 };	// class login
 
 

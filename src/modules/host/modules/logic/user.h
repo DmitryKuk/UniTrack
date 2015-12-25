@@ -16,24 +16,23 @@ class user:
 	public server::host::base
 {
 public:
-	using base_host = server::host::base;
+	using base_logic	= ::logic::user;
+	using base_host		= server::host::base;
 	
 	
-	user(const nlohmann::json &config,
-		 ::logic::global_instance &logic);
+	user(const nlohmann::json &config, ::logic::global_instance &logic);
 	
 	
 	virtual
 	std::unique_ptr<server::protocol::http::response>
-	response(const server::worker &worker,
-			 server::protocol::http::request &request) const override;
+	response(const server::worker &worker, server::protocol::http::request &request) const override;
 	
 	
 	using section_handler_type = std::unique_ptr<server::protocol::http::response>
 								 (user::*)(const server::worker &,
-											server::protocol::http::request &,
-											const std::string &,
-											const std::string &) const;
+										   server::protocol::http::request &,
+										   const std::string &,
+										   const std::string &) const;
 private:
 	static const std::unordered_map<std::string, section_handler_type> section_handlers_;
 	

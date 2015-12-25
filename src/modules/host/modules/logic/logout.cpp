@@ -18,10 +18,7 @@ host::module<host::logic::logout> module{
 	"logic/logout"s,
 	[](const nlohmann::json &host_config, ::logic::global_instance &logic)
 	{
-		return std::make_shared<host::logic::logout>(
-			host_config,
-			logic
-		);
+		return std::make_shared<host::logic::logout>(host_config, logic);
 	}
 };
 
@@ -30,17 +27,15 @@ host::module<host::logic::logout> module{
 
 
 
-host::logic::logout::logout(const nlohmann::json &config,
-						  ::logic::global_instance &logic):
-	::logic::logout{logic},
+host::logic::logout::logout(const nlohmann::json &config, ::logic::global_instance &logic):
+	base_logic{logic},
 	base_host{config}
 {}
 
 
 // virtual
 std::unique_ptr<server::protocol::http::response>
-host::logic::logout::response(const server::worker &worker,
-							 server::protocol::http::request &request) const
+host::logic::logout::response(const server::worker &worker, server::protocol::http::request &request) const
 {
 	using namespace server::protocol::http;
 	

@@ -21,10 +21,7 @@ host::module<host::logic::user> module{
 	"logic/user"s,
 	[](const nlohmann::json &host_config, ::logic::global_instance &logic)
 	{
-		return std::make_shared<host::logic::user>(
-			host_config,
-			logic
-		);
+		return std::make_shared<host::logic::user>(host_config, logic);
 	}
 };
 
@@ -43,17 +40,15 @@ const std::unordered_map<std::string, host::logic::user::section_handler_type>
 	};
 
 
-host::logic::user::user(const nlohmann::json &config,
-						::logic::global_instance &logic):
-	::logic::user{logic},
+host::logic::user::user(const nlohmann::json &config, ::logic::global_instance &logic):
+	base_logic{logic},
 	base_host{config}
 {}
 
 
 // virtual
 std::unique_ptr<server::protocol::http::response>
-host::logic::user::response(const server::worker &worker,
-							server::protocol::http::request &request) const
+host::logic::user::response(const server::worker &worker, server::protocol::http::request &request) const
 {
 	using namespace server::protocol::http;
 	

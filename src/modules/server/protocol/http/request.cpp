@@ -318,7 +318,7 @@ server::protocol::http::operator<<(std::ostream &stream, const ::server::protoco
 		<< ::server::protocol::http::str::HTTP << ::server::protocol::http::str::slash
 		<< ::server::protocol::http::version_to_str(request.version)
 		<< ", "s << ::server::protocol::http::method_to_str(request.method)
-		<< ", Requested URI: \""s << request.uri
+		<< ", Path: \""s << request.path
 		<< "\". Host: \""s << request.host << "\", port: "s << request.port << '.';
 	
 	if (!request.parsed_headers.empty()) {

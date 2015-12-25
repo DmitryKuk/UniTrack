@@ -3,6 +3,7 @@
 #include <host/modules/logic/user.h>
 
 #include <tuple>
+#include <regex>
 #include <functional>
 #include <stdexcept>
 
@@ -58,27 +59,10 @@ host::logic::user::response(const server::worker &worker,
 	using namespace server::protocol::http;
 	
 	
-	// Validation
-	// This host can process only GET and HEAD requests with "?json" suffix in uri
-	if (request.args_set.count("json"s) == 0) {	// Requested non-json
-		request.path = "/"s;
-		return nullptr;	// Soft redirect
-	}
-	
-	// Process only GET and HEAD methods
-	if (request.method != method::GET && request.method != method::HEAD) {
-		static const std::string bad_request = "{\"status\":\"bad_request\"}"s;
-		return this->response_with_json_body(worker, request, status::ok, bad_request, false);
-	}
-	
-	// User have not session id => don't show him any page!
-	if (request.cookies.count("sid"s) == 0) {
-		static const std::string not_logged_in = "{\"status\":\"not_logged_in\"}"s;
-		return this->response_with_json_body(worker, request, status::ok, not_logged_in, false);
-	}
+	static const std::string bad_request = "{\"status\":\"bad_request\"}"s;
 	
 	
-	
+	// Parsing path
 	std::string user_ref, section;
 	try {
 		std::string trailling_path;
@@ -95,13 +79,38 @@ host::logic::user::response(const server::worker &worker,
 		
 		
 		std::tie(user_ref, trailling_path) = host::split_first_section(request.path);
-		fix_request_path();
 		
-		std::tie(section,  trailling_path) = host::split_first_section(request.path);
-		fix_request_path();
+		static const std::regex user_ref_regex{"^[[:xdigit:]]*$"s, std::regex::optimize};
+		
+		if (std::regex_match(user_ref, user_ref_regex)) {
+			fix_request_path();
+			std::tie(section, trailling_path) = host::split_first_section(request.path);
+			fix_request_path();
+		}
 	} catch (const std::logic_error &) {	// Incorrect path
-		return this->redirect_response(worker, request, "/"s);	// Hard redirect
+		if (request.args_set.count("json"s) == 0)	// Requested non-json
+			return this->redirect_response(worker, request, "/"s);	// Hard redirect
+		else
+			return this->response_with_json_body(worker, request, status::ok, bad_request, false);
 	}
+	
+	
+	// Validation
+	// This host can process only GET and HEAD requests with "?json" suffix in uri
+	if (request.args_set.count("json"s) == 0)	// Requested non-json
+		return nullptr;	// Soft redirect
+	
+	// Process only GET and HEAD methods
+	if (request.method != method::GET && request.method != method::HEAD) {
+		return this->response_with_json_body(worker, request, status::ok, bad_request, false);
+	}
+	
+	// User have not session id => don't show him any page!
+	if (request.cookies.count("sid"s) == 0) {
+		static const std::string not_logged_in = "{\"status\":\"not_logged_in\"}"s;
+		return this->response_with_json_body(worker, request, status::ok, not_logged_in, false);
+	}
+	
 	
 	
 	// Search for section handler

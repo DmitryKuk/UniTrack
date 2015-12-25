@@ -11,7 +11,7 @@
 
 using namespace std::literals;
 
-#include <iostream>
+
 // Registers new user using data from registration form.
 // Returns user ref and session cookie, if user registered successfully.
 // Otherwise, throws.
@@ -52,9 +52,7 @@ logic::registration::register_user(const logic::registration::form &form) const
 	user_obj_builder.append("ref"s, user_ref);
 	
 	for (const std::string &key: {"email"s, "password"s, "name"s, "surname"s}) {
-		std::cerr << "form.at(\"" << key << "\") = " << std::endl;
 		const std::string &value = form.at(key);
-		std::cerr << "    \"" << value << "\"" << std::endl;
 		if (value.empty())
 			throw logic::incorrect_form{"Field empty: \""s + key + '\"'};
 		

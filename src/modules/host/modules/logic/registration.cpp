@@ -36,7 +36,7 @@ host::logic::registration::registration(const nlohmann::json &config,
 	base_host{config}
 {}
 
-#include <iostream>
+
 // virtual
 std::unique_ptr<server::protocol::http::response>
 host::logic::registration::response(const server::worker &worker,
@@ -66,38 +66,18 @@ host::logic::registration::response(const server::worker &worker,
 	if (data.size() != request.body.size())
 		return handle_error("Non-string-convertible data in registration request body"s, bad_request_body);
 	
-	std::cerr << "Raw form: " << data << std::endl;
+	
 	// Parsing registration form
 	::logic::registration::form form;
 	bool parsed = server::protocol::http::decode_uri_args(
 		data,
-		[&](std::string key, std::string value) {
-			std::cerr << "Parsed 1: " << key << ": " << value << std::endl;
-			auto p = form.insert(std::make_pair(key, value));
-			std::cerr << "Parsed 2: " << key << ": " << value << std::endl;
-			
-			if (p.second)	std::cerr << "Inserted!" << std::endl;
-			else			std::cerr << "Not inserted!" << std::endl;
-			
-			if (p.first == form.end())	std::cerr << "At end!" << std::endl;
-			else						std::cerr << "Not at end!" << std::endl;
-			
-			std::cerr << " => Form:";
-			for (const auto &p: form)
-				std::cerr << "  [" << p.first << ": " << p.second << "]";
-			std::cerr << std::endl;
-		},
-		[&](const std::string &key) {
-			std::cerr << "Parsed: " << key << std::endl;
-		}
+		[&](std::string &&key, std::string &&value) { form.emplace(std::move(key), std::move(value)); },
+		[&](const std::string &) {}
 	);
 	
 	if (!parsed)
 		return handle_error("Can\'t decode registration request body"s, bad_request_body);
-	std::cerr << "Form:";
-	for (const auto &p: form)
-		std::cerr << "  [" << p.first << ": " << p.second << "]";
-	std::cerr << std::endl;
+	
 	
 	// Processing registration form
 	try {
@@ -111,10 +91,6 @@ host::logic::registration::response(const server::worker &worker,
 		return std::move(response_ptr);
 	} catch (const ::logic::duplicate_user_found &e) {
 		static const std::string response_body = "{\"status\":\"duplicate_user_found\"}"s;
-		return handle_error(e.what(), response_body);
-	} catch (const std::out_of_range &e) {
-		std::cerr << "Out of range caught: " << e.what() << std::endl;
-		static const std::string response_body = "{\"status\":\"unknown_error\"}"s;
 		return handle_error(e.what(), response_body);
 	} catch (const std::exception &e) {
 		static const std::string response_body = "{\"status\":\"unknown_error\"}"s;

@@ -45,6 +45,10 @@
 					"type": "logic/add_friend"
 				},
 				
+				"remove_friend": {
+					"type": "logic/remove_friend"
+				},
+				
 				"login": {
 					"type": "logic/login"
 				},

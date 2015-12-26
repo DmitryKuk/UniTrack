@@ -40,12 +40,17 @@ host::logic::logout::response(const server::worker &worker, server::protocol::ht
 	using namespace server::protocol::http;
 	
 	
+	// This host can process only POST requests
+	if (request.method != method::POST)
+		return nullptr;	// Soft redirect
+	
 	auto sid_it = request.cookies.find("sid"s);
 	
 	// User have not session id => don't need logout him
-	// This host can process only POST requests
-	if (request.method != method::POST || sid_it == request.cookies.end())
-		return this->redirect_response(worker, request, "/"s);	// Hard redirect
+	if (sid_it == request.cookies.end()) {
+		static const std::string not_logged_in_body	= "{\"status\":\"not_logged_in\"}"s;
+		return this->response_with_json_body(worker, request, status::ok, not_logged_in_body, false);
+	}
 	
 	
 	static const std::string ok_body			= "{\"status\":\"ok\"}"s;

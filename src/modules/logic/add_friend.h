@@ -1,7 +1,7 @@
 // Author: Dmitry Kukovinets (d1021976@gmail.com)
 
-#ifndef LOGIC_REGISTRATION_H
-#define LOGIC_REGISTRATION_H
+#ifndef LOGIC_ADD_FRIEND_H
+#define LOGIC_ADD_FRIEND_H
 
 #include <string>
 #include <unordered_map>
@@ -29,4 +29,4 @@ public:
 };	// namespace logic
 
 
-#endif	// LOGIC_REGISTRATION_H
+#endif	// LOGIC_ADD_FRIEND_H

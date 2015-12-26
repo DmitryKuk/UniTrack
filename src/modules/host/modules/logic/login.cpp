@@ -39,13 +39,16 @@ host::logic::login::response(const server::worker &worker, server::protocol::htt
 {
 	using namespace server::protocol::http;
 	
-	static const std::string bad_request_body = "{\"status\":\"bad_request\"}"s;
 	
+	// This host can process only POST requests
+	if (request.method != method::POST)
+		return nullptr;	// Soft redirect
 	
 	// User have session id => don't need login him
-	// This host can process only POST requests
-	if (request.method != method::POST || request.cookies.count("sid"s))
-		return this->redirect_response(worker, request, "/"s);	// Hard redirect
+	if (request.cookies.count("sid"s)) {
+		static const std::string response_body = "{\"status\":\"already_logged_in\"}"s;
+		return this->response_with_json_body(worker, request, status::ok, response_body, false);
+	}
 	
 	
 	const auto handle_error =
@@ -54,6 +57,9 @@ host::logic::login::response(const server::worker &worker, server::protocol::htt
 			this->log_error(worker, request, log_message, status::ok);
 			return this->response_with_json_body(worker, request, status::ok, response_body, false);
 		};
+	
+	
+	static const std::string bad_request_body = "{\"status\":\"bad_request\"}"s;
 	
 	
 	// Login users by POST request only

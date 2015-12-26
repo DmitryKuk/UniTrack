@@ -48,8 +48,8 @@ host::logic::logout::response(const server::worker &worker, server::protocol::ht
 	
 	// User have not session id => don't need logout him
 	if (sid_it == request.cookies.end()) {
-		static const std::string not_logged_in_body	= "{\"status\":\"not_logged_in\"}"s;
-		return this->response_with_json_body(worker, request, status::ok, not_logged_in_body, false);
+		static const std::string response_body	= "{\"status\":\"not_logged_in\"}"s;
+		return this->response_with_json_body(worker, request, status::ok, response_body, false);
 	}
 	
 	

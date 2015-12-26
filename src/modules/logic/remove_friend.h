@@ -12,7 +12,7 @@
 namespace logic {
 
 
-class add_friend:
+class remove_friend:
 	public ::logic::base
 {
 public:
@@ -22,8 +22,8 @@ public:
 	
 	// Returns new session cookie or throws.
 	// If session is valid, session cookie is empty.
-	std::string add_friend_(const std::string &friend_ref, const std::string &session_id) const;
-};	// class add_friend
+	std::string remove_friend_(const std::string &friend_ref, const std::string &session_id) const;
+};	// class remove_friend
 
 
 };	// namespace logic

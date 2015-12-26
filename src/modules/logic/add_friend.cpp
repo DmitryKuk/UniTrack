@@ -28,7 +28,8 @@ logic::add_friend::add_friend_(const std::string &friend_ref, const std::string 
 	mongo::BSONObj friend_obj = this->logic_gi().connection().findAndModify(
 		this->logic_gi().collection_users(),
 		BSON("ref"s << friend_ref),											// Search by session id (NOT _id!!!)
-		BSON("$push"s << BSON("incoming_friends"s << current_user_oid)),	// Update if session is valid
+		BSON("$push"s << BSON("incoming_friends"s << current_user_oid) <<	// Update fields
+			 "$push"s << BSON("")),
 		false,																// Not upsert
 		false,																// Return old version
 		mongo::BSONObj{},													// Not sort

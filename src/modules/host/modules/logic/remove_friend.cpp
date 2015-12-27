@@ -41,9 +41,14 @@ host::logic::remove_friend::response(const server::worker &worker, server::proto
 	using namespace server::protocol::http;
 	
 	
-	// User have not session id => ignore him
-	// This host can process only POST requests
-	if (request.method != method::POST || request.cookies.count("sid"s) == 0) {
+	static const std::string bad_request_body = "{\"status\":\"bad_request\"}"s;
+	
+	
+	// Validation
+	if (request.method != method::POST)
+		return this->response_with_json_body(worker, request, status::ok, bad_request_body, false);
+	
+	if (request.cookies.count("sid"s) == 0) {
 		static const std::string response_body = "{\"status\":\"not_logged_in\"}"s;
 		return this->response_with_json_body(worker, request, status::ok, response_body, false);
 	}
@@ -65,8 +70,7 @@ host::logic::remove_friend::response(const server::worker &worker, server::proto
 		if (!trailing_path.empty() && trailing_path != "/"s)
 			throw std::logic_error{""s};
 	} catch (const std::logic_error &) {	// Incorrect path
-		static const std::string response_body = "{\"status\":\"bad_request\"}"s;
-		return this->response_with_json_body(worker, request, status::ok, response_body, false);
+		return this->response_with_json_body(worker, request, status::ok, bad_request_body, false);
 	}
 	
 	

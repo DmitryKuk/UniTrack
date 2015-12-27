@@ -36,12 +36,12 @@ logic::user::user_info(const std::string &user_ref, const std::string &session_i
 			user_fields_to_return = BSON(
 				"_id"s				<< 1 <<
 				"ref"s				<< 1 <<
-				"email"s			<< 1 <<
 				"name"s				<< 1 <<
 				"surname"s			<< 1 <<
 				"last_visit_at"s	<< 1 <<
 				"birthday"s			<< 1 <<
-				"friends"s			<< 1
+				"friends"s			<< 1 <<
+				"friend_of"s		<< 1
 			);
 		
 		
@@ -54,7 +54,7 @@ logic::user::user_info(const std::string &user_ref, const std::string &session_i
 		else					// Info for specified user
 			user_obj = this->logic_gi().connection().findOne(
 				this->logic_gi().collection_users(),
-				MONGO_QUERY("ref"s << user_ref),			// Search by ref
+				MONGO_QUERY("ref"s << user_ref),					// Search by ref
 				&user_fields_to_return
 			);
 		
@@ -98,15 +98,30 @@ logic::user::user_info(const std::string &user_ref, const std::string &session_i
 	// Adding last visit time
 	add_info(',', "last_visit_at"s, mongo::dateToISOStringUTC(user_obj["last_visit_at"s].Date()));
 	
-	// Adding email for user, if it is his email
-	if (user_obj["_id"s].OID().toString() == current_user_id)
-		add_info_by_key(',', "email"s, user_obj);
-	
 	// Adding user birthday, if it is set
 	{
 		std::string birthday = user_obj["birthday"s].str();
 		if (!birthday.empty())
 			add_info(',', "birthday"s, birthday);
+	}
+	
+	
+	// Adding user type: self, friend or not_friend
+	{
+		mongo::OID current_user_oid{current_user_id};
+		if (user_obj["_id"s].OID() == current_user_oid) {	// Current user
+			user_info += ",\"type\":\"self\""s;
+		} else {											// Not current user
+			auto friend_of = user_obj["friend_of"s].Array();	// User friend_of' _id-s
+			if (std::find_if(
+					friend_of.begin(),
+					friend_of.end(),	// Is friend of current user
+					[&](const mongo::BSONElement &element) { return element.OID() == current_user_oid; }
+				) != friend_of.end())
+				user_info += ",\"type:\":\"friend\""s;
+			else
+				user_info += ",\"type:\":\"not_friend\""s;
+		}
 	}
 	
 	
@@ -117,7 +132,7 @@ logic::user::user_info(const std::string &user_ref, const std::string &session_i
 		constexpr index_type max_friends = 6;
 		
 		
-		auto friends = user_obj["friends"s].Array();
+		auto friends = user_obj["friends"s].Array();	// User friends' _id-s
 		if (!friends.empty()) {	// If user has friends
 			std::array<index_type, max_friends> indexes;
 			

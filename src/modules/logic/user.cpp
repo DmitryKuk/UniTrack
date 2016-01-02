@@ -166,39 +166,48 @@ logic::user::user_info(const std::string &user_ref, const std::string &session_i
 			}
 			
 			
-			user_info += ",\"friends\":["s;	// Friends array begin
-				
-			for (index_type i = 0; i < sample_size; ++i) {
-				static const mongo::BSONObj
-					friend_fields_to_return = BSON(
-						"_id"s				<< 0 <<	// Don't include _id
-						"ref"s				<< 1 <<
-						"name"s				<< 1 <<
-						"surname"s			<< 1 <<
-						"last_visit_at"s	<< 1
+			const auto add_info_for_friend =
+				[&](char separator, index_type i)
+				{
+					static const mongo::BSONObj
+						friend_fields_to_return = BSON(
+							"_id"s				<< 0 <<	// Don't include _id
+							"ref"s				<< 1 <<
+							"name"s				<< 1 <<
+							"surname"s			<< 1 <<
+							"last_visit_at"s	<< 1
+						);
+					
+					// Searching for friend
+					mongo::BSONObj friend_obj = this->logic_gi().connection().findOne(
+						this->logic_gi().collection_users(),
+						MONGO_QUERY("_id"s << friends[indexes[i]].OID()),	// Search by _id
+						&friend_fields_to_return							// Return only specified fields
 					);
-				
-				// Searching friend
-				mongo::BSONObj friend_obj = this->logic_gi().connection().findOne(
-					this->logic_gi().collection_users(),
-					MONGO_QUERY("_id"s << friends[indexes[i]].OID()),	// Search by _id
-					&friend_fields_to_return							// Return only specified fields
-				);
-				
-				if (friend_obj.isEmpty())
-					throw logic::user_not_found{"For id: \""s + friends[indexes[i]].OID().toString() + '\"'};
-				
-				// Add friend objects separator
-				if (user_info.back() == '}')
-					user_info += ',';
-				
-				// Add json string for current friend
-				add_info_by_key('{', "ref"s, friend_obj);
-				for (const std::string &key: {"name"s, "surname"s})
-					add_info_by_key(',', key, friend_obj);
-				add_info(',', "last_visit_at"s, mongo::dateToISOStringUTC(friend_obj["last_visit_at"s].Date()));
-				user_info += '}';
-			}
+					
+					if (friend_obj.isEmpty())
+						throw logic::user_not_found{"For id: \""s + friends[indexes[i]].OID().toString() + '\"'};
+					
+					// Add friend objects separator
+					user_info += separator;
+					
+					// Add json string for current friend
+					add_info_by_key('{', "ref"s, friend_obj);
+					for (const std::string &key: {"name"s, "surname"s})
+						add_info_by_key(',', key, friend_obj);
+					add_info(',', "last_visit_at"s, mongo::dateToISOStringUTC(friend_obj["last_visit_at"s].Date()));
+					user_info += '}';
+				};
+			
+			
+			user_info += ",\"friends\":"s;	// Friends array begin
+			
+			// Adding info for first friend
+			add_info_for_friend('[', 0);
+			
+			// Adding info for other friends
+			for (index_type i = 1; i < sample_size; ++i)
+				add_info_for_friend(',', i);
 			
 			user_info += ']';				// Friends array end
 		}

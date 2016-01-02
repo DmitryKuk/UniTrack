@@ -63,29 +63,36 @@ logic::users::list_users(const std::string &session_id) const
 		};
 	
 	
-	if (user_cursor_ptr->more()) {
-		users_json_str += ",\"users\":["s;
-		
-		while (user_cursor_ptr->more()) {
-			mongo::BSONObj user_obj = user_cursor_ptr->nextSafe();
+	const auto add_info_for_user =
+		[&](char separator, const mongo::BSONObj &obj)
+		{
+			users_json_str += separator;
 			
-			
-			add_info_by_key('{', "ref"s, user_obj);
-			
+			add_info_by_key('{', "ref"s, obj);
 			for (const std::string &key: {"name"s, "surname"s})
-				add_info_by_key(',', key, user_obj);
-			
-			add_info(',', "last_visit_at"s, mongo::dateToISOStringUTC(user_obj["last_visit_at"s].Date()));
+				add_info_by_key(',', key, obj);
+			add_info(',', "last_visit_at"s, mongo::dateToISOStringUTC(obj["last_visit_at"s].Date()));
 			
 			// Adding user birthday, if it is set
 			{
-				std::string birthday = user_obj["birthday"s].str();
+				std::string birthday = obj["birthday"s].str();
 				if (!birthday.empty())
 					add_info(',', "birthday"s, birthday);
 			}
 			
 			users_json_str += '}';	// End of user object
-		}
+		};
+	
+	
+	if (user_cursor_ptr->more()) {
+		users_json_str += ",\"users\":"s;
+		
+		// Adding info for first user
+		add_info_for_user('[', user_cursor_ptr->nextSafe());
+		
+		// Adding info for other users
+		while (user_cursor_ptr->more())
+			add_info_for_user(',', user_cursor_ptr->nextSafe());
 		
 		users_json_str += ']';	// End of users list
 	}
